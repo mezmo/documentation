@@ -521,5 +521,6 @@
     "metatags": {
       "robots": "noindex"
     }
-  }
+  },
+  "description": "Explore guides, APIs, tutorials, and reference materials for collecting telemetry and using Mezmo’s SRE agent to manage production environments."
 }
