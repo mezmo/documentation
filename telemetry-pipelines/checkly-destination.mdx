@@ -23,7 +23,7 @@ You will also need to provide the access key for your Checkly instance.
 
 ### Route Processor Configuration
 
-Because Checkly only accepts Checkly-related spans, you will need to configure a [Route Processor](/telemetry-pipelines/route-processor) to send those spans to your destination.  Use this conditional statement to route the spans to the destintation. 
+Because Checkly only accepts Checkly-related spans, you will need to configure a [Route Processor](/telemetry-pipelines/route-processor) to send those spans to your destination.  Use this conditional statement to route the spans to the destination. 
 
 ```bash
 if trace_state: checkly=true

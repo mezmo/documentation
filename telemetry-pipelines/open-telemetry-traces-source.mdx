@@ -45,7 +45,7 @@ The endpoint in the exporters configuration must exactly match the URL provided 
 
 ## Data Structure
 
-Once trace data ingested into a Mezmo pipeline each span will be converted into a Mezmo event and the data structure will differ from the Otel structure. Look at the example below to know what to expect and how to navigate your data.
+Once trace data ingested into a Mezmo pipeline each span will be converted into a Mezmo event and the data structure will differ from the OTel structure. Look at the example below to know what to expect and how to navigate your data.
 
 ```json
 {
@@ -85,7 +85,7 @@ Once trace data ingested into a Mezmo pipeline each span will be converted into 
   },
   "metadata": {
     "level": "string", // It always equals "trace"
-    "span_uniq_id": "HEX string", // It is a unique id which groups traces event by a span within one otel source request
+    "span_uniq_id": "HEX string", // It is a unique id which groups traces event by a span within one OTel source request
     "resource": { // Moved from resource_spans.[].resource
     	"attributes": {
     	"key": "value"
@@ -113,5 +113,5 @@ Once trace data ingested into a Mezmo pipeline each span will be converted into 
 ```
 
 <Warning>
-In order to send Otel traces data into the Otel Destination the structure must remain unchanged, otherwise the Otel Destination will either not recognize the event as a trace or failed to handle an event. Arbitrary fields are allowed.
+In order to send OTel traces data into the OTel Destination the structure must remain unchanged, otherwise the OTel Destination will either not recognize the event as a trace or failed to handle an event. Arbitrary fields are allowed.
 </Warning>
