@@ -20,7 +20,7 @@ Because you will need some values from your S3 bucket configuration to complete 
 4. Enter a **Name** for the service, for example `mezmo-pipeline`. 
 5. Leave all the other settings at the default, and at the bottom of the page click **Create queue**. 
 6. On the **Queue details** page, select the **Access policy** tab. 
-7. Click **Edit** for the Access p**olicy**, and enter the JSON definition at the end of these instructions.  
+7. Click **Edit** for the Access policy, and enter the JSON definition at the end of these instructions.  
 8. In the JSON definition, enter these values, then click **Save**.
     1. For `Resource`, enter the value for `ARN` in the **Details** section for SQS. 
     2. For `aws:SourceARN`, navigate to your S3 bucket, open the **Properties** tab, and enter the value for `Amazon Resource Name (ARN).`
@@ -83,7 +83,7 @@ This completes the configuration of SQS and your S3 bucket. Now you can configur
 2. Navigate to your SQS queue and copy the **URL** in the **Details** section. 
 3. In the Amazon S3 Source configuration, copy the URL into the **SQS Queue URL** field. 
 4. Enter the information for your **AWS Authentication**, and the **Region** for your SQS Queue and S3 bucket. 
-5. Select the Compression method to use for your SQS event notificatinos. The `Compression` setting of `auto` will attempt to use the `Content Encoding`, `Content-Type`, and `key` suffix to determine which encoding is in use. If the compression setting cannot be determined, it will default to `none`.
+5. Select the Compression method to use for your SQS event notifications. The `Compression` setting of `auto` will attempt to use the `Content Encoding`, `Content-Type`, and `key` suffix to determine which encoding is in use. If the compression setting cannot be determined, it will default to `none`.
 
 ### Mezmo Configuration Options
 | Option | Description | 

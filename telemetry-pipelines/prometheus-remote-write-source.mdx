@@ -23,8 +23,8 @@ The Mezmo Prometheus Remote Write source provides a unique endpoint URL that use
 To configure a Prometheus instance add a section like this to its configuration file:
 
 ```yaml
-     - url: https://pipeline.mezmo.com/v1/<YOUR ROUTE ID>
-       bearer_token: <YOUR_PIPELINE_INGEST_KEY>
+     - url: https://pipeline.mezmo.com/v1/<YOUR ROUTE ID>
+       bearer_token: <YOUR_PIPELINE_INGEST_KEY>
 
 ```
 
@@ -40,12 +40,12 @@ kubectl -n monitoring create secret generic mz-prom-rw-token --from-literal=valu
 ```bash
 cat <<'EOF' | kubectl patch prometheus -n <PROMETHEUS NAMESPACE> <YOUR PROMETHEUS CRD INSTANCE> -f -
 spec:
-  remoteWrite:
-  - authorization:
-      credentials:
-        key: value
-        name: mz-prom-rw-token
-    url: <ENDPOINT FROM APP>
+  remoteWrite:
+  - authorization:
+      credentials:
+        key: value
+        name: mz-prom-rw-token
+    url: <ENDPOINT FROM APP>
 EOF
 
 ```

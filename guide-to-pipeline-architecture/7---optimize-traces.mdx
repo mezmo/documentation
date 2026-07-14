@@ -51,7 +51,7 @@ You can now set the Pipeline to route data based `on operational_state` with the
 2. Select **Route Processor,** and for **Title**, enter `State Router`. 
 3. You will create three routes, one for the `Normal` state, one for the `Incident` state, and one for the `Deploy` state. After you configure the options for the `Normal` state, click **Add route** to configure the `Incident` and `Deploy` routes. 
 
-| Configuration Options | Settiung | 
+| Configuration Options | Setting | 
 | ---- | ---- | 
 | **Route 1 Title** | `Normal` | 
 | **Route 1 Conditional Statement** | `message.op_state` `contains` `normal` | 
@@ -84,7 +84,7 @@ To activate the Pipeline, click **Deploy**.
 
 ## Initiate State and Grab State ID
 
-As you did with the Log Hander Pipeline, you need to intialize the state of the Pipeline and get the `State ID` of the pipeline for reference in Step 8.
+As you did with the Log Handler Pipeline, you need to initialize the state of the Pipeline and get the `State ID` of the pipeline for reference in Step 8.
 
 1. In the Pipeline Map, click on the **State** setting in the upper-left corner, and change it to `Incident`.
 2. Change the **State** setting back to `Normal`. This will initialize the Normal state, and generate the`Pipeline_ID` for the pipeline `state-variable`. 

@@ -7,7 +7,7 @@ description: "A platform-agnostic approach to cutting log volume by 50%+ via arc
 
 ## Introduction: Improving the ROI of Your Observability Data
 
-Modern observability platforms are incredibly powerful—but they are also expensive if you send everything, all the time. The goal of data optimization is **not** to lose visibility, but to ensure that the _right data_ reaches your observability tools at the _right time_, while everything else is handled more cost‑effectively.
+Modern observability platforms are incredibly powerful—but they are also expensive if you send everything, all the time. The goal of data optimization is **not** to lose visibility, but to ensure that the *right data* reaches your observability tools at the *right time*, while everything else is handled more cost‑effectively.
 
 This guide walks through a practical, platform‑agnostic approach to optimizing log data volume using the Mezmo pipeline. These principles apply no matter what Observability platforms you use.
 
@@ -26,16 +26,16 @@ Some of these steps may seem obvious, but they are not easy to put into practice
 
 An observability agent alone is insufficient. Agents are neutral forwarders—they collect telemetry and send it downstream, but they do not meaningfully process or optimize data in transit.
 
-You _could_ implement portions of this approach using open-source tools and custom development, but this typically introduces significant operational cost and complexity. Teams must build and maintain expertise that is not core to their business.
+You *could* implement portions of this approach using open-source tools and custom development, but this typically introduces significant operational cost and complexity. Teams must build and maintain expertise that is not core to their business.
 
 The fundamental challenge is that most tools fall into one of two categories:
 
 - **Agents**, which only send data
 - **Observability platforms**, which only receive and analyze data
 
-What’s missing is the ability to **process telemetry data in-stream**—to transform, optimize, and route it _as it flows_ from source to destination.
+What’s missing is the ability to **process telemetry data in-stream**—to transform, optimize, and route it *as it flows* from source to destination.
 
-Mezmo Telemetry Pipelines were designed specifically to address this gap. They give you precise control over the flow of telemetry between data sources and observability tools, allowing you to optimize and shape data _before_ it arrives downstream.
+Mezmo Telemetry Pipelines were designed specifically to address this gap. They give you precise control over the flow of telemetry between data sources and observability tools, allowing you to optimize and shape data *before* it arrives downstream.
 
 ## Understanding Pipeline Order Before You Optimize
 
@@ -151,11 +151,11 @@ Over-parsing everything “just in case” often increases cost without improvin
 
 ### 4: Merge
 
-Many applications emit multiple log lines to describe what is logically a _single event_. Common examples include firewall logs from systems like Palo Alto and AWS Firewalls that generate a high volume of log events. Often these logs share a number of fields that are non-unique. However, you would not want to simply drop the logs due to the importance of the information from a security perspective.
+Many applications emit multiple log lines to describe what is logically a *single event*. Common examples include firewall logs from systems like Palo Alto and AWS Firewalls that generate a high volume of log events. Often these logs share a number of fields that are non-unique. However, you would not want to simply drop the logs due to the importance of the information from a security perspective.
 
-Left unoptimized, these patterns dramatically increase log volume while making troubleshooting harder, not easier.
+Left un-optimized, these patterns dramatically increase log volume while making troubleshooting harder, not easier.
 
-With Mezmo’s [Reduce Processor](/telemetry-pipelines/reduce-processor) you can merge multiple log input events into a single log event based on specified criteria. For example, Threat and Traffic logs from the firewall share 70% of the same fields, and are tied to the same events by a common sessionid field. 
+With Mezmo’s [Reduce Processor](/telemetry-pipelines/reduce-processor) you can merge multiple log input events into a single log event based on specified criteria. For example, Threat and Traffic logs from the firewall share 70% of the same fields, and are tied to the same events by a common `sessionid` field. 
 
 #### Why Log Reduction Matters
 
@@ -189,12 +189,12 @@ The result is a single log event that contains the full context of the original 
 
 <Tip>
 **Best Practice**
-Use Reduce to _increase signal density_, not to obscure detail. The merged log should be easier to understand than the originals.
+Use Reduce to *increase signal density*, not to obscure detail. The merged log should be easier to understand than the originals.
 </Tip>
 
 5: Condense Events to Metrics
 
-Not all operational signals need to remain as logs. Many high-volume logs exist primarily to answer quantitative questions such as _how often_, _how long_, or _how many_. In these cases, converting logs into **metrics** preserves the signal while dramatically reducing data volume.
+Not all operational signals need to remain as logs. Many high-volume logs exist primarily to answer quantitative questions such as *how often*, *how long*, or *how many*. In these cases, converting logs into **metrics** preserves the signal while dramatically reducing data volume.
 
 #### When Logs Should Become Metrics
 
@@ -234,17 +234,17 @@ Use [the Mezmo Event to Metric Processor](/telemetry-pipelines/event-to-metric-p
 
 ### 6: Configure Responsive Pipelines
 
-Static pipelines force teams into a permanent trade-off: optimize for cost _or_ optimize for visibility. A **responsive pipeline** removes that trade-off by allowing the pipeline to switch operating modes based on operational context. At the heart of a responsive pipeline is the ability to **bypass filters and transforms on demand**.
+Static pipelines force teams into a permanent trade-off: optimize for cost *or* optimize for visibility. A **responsive pipeline** removes that trade-off by allowing the pipeline to switch operating modes based on operational context. At the heart of a responsive pipeline is the ability to **bypass filters and transforms on demand**.
 
 ### What Switching Modes Really Means
 
-When a pipeline switches modes, it does not simply send _more_ data—it **changes execution paths** inside the pipeline:
+When a pipeline switches modes, it does not simply send *more* data—it **changes execution paths** inside the pipeline:
 
 - Filters are bypassed so no log events are dropped
 - Reduce, parse, enrich, and transform processors are skipped or minimized
 - Raw (or near-raw) logs are forwarded directly to observability platforms
 
-This ensures that, during an incident, you see _exactly what the application emitted_, without optimization logic getting in the way. Developers and SREs do not need to worry that your optimization efforts will deny them the data they need to identify, diagnose, and remediate application issues. c
+This ensures that, during an incident, you see *exactly what the application emitted*, without optimization logic getting in the way. Developers and SREs do not need to worry that your optimization efforts will deny them the data they need to identify, diagnose, and remediate application issues. c
 
 <Note>
 **Why This Matters**
@@ -322,4 +322,4 @@ The net findings are that following these steps can reduce the volume of telemet
 
 ## Conclusion
 
-By following the six steps described in this paper in the design of your Telemetry Pipeline, you can realize significant data optimization to reduce the cost of your observability data. If you want to know more about our research and findings, or to find out how our steps can be applied to your telemetry data, [reach out to our Solutions Engineering team](https://go.mezmo.com/schedule-a-demo?utm_medium=docs&amp;utm_source=docs-paid&amp;utm_campaign=practitioners-guide).
+By following the six steps described in this paper in the design of your Telemetry Pipeline, you can realize significant data optimization to reduce the cost of your observability data. If you want to know more about our research and findings, or to find out how our steps can be applied to your telemetry data, [reach out to our Solutions Engineering team](https://go.mezmo.com/schedule-a-demo?utm*medium=docs&amp;utm*source=docs-paid&amp;utm*campaign=practitioners-guide).

@@ -23,7 +23,7 @@ Requirement 10 addresses these directly, but Requirements 3 and 12 also impact l
 
 Requirement 3 explains how cardholder data should be secured using techniques such as encryption, masking, and truncation. While logs most likely won’t contain cardholder data, you shouldn’t rule out the possibility. If a credit card number was accidentally leaked in a log file, it could result in significant penalties.
 
-To avoid this, any sensitive data that gets logged should be hashed or masked to avoid leaks. A common method involves using regular expressions to scan each log event and replace matches with a masked value. For example, if you use Fluentd, the [record_transformer plugin ](https://docs.fluentd.org/filter/record_transformer)will replace a specific field with a different value that you specify.
+To avoid this, any sensitive data that gets logged should be hashed or masked to avoid leaks. A common method involves using regular expressions to scan each log event and replace matches with a masked value. For example, if you use Fluentd, the [record transformer plugin ](https://docs.fluentd.org/filter/record_transformer)will replace a specific field with a different value that you specify.
 
 ### Requirement 10: Monitor access to network resources and cardholder data
 

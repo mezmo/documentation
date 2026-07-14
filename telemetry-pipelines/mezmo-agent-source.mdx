@@ -7,7 +7,7 @@ description: "Stream log data from the Mezmo Agent directly into a Pipeline, inc
 The Mezmo Agent Pipeline Source enables streaming of log data from the Mezmo Agent directly to your Pipeline.
 
 ## Mezmo Agent Configuration
-| Environment Variable Name | Yaml Variable Name | Description | 
+| Environment Variable Name | YAML Variable Name | Description | 
 | ---- | ---- | ---- | 
 | `MZ_ENDPOINT` | `http.endpoint` | Path of your Pipeline.  For all Pipelines this should be set to `/v1/<YOUR ROUTE ID>` | 
 | `MZ_HOST` | `http.host` | The ingest endpoint for your Pipeline.  Should be a value similar to `pipeline.mezmo.com` | 
@@ -16,7 +16,7 @@ The Mezmo Agent Pipeline Source enables streaming of log data from the Mezmo Age
 
 ### Migrating from Log Analysis
 
-Please upgrade your Agent version to 3.9 or above before starting your migration to Pipeline ingestion. You may already have similar variables configured to point to your log analysis endpoint (prefixed with `LOGDNA_`). Just update these settings to the values in the table with values provided by your Pipeline setup. Please note the the `MZ_`prefix is only supported for Agent version 3.7+.
+Please upgrade your Agent version to 3.9 or above before starting your migration to Pipeline ingestion. You may already have similar variables configured to point to your log analysis endpoint (prefixed with `LOGDNA_`). Just update these settings to the values in the table with values provided by your Pipeline setup. Please note the `MZ_`prefix is only supported for Agent version 3.7+.
 
 You can find more information about Agent settings in the [Agent GitHub repo](https://github.com/logdna/logdna-agent-v2/tree/master/docs#options).
 

@@ -49,7 +49,7 @@ Check the [Terraform Registry](https://registry.terraform.io/providers/mezmo/mez
 </Warning>
 
 <Tip>
-Unitll you are comfortable working with Mezmo Terraform for Pipelines, we recommend you start a new Terraform project for your Pipelines that is separate from any existing Terraform installations you may have.
+Until you are comfortable working with Mezmo Terraform for Pipelines, we recommend you start a new Terraform project for your Pipelines that is separate from any existing Terraform installations you may have.
 </Tip>
 
 You will need to add the configuration option for your pipeline service key to authenticate and use the Terraform provider API. Use the `auth_key = "<YOUR TOKEN>"`  configuration option in the provider configuration object as shown here:
@@ -69,7 +69,7 @@ Now that you've installed the Mezmo Terraform provider, you can generate Pipelin
 We are showing the example in a single file, but we generally recommend splitting it out into individual files for your providers, sources, destinations, pipelines, and variables.
 </Tip>
 
-This is is a simple placeholder example you can try out,  which will then reflect in your environment.
+This is a simple placeholder example you can try out,  which will then reflect in your environment.
 
 ```yaml
 terraform {
@@ -193,7 +193,7 @@ terraform apply
 ```
 
 <Note>
-You've just created your first Terraform pipeline! However, be aware the Pipeline is not deployed automatically. You will need to l[og into the the Mezmo Web App](https://app.mezmo.com) to test and deploy your Pipeline.
+You've just created your first Terraform pipeline! However, be aware the Pipeline is not deployed automatically. You will need to l[og into the Mezmo Web App](https://app.mezmo.com) to test and deploy your Pipeline.
 </Note>
 
 Once you've created your first Pipeline, we recommend studying the documentation [found in our repository ](https://github.com/mezmo/terraform-provider-mezmo/tree/main/docs/resources) to learn more about the available resources, including Sources, Processors, and Destinations.

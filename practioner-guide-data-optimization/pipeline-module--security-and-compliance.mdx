@@ -34,11 +34,11 @@ This Pipette uses the [Demo Logs](/telemetry-pipelines/demo-logs-source) with th
 
 ## 2 - Route Processor
 
-The [Route Processor](/telemetry-pipelines/route-processor) enables you to set conditions under which telemetry data will be sent to other points in the processing chain. In this case, it filters three types of events from the incoming data for processing: Access, Transaction, and Bootup. Any events that don't match these three types are sent directly to the storage location. 
+The [Route Processor](/telemetry-pipelines/route-processor) enables you to set conditions under which telemetry data will be sent to other points in the processing chain. In this case, it filters three types of events from the incoming data for processing: Access, Transaction, and Boot-up. Any events that don't match these three types are sent directly to the storage location. 
 
-| Configuration Pameter | Setting | 
+| Configuration Parameter | Setting | 
 | ---- | ---- | 
-| Conditional Statement for Bootup Events | `if (.event equal 'bootup')` | 
+| Conditional Statement for Boot-up Events | `if (.event equal 'bootup')` | 
 | Conditional Statement for Transaction Events | `if (.event equal 'transaction')` | 
 | Conditional Statement for | `if (.event equal 'access')` | 
 

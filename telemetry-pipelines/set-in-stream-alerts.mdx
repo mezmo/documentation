@@ -3,7 +3,7 @@ title: "Set In-Stream Alerts for Pipeline Nodes"
 description: "Configure threshold, change, or absence alerts on any source or processor node, with evaluation windows and payloads sent to Slack, PagerDuty, or webhooks."
 ---
 
-You can set specific conditions to trigger an alert on any Source, or Processor in your Pipeline. Alerts are based on the aggregation of metrics or events within the data stream, and are triggered when when the aggregated data reaches meets specific conditions. 
+You can set specific conditions to trigger an alert on any Source, or Processor in your Pipeline. Alerts are based on the aggregation of metrics or events within the data stream, and are triggered when the aggregated data reaches meets specific conditions. 
 
 ## General Configuration
 
@@ -31,7 +31,7 @@ Set the criteria for evaluation of the metric or event data.
 1. Select the **Alert Type**: **Threshold Alert**, **Change Alert**, or **Absence Alert**. 
 2. Select the **Event Type**: **Metric**, **Event**. 
 3. Select the field paths to use for aggregating and grouping events based on matching values. Default field paths are`.name`, `.namespace`, `.tags.`
-4. Select the type of aggregating **Operation** to use: Sum, **Minimum**, **Maximum**, **Average**, **Set Intersection**, **Distribution Cocantenation**, or **Custom**. If you select **Custom**, enter the Script you want to use. Check out the topic [Script Execution Processor](/telemetry-pipelines/js-script-processor) for more information about syntax for scripts.
+4. Select the type of aggregating **Operation** to use: Sum, **Minimum**, **Maximum**, **Average**, **Set Intersection**, **Distribution Concatenation**, or **Custom**. If you select **Custom**, enter the Script you want to use. Check out the topic [Script Execution Processor](/telemetry-pipelines/js-script-processor) for more information about syntax for scripts.
 5. Select the **Window Type**: **Tumbling** or **Sliding**. 
     1. **Tumbling** windows are a series of fixed-sized, non-overlapping and contiguous time intervals. For example, if you set it to a five-minute tumbling window, the elements with timestamp values [0:00:00-0:05:00) are in the first window. Elements with timestamp values [0:05:00-0:10:00) are in the second window.
     2. A **sliding** window has a fixed time length, and it moves forward or “slides” at a time interval smaller than the window’s length. For example, a sliding window can be five minutes long, and slide every one minute and capture five minutes of data. The length of the slide is not user-configurable by user, the system will automatically calculate an appropriate slide based on the window size.
@@ -138,7 +138,7 @@ You can see the alert configuration by clicking on the alert indicator.
 
 ## Interactive Demo
 
-This demo illustrates the configuraiton of an in-stream alert for a Pipeline node. You will need to have pop-ups enabled for your browser or docs.mezmo.com to view the demo.  You can also v[iew the demo without a pop-up ](https://www.mezmo.com/demos/interactive-demo-in-stream-alerts)at mezmo.com.
+This demo illustrates the configuration of an in-stream alert for a Pipeline node. You will need to have pop-ups enabled for your browser or docs.mezmo.com to view the demo.  You can also v[iew the demo without a pop-up ](https://www.mezmo.com/demos/interactive-demo-in-stream-alerts)at mezmo.com.
 
 &lt;!-- To open the pop-up on clicking a button, add the following data-navattic attributes to an existing button on your page -->
 <button data-navattic-open="https://capture.navattic.com/clz0byns1000109ia0c8x8vib" data-navattic-title="In-Stream Alerts">

@@ -23,7 +23,7 @@ In order to take advantage of [Responsive Pipelines](/telemetry-pipelines/config
 
 ![Add Log Node](/images/OptTutorial/8agjzupl9d72esdux7udd2v8aur47nyybn7wh9hqv0vyzs7m23qof5yd9x2bcsmn.png)
 
-Paste in the following Javascript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable, we are also normalizing some of this Otel data to be easier to use in Mezmo Log Analysis.
+Paste in the following JavaScript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable, we are also normalizing some of this Otel data to be easier to use in Mezmo Log Analysis.
 
 ```javascript
 function processEvent(message, metadata, timestamp, annotations) {
@@ -123,7 +123,7 @@ Now let's wire a `Parse Sequentially` processor to the `Frontend Proxy` output. 
 
 ![Apache Parser](/images/OptTutorial/vhq1qq4sk9kh8n98gdzd37ymnbipe5hn3bt1wouejsenx51jphe0342gaodvzeb4.png)
 
-Finally, let's keep the original line with a quick Scirpt, add a `Script Execution` processor connected to the `Parse Sequentially: Apache` output containing the following script:
+Finally, let's keep the original line with a quick Script, add a `Script Execution` processor connected to the `Parse Sequentially: Apache` output containing the following script:
 
 ```javascript
 function processEvent(message, metadata, timestamp, annotations) {
@@ -142,7 +142,7 @@ Your pipeline should look like this at this point.
 
 ## Step 5: Route Based on State
 
-After the initial Enrichment processor and Apache Parser, let's now route the data flow based on Pipelines state, ie that `operational_state`.  Connect a Route processor to all prior outputs with the following configuration
+After the initial Enrichment processor and Apache Parser, let's now route the data flow based on Pipelines state, i.e. that `operational_state`.  Connect a Route processor to all prior outputs with the following configuration
 
 - Title: `State Router`
 - Route 1:
@@ -161,11 +161,11 @@ After the initial Enrichment processor and Apache Parser, let's now route the da
 
 You will end up with a pipeline that looks like the following
 
-![Log Handdler Interim Pipeline](/images/OptTutorial/hondsz12xpz6x5lbmaxyps40mwffiim78sbrqy1w6b9mbokghsvx4cspvoc1q60n.png)
+![Log Handler Interim Pipeline](/images/OptTutorial/hondsz12xpz6x5lbmaxyps40mwffiim78sbrqy1w6b9mbokghsvx4cspvoc1q60n.png)
 
 ## Step 6: Aggregate Normal State Logs
 
-Now, lets optimize those noisy homepage flooding logs using a `Reduce` processor.  Effectively this will let us count and aggregate mainy logs into one easy to watch signal.  A common pattern is to turn this into a metric but today we will leave this as a log for the downstream tool.
+Now, lets optimize those noisy homepage flooding logs using a `Reduce` processor.  Effectively this will let us count and aggregate mainly logs into one easy to watch signal.  A common pattern is to turn this into a metric but today we will leave this as a log for the downstream tool.
 
 To accomplish this, create a new Route processor connected to `State Router`'s `Normal` and `Unmatched` outputs with the following configuration:
 
@@ -236,7 +236,7 @@ Our final step is to initiate and grab the state ID for the pipeline for automat
 
 ![Log Handler State Flip](/images/OptTutorial/f5kz54rav83hfls80h6wpuwivsi69tom0k3jhuaqv8np0t2es1zyoj8sk3wmhfij.png)
 
-Now that that has been initiated, you will need to grab the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here.  Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
+Now that has been initiated, you will need to grab the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here.  Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
 
 ```bash
 curl --request GET \
@@ -314,7 +314,7 @@ Let's look at the outcome of our prior Log Aggregation and Parsing.
 
 First, look for the aggregated data by searching for `tag:otel-demo "products found via product-catalog"`.  Notice that instead of raw lines like we saw in the Profile, we now have an aggregated message to watch saving tens of thousands of log lines.
 
-Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`.  While logs are displayed nicely in the Log Viewer, one can expand a line and see all the nested structure that is easily searchable.  For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy rsp_code:(>=200 AND <300)`
+Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`.  While logs are displayed nicely in the Log Viewer, one can expand a line and see all the nested structure that is easily searchable.  For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy resp_code:(>=200 AND <300)`
 
 ![Log Analysis Custom Apache Log View](/images/OptTutorial/1f8pr2ysulb0lsp4edcc58kmgudhro03wxirh68i3ae7m8xkm4670xgpza0fsw1s.png)
 
