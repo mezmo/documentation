@@ -1,0 +1,67 @@
+---
+type: page
+title: OpenTelemetry Source
+listed: true
+slug: open-telemetry-source
+description: 
+index_title: OpenTelemetry Source
+hidden: 
+keywords: 
+tags: 
+---
+
+## Description
+
+You can send your logs, metrics and traces to a Mezmo Pipeline via any OTLP compliant sender.
+
+<info>
+Mezmo currently requires that you use the HTTP transport for your payload, not the standard gRPC transport mechanism, to send in data via OTLP
+</info>
+
+## Configuration
+
+There is no specific configuration values needed when adding this source to your pipeline.  The OpenTelemetry source uses a shared endpoint to ingest data.  It will route data to your pipeline based on your [Ingestion key](https://docs.mezmo.com/docs/ingestion-key#ingestion-keys) (`apikey`).
+
+You can obtain this key under Setting | API Keys In App.
+
+### What you will need when configuring your OTEL collector
+
+
+| Option | Description | 
+| ---- | ---- | 
+| url / endpoint | https://logs.mezmo.com/otel | 
+| apiKey | aka: Ingestion Key.  Token used for authorization for your OTLP source | 
+
+
+### OpenTelemetry Collector Configuration
+
+To configure an OTel collector to export to Mezmo, you can add the following to your exporters section of your OTel Collector config file:
+
+```yaml
+exporters:
+  otlphttp/mezmo:
+    endpoint: "https://logs.mezmo.com/otel"
+    headers:
+      apikey: "<YOUR_INGESTION_KEY>"
+      
+...
+
+ service:
+    pipelines:
+      logs:
+        receivers:  [otlp]
+        processors: [memory_limiter, batch]
+        exporters:  [otlphttp/mezmo]
+      metrics:
+        receivers:  [otlp]
+        processors: [memory_limiter, batch]
+        exporters:  [otlphttp/mezmo]
+      traces:
+        receivers:  [otlp]
+        processors: [memory_limiter, batch]
+        exporters:  [otlphttp/mezmo]
+```
+
+<warning>
+The endpoint in the exporters configuration must exactly match the URL above. You don't need to specify the `/v1/[type]` path, this is done automatically by the collector
+</warning>

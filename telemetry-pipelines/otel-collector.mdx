@@ -4,16 +4,14 @@ description: "Export log, metric, and trace data to Mezmo with the OpenTelemetry
 ---
 
 ## Description
-You can export your log data directly to Mezmo with the OpenTelemetry Exporter. If you are already using OpenTelemetry Collector, you can start sending log data by adding the Mezmo Exporter to your existing Pipelines. If you are new to OTEL, you can use this quick start example to get you up and running.
+You can export your telemetry data directly to Mezmo with the OpenTelemetry Exporter. If you are already using OpenTelemetry Collector, you can start sending log data by adding the Mezmo Exporter to your existing Pipelines. If you are new to OTEL, you can use this quick start example to get you up and running.
 
 ### Example [OpenTelemetry Exporte](/telemetry-pipelines/mezmo-agent-source#set-up-opentelemetry-exporter)r Setup
 
 1. Download the appropriate OTEL collector for your environment from [the OpenTelemetry website](https://github.com/open-telemetry).
 2. Create a new pipeline in Mezmo.
-3. Add an [OpenTelemetry Logs](/telemetry-pipelines/open-telemetry-logs-source) Source node.  Note the Pipeline URL and access key.
-4. Add an [OpenTelemetry Metrics](/telemetry-pipelines/open-telemetry-metrics-source) Source node.  Note the Pipeline URL and access key.
-5. Add an [OpenTelemetry Traces](/telemetry-pipelines/open-telemetry-traces-source) Source node.  Note the Pipeline URL and access key.
-6. Create a configuration file `config.yaml` with these contents:
+3. Add an [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) node.
+4. Create a configuration file `config.yaml` with these contents:
 
 ```yaml
 receivers:
@@ -31,18 +29,10 @@ receivers:
       grpc:
         endpoint: "0.0.0.0:14250"
 exporters:
-  otlphttp/logs:
-    endpoint: "<endpoint from Logs node>"
+  otlphttp/mezmo:
+    endpoint: "http://logs.mezmo.com/otel"
     headers:
-      Authorization: "<access key from Logs node>"
-  otlphttp/metrics:
-    endpoint: "<endpoint from Metrics node>"
-    headers:
-      Authorization: "<access key from Metrics node>"
-  otlphttp/traces:
-    endpoint: "<endpoint from Traces node>"
-    headers:
-      Authorization: "<access key from Traces node>"
+      apikey: "<ingestion key>"
         
 processors:
   batch:
@@ -50,22 +40,18 @@ processors:
 service:
   pipelines:
     logs:
-      receivers: [ filelog ]
-      exporters: [ otlphttp/logs ]
+      receivers: [filelog]
+      exporters: [otlphttp/mezmo]
     traces:
       receivers: [jaeger]
       processors: [batch]
-      exporters: [otlphttp/traces]
+      exporters: [otlphttp/mezmo]
     metrics:
       receivers: [hostmetrics]
       processors: [batch]
-      exporters: [otlphttp/metrics]
+      exporters: [otlphttp/mezmo]
 
 ```
-
-<Note>
-The endpoints in the exporters config must exactly match the URL provided by the OpenTelemetry Metrics / Logs / Traces sources, You don't need to specify the `/v1/metrics` `/v1/logs` `/v1/traces` paths, which will otherwise be ignored by the Sources.
-</Note>
 
 4. Start the Collector with this command: `./otelcol-contrib --config /path/to/config.yaml`
 5. The Collector will start sending logs, metrics and traces to your Pipeline.
@@ -92,16 +78,179 @@ helm repo update
 
 ```
 
-Then you can install the chart to deploy the Collector. The example shown here installs as a single global endpoint for all data with a Splunk HEC format as indicated in the provided `.yaml`configuration. You may also provide a configuration of your own like the one above. 
-
-To utilize this chart, create a Splunk HEC Source, and note the Endpoint and Token. As shown in this command,  replace `<YOUR PIPELINE INGEST ID HERE>`  with the ID portion of endpoint (the part that follows `/v1/` ).  Replace `<YOUR TOKEN HERE>`  with your provisioned token.
+Next, create a namespace to run this:
 
 ```bash
-helm upgrade -i --create-namespace -n mezmo \
-  mezmo-otel-collector open-telemetry/opentelemetry-collector \
-  --values https://repo.mezmo.com/otel-collector/values.yaml \
-  --set global.mezmo.endpoint="<YOUR ROUTE ID>" \
-  --set global.mezmo.token="<YOUR TOKEN HERE>"
-  --set image.repository="otel/opentelemetry-collector-contrib"
+kubectl create namespace mezmo
 
+```
+
+Now create a secret to store your ingestion key:
+
+```bash
+kubectl create secret generic mezmo-otlp \
+  --namespace=mezmo \
+  --from-literal=ingestion-key=000000000000000000000000000000000
+
+```
+
+Now create a `values.yaml`  file.  This example file will give you an otlp source within your cluster and export your telemetry to mezmo:
+
+```yaml
+# OpenTelemetry Collector — Mezmo OTLP forwarder
+#
+# Chart:  open-telemetry/opentelemetry-collector
+# Install:
+#   helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+#   helm repo update
+#   helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+#     -n otel --create-namespace -f values.yaml
+#
+# What this does:
+#   - Runs as a DaemonSet so every node tails /var/log/pods/*/*/*.log
+#   - Exposes a ClusterIP Service at
+#       otel-collector-opentelemetry-collector.otel.svc.cluster.local
+#     accepting OTLP/gRPC (4317) and OTLP/HTTP (4318) for logs, metrics, traces
+#   - Forwards everything to https://logs.use.dev.mezmo.it/otel via otlphttp
+
+mode: daemonset
+
+# contrib distribution — required for filelog, k8sattributes, etc.
+image:
+  repository: otel/opentelemetry-collector-contrib
+  # tag: "0.115.0"   # pin to a known-good release
+
+# Stable in-cluster endpoint for other workloads to send OTLP to.
+service:
+  enabled: true
+  type: ClusterIP
+
+# Trim chart-default ports we don't use; keep OTLP gRPC + HTTP.
+ports:
+  jaeger-compact: { enabled: false }
+  jaeger-thrift:  { enabled: false }
+  jaeger-grpc:    { enabled: false }
+  zipkin:         { enabled: false }
+  otlp:
+    enabled: true
+    containerPort: 4317
+    servicePort:   4317
+    hostPort:      4317
+    protocol: TCP
+  otlp-http:
+    enabled: true
+    containerPort: 4318
+    servicePort:   4318
+    hostPort:      4318
+    protocol: TCP
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Pull the Mezmo ingestion key from the `mezmo-otlp` Secret (see secret.yaml).
+extraEnvs:
+  - name: MEZMO_INGESTION_KEY
+    valueFrom:
+      secretKeyRef:
+        name: mezmo-otlp
+        key: ingestion-key
+
+# Presets do the Kubernetes plumbing for us:
+#   logsCollection       -> mounts /var/log/pods, adds filelog receiver, wires it into the logs pipeline
+#   kubernetesAttributes -> creates RBAC + adds k8sattributes processor to every pipeline
+presets:
+  logsCollection:
+    enabled: true
+    includeCollectorLogs: false
+    storeCheckpoints: true
+  kubernetesAttributes:
+    enabled: true
+    extractAllPodLabels: true
+  # Per-node pod/container CPU, memory, network, fs metrics scraped from each
+  # node's own kubelet (https://${K8S_NODE_NAME}:10250/stats/summary). Preset
+  # also creates the nodes/stats + nodes/proxy RBAC and appends kubeletstats
+  # to the metrics pipeline below.
+  kubeletMetrics:
+    enabled: true
+
+config:
+  receivers:
+    # Drop chart-default receivers we don't need.
+    jaeger: null
+    zipkin: null
+    prometheus: null
+    otlp:
+      protocols:
+        grpc:
+          endpoint: ${env:MY_POD_IP}:4317
+        http:
+          endpoint: ${env:MY_POD_IP}:4318
+    # kind's kubelet serves a cert with no IP SANs, so TLS verification of
+    # https://<node-ip>:10250/stats/summary fails. Skip verification on the
+    # node-local scrape — same workaround metrics-server uses on kind.
+    kubeletstats:
+      insecure_skip_verify: true
+
+  processors:
+    memory_limiter:
+      check_interval: 1s
+      limit_percentage: 80
+      spike_limit_percentage: 25
+    batch:
+      send_batch_size: 8192
+      timeout: 5s
+
+  exporters:
+    # Mezmo OTLP/HTTP ingest — endpoint accepts protobuf or JSON.
+    otlphttp/mezmo:
+      endpoint: http://logs.mezmo.com/otel
+      encoding: proto        # change to "json" to send JSON instead
+      # compression: gzip
+      compression: none
+      headers:
+        # Authorization: "Token ${env:MEZMO_INGESTION_KEY}"
+        apikey: "${env:MEZMO_INGESTION_KEY}"
+
+    # Dumps full record contents (resource attrs, scope, attributes, body) to
+    # the collector's stdout — view with:
+    #   kubectl logs -n otel -l app.kubernetes.io/name=opentelemetry-collector --tail=200
+    # Drop the exporter from a pipeline (or remove this block) to silence it.
+    debug:
+      verbosity: detailed
+      sampling_initial: 5    # first N records per second printed in full
+      sampling_thereafter: 200  # then every Nth after that — avoids flooding
+
+  service:
+    pipelines:
+      logs:
+        # filelog is appended by the logsCollection preset
+        # k8sattributes is prepended by the kubernetesAttributes preset
+        receivers:  [otlp]
+        processors: [memory_limiter, batch]
+        exporters:  [otlphttp/mezmo]
+      metrics:
+        receivers:  [otlp]
+        processors: [memory_limiter, batch]
+        exporters:  [otlphttp/mezmo]
+      traces:
+        receivers:  [otlp]
+        processors: [memory_limiter, batch]
+        exporters:  [otlphttp/mezmo]
+```
+
+Then you can install the chart to deploy the Collector:
+
+```bash
+helm upgrade \
+  --install \
+  --namespace mezmo \
+  --values .\your-values-file.yaml \
+  --rollback-on-failure \      # roll back automatically if the release fails to come up healthy
+  --wait \
+  --timeout 5m
 ```
