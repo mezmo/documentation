@@ -13,7 +13,7 @@ While this may be all you need in your Pipeline, there is other data that may be
 
 | Field | Purpose | 
 | ---- | ---- | 
-| `message` | The main field that carries the important data elements of an event. This field will always be present.<br /><br />Depending on the source, this field could be a string or an object.<br /><br />**Metrics: w**hile there is no prescribed schema for log events, metrics have a [prescribed data model](/telemetry-pipelines/metric-data-within-the-pipeline) you must follow. | 
+| `message` | The main field that carries the important data elements of an event. This field will always be present.<br /><br />Depending on the source, this field could be a string or an object.<br /><br />**Metrics:** while there is no prescribed schema for log events, metrics have a [prescribed data model](/telemetry-pipelines/metric-data-within-the-pipeline) you must follow. | 
 | `metadata` | This field contains properties that describe the message. In most cases this data is only accessible in a Pipeline, and is not passed to the Destination.<br /><br />You can move Items in this field  into `message`  with the [Map Fields Processor](/telemetry-pipelines/map-fields-processor). | 
 | `timestamp` | This field is a ISO8601/RFC3339 formatted timestamp. For most Sources, this will be the date and time the event was received into the Pipeline.<br /><br />When there is a standard data format (OTLP, Auto-parsed logs in known formats, etc), Mezmo will set this field to the timestamp it finds in the standard field.<br /><br />You can override this value with the [Set Timestamp Processor](/telemetry-pipelines/set-timestamp-processor) or the [Script Execution Processor](/telemetry-pipelines/js-script-processor). | 
 

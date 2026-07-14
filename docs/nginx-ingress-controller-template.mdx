@@ -3,7 +3,7 @@ title: "NGINX Ingress Controller Template"
 description: "Use Mezmo's pre-built Views, Boards, and Screens plus a recommended log format to gain observability into NGINX Ingress Controller logs."
 ---
 
-The Mezmo NGINX Ingress Controller Template provides you better observability into your infrastructure with NGINX Ingress Controller ([nginxinc/kubernetes-ingress](https://github.com/nginxinc/kubernetes-ingress)) logs. The Template includes pre-configured Views, Boards, Screens, and a [logging format](#nginx-ingress-controller-recommended-log-format-configuration) to get the most out of your logs. After configuring the t emplate, you can set up alerts on excessive HTTP 500's, graph response codes broken down by upstream service name, and more.
+The Mezmo NGINX Ingress Controller Template provides you better observability into your infrastructure with NGINX Ingress Controller ([nginxinc/kubernetes-ingress](https://github.com/nginxinc/kubernetes-ingress)) logs. The Template includes pre-configured Views, Boards, Screens, and a [logging format](#nginx-ingress-controller-recommended-log-format-configuration) to get the most out of your logs. After configuring the template, you can set up alerts on excessive HTTP 500's, graph response codes broken down by upstream service name, and more.
 
 ### Views
 
@@ -34,7 +34,7 @@ Screens are collections of customized dashboards that can display data in variou
 
 ## NGINX Ingress Controller Log Format Configuration
 
-To take full advantage of the the NGINX Ingress Controller Template with [nginxinc/kubernetes-ingress](https://github.com/nginxinc/kubernetes-ingress), you should add our recommended custom log format. The custom log format exposes additional NGINX variables such as `upstream service name` and `response times` to further aid in debugging your infrastructure. Without this custom log format, parts of the template will not be populated with data.
+To take full advantage of the NGINX Ingress Controller Template with [nginxinc/kubernetes-ingress](https://github.com/nginxinc/kubernetes-ingress), you should add our recommended custom log format. The custom log format exposes additional NGINX variables such as `upstream service name` and `response times` to further aid in debugging your infrastructure. Without this custom log format, parts of the template will not be populated with data.
 
 [The NGINX documentation](https://docs.nginx.com/nginx-ingress-controller/configuration/global-configuration/configmap-resource/) contains more details on configuring NGINX via a ConfigMap resource. Log formats that deviate from this format or the default Apache Common or Combined Log Format will lead to incorrect data being populated in this template.
 

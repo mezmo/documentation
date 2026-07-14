@@ -3,7 +3,7 @@ title: "Grok Pattern Reference"
 description: "Learn how to use Grok patterns in Mezmo to extract structured data from unstructured text, including Mezmo-specific patterns, rules, and worked examples."
 ---
 
-Grok is a powerful tool for extracting structured data from unstructured text. Grok syntax is composed of reusable elements called G**rok patterns** that enable parsing for data such as timestamps, IP addresses, hostnames, log levels, and more.The prebuilt patterns make Grok easier to use than defining new regular expressions to extract structured data, especially for long text strings.
+Grok is a powerful tool for extracting structured data from unstructured text. Grok syntax is composed of reusable elements called **Grok patterns** that enable parsing for data such as timestamps, IP addresses, hostnames, log levels, and more.The prebuilt patterns make Grok easier to use than defining new regular expressions to extract structured data, especially for long text strings.
 
 <Note>
 Mezmo has some unique requirements for using Grok patterns, such as restricting the use of literals and regex between patterns, as described in the section on **Unique Mezmo Grok Patterns**, which also describes alternative shortcuts to use instead.
@@ -28,7 +28,7 @@ By combining multiple Grok patterns you can parse a single line of text and extr
 
 Standard Grok usage allows for characters between the pattern syntax. These can include literal characters, as well as regular expressions. **Mezmo does not allow any characters between Grok patterns other than** `\s,;:-`.
 
-Instead, Mezmo recommends using one or more of the the patterns described here to aid in jumping over interstitial data. When you use these patterns  between recognized patterns, you will usually automatically span the appropriate characters.
+Instead, Mezmo recommends using one or more of the patterns described here to aid in jumping over interstitial data. When you use these patterns  between recognized patterns, you will usually automatically span the appropriate characters.
 
 | Pattern | Usage | 
 | ---- | ---- | 
@@ -217,7 +217,7 @@ For example, if you have multiple JSON objects in a string, you would return bot
 | **JSON_OBJECT** | `r#"{.*}"#` | Matches any embedded JSON object between curly braces.<br /><br />Note that this will match all objects, not just one. If multiple objects are present, separate them in a prior parse first. | 
 | **OPTIONAL_SENTENCE** | `r#"[\p{L},":;\s\-]*"#` | Matches any human readable sentence with UTF-8 characters that includes words, spaces, and punctuation, but is greedy | 
 | **PERIOD_CHAR** | `r#"\."#` | Matches any single `.`  period character. | 
-| **SENTENCE** | `r#"[\p{L},":;\s\-]+"#` | Matches any human readable sentence with UTF-8 characters that includes words, spaces, and punctation. | 
+| **SENTENCE** | `r#"[\p{L},":;\s\-]+"#` | Matches any human readable sentence with UTF-8 characters that includes words, spaces, and punctuation. | 
 | **SINGLE_QUOTE** | `r#"'"#` | Matches any `'` single quote character. | 
 | **SINGLE_SPACE** | `r#"\s"#` | Matches a single space.<br /><br />Note that this is different than the standard SPACE pattern, which is greedy and will return multiple spaces or tabs if they are present. | 
 | **TAB** | `r#"\t"#` | Matches any tab character, which may be present in the form `\t` . | 

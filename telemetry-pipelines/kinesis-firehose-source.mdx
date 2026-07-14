@@ -4,10 +4,10 @@ description: "Stream near real-time data into your Mezmo Pipeline from AWS Kines
 ---
 
 ## Description
-The AWS Kinesis Firehose Pipeline Source enables streaming of near realtime data to your Mezmo Pipeline.
+The AWS Kinesis Firehose Pipeline Source enables streaming of near real-time data to your Mezmo Pipeline.
 
 ## Configuration
-For convenience, each AWS Kinesis Firehose `records` item will be unrolled into its own event within this Oipeline. If you specify that data as being JSON, it will be automatically parsed for you.
+For convenience, each AWS Kinesis Firehose `records` item will be unrolled into its own event within this pipeline. If you specify that data as being JSON, it will be automatically parsed for you.
 
 For Kinesis Data Firehose to successfully deliver data to custom HTTP endpoints, these endpoints must accept requests and send responses using certain Kinesis Data Firehose request and response formats. These formats are documented in the [AWS Kinesis Firehose Developer Guide](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html). To use Firehose as a source for Mezmo Pipelines, you must add your API key into the configuration of the Firehose Delivery Stream.
 

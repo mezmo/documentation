@@ -4,7 +4,7 @@ description: "Send data to a Mezmo Pipeline via a RESTful POST when a native sou
 ---
 
 ## Description
-You can configure any source to send data via a RESTful POST to the Memzo Pipeline. 
+You can configure any source to send data via a RESTful POST to the Mezmo Pipeline. 
 
 <Note>
 When using the HTTP source, your content must be both encoded appropriately and packaged in way that enables it to be parsed after ingestion. You must also use a [Parse Processor](/telemetry-pipelines/parse-processor) explicitly after ingestion in order to make use of any structured data. Structured formats, such as JSON, do not require additional parsing unless you want to further parse a specific value within the JSON.
@@ -60,7 +60,7 @@ Let's set up an HTTP source and use `curl` to send in a sample payload with a se
 3. Save the source, then generate an API key.
 4. Save the API key somewhere safe, such as a password manager
 5. Copy the HTTP URL endpoint. It should follow the format `https://pipeline.mezmo.com/v1/%YOUR PIPELINE ID%`
-6. Deploy the pipeline with just the HTTP source. You cand ignore the warnings for missing connections.
+6. Deploy the pipeline with just the HTTP source. You can ignore the warnings for missing connections.
 7. Start a [tap](/telemetry-pipelines/view-pipeline-data) on the output of the HTTP source by clicking on the right end of it and pressing the play button.
     1. Leave the tap running
 

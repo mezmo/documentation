@@ -11,7 +11,7 @@ In this step you will create a responsive pipeline to handle the OpenTelemetry m
 
 ## Pipeline Architecture
 
-This schematic shows the architecture of the Pipline you will create in this stop. The numbers in the schematic correspond to the step in the build process. 
+This schematic shows the architecture of the Pipeline you will create in this stop. The numbers in the schematic correspond to the step in the build process. 
 
 ![](/images/guide-to-pipeline-architecture/vcwybagsiq6u93xd6v6nwabwsy0ipu3fuxy81wkpujksryzd5nhiolvx2mj1mml5.png)
 
@@ -124,10 +124,10 @@ This configuration will limit the number of tags for the `host_id field` to 10.
 
 ### Aggregate Processor Configuration
 
-This configuration will aggregate metrics based on a five mintue interval. 
+This configuration will aggregate metrics based on a five minute interval. 
 
 1. In the Pipeline Map, add an Aggregate Processor and connect it to the Tag Cardinality LImit Processor. 
-2. Keep the default configuration setttings, but set **Interval (seconds)** to `300`. 
+2. Keep the default configuration settings, but set **Interval (seconds)** to `300`. 
 
 ## 5 - Add the Blackhole Destination
 
@@ -140,9 +140,9 @@ You can send your optimized data to any of Mezmo's [Supported Telemetry Data Des
 
 To activate the Pipeline, click **Deploy**. 
 
-## Initiatalize State and Get State ID
+## Initialize State and Get State ID
 
-As you did with the Log Hander Pipeline, you need to intialize the state of the Pipeline and get the `State ID` of the pipeline for reference in Step 8.
+As you did with the Log Handler Pipeline, you need to initialize the state of the Pipeline and get the `State ID` of the pipeline for reference in Step 8.
 
 1. In the Pipeline Map, click on the **State** setting in the upper-left corner, and change it to `Incident`.
 2. Change the **State** setting back to `Normal`. This will initialize the Normal state, and generate the`Pipeline_ID` for the pipeline `state-variable`. 
@@ -150,7 +150,7 @@ As you did with the Log Hander Pipeline, you need to intialize the state of the 
 
 First, flip the State in the UX from Normal to Incident and back to Normal to initialize.
 
-Then, in your terminal run run the following command with the metric `pipeline's ID` and grab that `State ID`.
+Then, in your terminal run the following command with the metric `pipeline's ID` and grab that `State ID`.
 
 ```bash
 curl --request GET \

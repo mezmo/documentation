@@ -14,7 +14,7 @@ Evaluate Metric or Log event fields using any aggregation strategy such as Sum, 
 <Note>
 **Tumbling** windows are a series of fixed-sized, non-overlapping and contiguous time intervals. For example, if you set it to a five-minute tumbling window, the elements with timestamp values [0:00:00-0:05:00) are in the first window. Elements with timestamp values [0:05:00-0:10:00) are in the second window.
 
-A S**liding** window has a fixed time length, and it moves forward or “slides” at a time interval smaller than the window’s length. For example, a sliding window can be five minutes long, and slide every one minute and capture five minutes of data. The length of the slide is not user-configurable by user, the system will automatically calculate an appropriate slide based on the window size.
+A **Sliding** window has a fixed time length, and it moves forward or “slides” at a time interval smaller than the window’s length. For example, a sliding window can be five minutes long, and slide every one minute and capture five minutes of data. The length of the slide is not user-configurable by user, the system will automatically calculate an appropriate slide based on the window size.
 </Note>
 
 <Note>
@@ -30,8 +30,8 @@ Each Processor input to the Aggregate Processor is a single thread. Inputs from 
 |  | Sliding &#124; Interval | 1800 | 
 |  | Sliding &#124; Minimum Duration | 180 | 
 | Condition | The conditions to trigger an Alert based on aggregated/evaluated value. Two types of alerting are supported: |  | 
-|  | **Threshold Alert**<br /><br />Compare the aggregated value to a specified threshold value.<br /><br />Comparison operators:<br /><br />`greater`<br /><br />`greater_or_equal`<br /><br />`less`<br /><br />`less_or_equal` | `.value.value <greater_or_ equal_to> 90` | 
-|  | **Change Alert** <br /><br />Set conditions based on how much the aggregated value changed compared to the prior evaluation. This change can be based on % change or absolute value change.<br /><br />Percent change operators:<br /><br />`percent_change_greater`<br /><br />`percent_change_greater_or_equal`<br /><br />`percent_change_less`<br /><br />`percent_change_less_or_equal`<br /><br />Value change operators:<br /><br />`value_change_greater`<br /><br />`value_change_greater_or_equal`<br /><br />`value_change_less_or_equal` | `.value.value <percent_change_greater> 50`<br /><br />`.value.value <value_change_greater> 200` | 
+|  | **Threshold Alert**<br /><br />Compare the aggregated value to a specified threshold value.<br /><br />Comparison operators:<br /><br />`greater`<br /><br /> `greater_or_equal` <br /><br />`less`<br /><br />`less_or_equal` | `.value.value <greater_or_ equal_to> 90` | 
+|  | **Change Alert** <br /><br />Set conditions based on how much the aggregated value changed compared to the prior evaluation. This change can be based on % change or absolute value change.<br /><br />Percent change operators:<br /><br />`percent_change_greater`<br /><br />`percent_change_greater_or_equal`<br /><br />`percent_change_less`<br /><br />`percent_change_less_or_equal`<br /><br />Value change operators:<br /><br />`value_change_greater`<br /><br />`value_change_greater_or_equal`<br /><br />`value_change_less_or_equal` | `.value <percent_change_greater> 50`<br /><br />`.value <value_change_greater> 200` | 
 
 ## Custom Option
 
@@ -73,7 +73,7 @@ function aggregateEvent(accum, event, metadata, annotations) {
 
 ## Metadata Fields
 
-The Aggregate Processor rocessor adds these metadata fields when an event is emitted. 
+The Aggregate Processor adds these metadata fields when an event is emitted. 
 
 | Metadata Field |  | 
 | ---- | ---- | 

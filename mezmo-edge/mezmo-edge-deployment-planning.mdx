@@ -31,10 +31,10 @@ These numbers are effective averages to use in approximation. Your individual ev
 
 Assumptions
 
-1. Each vCPU is a standard ARM processor without hyperthreading
+1. Each vCPU is a standard ARM processor without hyper-threading
 2. Throughputs are purposefully conservative
 
-| Event Type | Typical Use Case | Typical Event Size | Expected Trhoughput | Event Throughput | 
+| Event Type | Typical Use Case | Typical Event Size | Expected Throughput | Event Throughput | 
 | ---- | ---- | ---- | ---- | ---- | 
 | Unstructured Log | Parsing, processing, and routing to an external destination | 256 bytes | ~10 MiB/s/vCPU | ~40k EPS/vCPU | 
 | Structured Log | Processing and routing to an external destination | 1 kilobyte | ~25 MiB/s/vCPU | ~25k EPS/vCPU | 
@@ -80,7 +80,7 @@ As you add more destinations, the buffering required for sending data to each on
 
 If you plan to add many destinations, or duplicate data to multiple destinations, keep in mind that the resource requirements may increase, primarily in terms of memory.
 
-## Autoscaling
+## Auto-scaling
 
 ### Vertical Scaling
 
@@ -88,7 +88,7 @@ Normal recommendations are to allow for vertical scaling of your Edge instance. 
 
 ### Horizontal Scaling
 
-In default deployments (Kubernetes StatefulSets), there is an option to turn on horizontal pod scaling within the helm configuration. The standard Kubernetes autoscaling will divide up the workload across the pods, typically allocating in a round robin fashion, depending on how you’ve configured your cluster. However, note that as you add pods and split the workload, certain features like Reduce, Aggregate, and Dedupe may be affected due to the splitting of the event stream across the nodes.
+In default deployments (Kubernetes StatefulSets), there is an option to turn on horizontal pod scaling within the helm configuration. The standard Kubernetes auto-scaling will divide up the workload across the pods, typically allocating in a round robin fashion, depending on how you’ve configured your cluster. However, note that as you add pods and split the workload, certain features like Reduce, Aggregate, and Dedupe may be affected due to the splitting of the event stream across the nodes.
 
 ## Durability
 

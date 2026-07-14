@@ -19,13 +19,13 @@ These two Pipettes illustrate the basic configuration of a Pipeline to send tele
 
 This Pipette sends [Demo Log](/telemetry-pipelines/demo-logs-source) HTTP JSON data directly to a [Mezmo Archive Destination](/telemetry-pipelines/mezmo-archive-destination) for archiving in an S3 bucket.
 
-For demonstration purposes this is a a two component Pipeline, but you would typically have processor groups [for converting events to metrics](/practioner-guide-data-optimization/pipeline-example--convert-200-events-to-metrics) or others to reduce log volume between the Source and the Archive Destination.
+For demonstration purposes this is a two component Pipeline, but you would typically have processor groups [for converting events to metrics](/practioner-guide-data-optimization/pipeline-example--convert-200-events-to-metrics) or others to reduce log volume between the Source and the Archive Destination.
 
 ![An example of sending data to an archiving destination.](/images/shared/swgjn63wykgguv2v8jmok30vkoywtarww2ztjemhifyx5a4zjafgxhjr9gfklu6z.png)
 
 #### Demo Logs Source Configuration
 
-| Configuration Option | Settting | 
+| Configuration Option | Setting | 
 | ---- | ---- | 
 | **Interval** (the number of seconds to pause between sending logs) | `1` | 
 | **Format** | `JSON HTTP` | 
@@ -74,7 +74,7 @@ This processor maps fields in the restored data to fields conform to the [schema
 #### Mezmo Log Analysis Destination Configuration
 
 <Tip>
-The tags you enter in the configuration options are intended to help you easily search for restored data in in the Log Viewer.
+The tags you enter in the configuration options are intended to help you easily search for restored data in the Log Viewer.
 </Tip>
 
 | Configuration Option | Setting | 

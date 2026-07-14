@@ -155,7 +155,7 @@ The next Route processor in the chain will route data based on the operational s
 
 ## 5 - Create the "Flooding Homepage" Reduction Processing Chain
 
-During `normal` conditions, the log data contains a high volume of "homepage flooding" logs that convey little information in their unprocessed state. One technique to deal with noisy data like this is to [convert events to metrics. ](/practioner-guide-data-optimization/pipeline-example--convert-200-events-to-metrics) In this case, the data is routed to to a [Reduce Processor](/telemetry-pipelines/reduce-processor), which will provide a count of the events over five minutes to Mezmo Log Analysis, and then sent to a Script Execution process to generate a summary message.
+During `normal` conditions, the log data contains a high volume of "homepage flooding" logs that convey little information in their unprocessed state. One technique to deal with noisy data like this is to [convert events to metrics. ](/practioner-guide-data-optimization/pipeline-example--convert-200-events-to-metrics) In this case, the data is routed to a [Reduce Processor](/telemetry-pipelines/reduce-processor), which will provide a count of the events over five minutes to Mezmo Log Analysis, and then sent to a Script Execution process to generate a summary message.
 
 ### Route the Data
 
@@ -179,7 +179,7 @@ During `normal` conditions, the log data contains a high volume of "homepage flo
 | Duration | `5 minutes` | 
 | Group by Field Path | `message.host` | 
 | Merge Strategy per Field |  | 
-| Field Path | `message._cnt sum` | 
+| Field Path | `message.cnt sum` | 
 
 ### Add a Summary Message
 
@@ -198,7 +198,7 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 ## 6 - Sample Normal State Logs
 
-For the `unmatched` logs that pass through the Router, you only need to sample a small proportion of them while the pipeline is in the `normal` operational state. For this example, you will add a Sample procesor that will sample every 1 in 10 of the unmatched logs.
+For the `unmatched` logs that pass through the Router, you only need to sample a small proportion of them while the pipeline is in the `normal` operational state. For this example, you will add a Sample processor that will sample every 1 in 10 of the unmatched logs.
 
 1. In the Pipeline Map, click **Add Processor,** then select **Sample**.
 2. Enter these configuration options for the processor, then click **Save**.
@@ -232,7 +232,7 @@ Our final step is to initiate and grab the state ID for the pipeline in Normal o
 
 Click the **State** menu in the upper-left corner of the active pipeline, change the state to `Incident`, then change it back to `Normal.`
 
-Now that that has been initiated, you will need get the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here.  Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
+Now that has been initiated, you will need get the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here.  Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
 
 ```bash
 curl --request GET \
@@ -304,7 +304,7 @@ First, look for the aggregated data by searching for `tag:otel-demo "flooded hom
 
 ![Log Analysis Flooded Log View](/images/guide-to-pipeline-architecture/40hkp95u1y2avyptoper7m0xo2b438dbcogw4ctstuj3fd6bfggphzv2tr7hkwyx.png)
 
-Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`.  While logs are displayed nicely in the Log Viewer, you can expand a line and see all the nested structure that is easily searchable.  For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy rsp_code:(>=200 AND <300)`
+Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`.  While logs are displayed nicely in the Log Viewer, you can expand a line and see all the nested structure that is easily searchable.  For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy resp_code:(>=200 AND <300)`
 
 ![Log Analysis Custom Apache Log View](/images/guide-to-pipeline-architecture/s21m4d88t3w8zk49ylrw45ba9b7btmq2ulj83a2b5py6me7jlm3vdws43uh078qe.png)
 

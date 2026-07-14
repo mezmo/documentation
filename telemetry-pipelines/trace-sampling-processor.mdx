@@ -8,7 +8,7 @@ description: "Sample OpenTelemetry traces at a given rate using the Trace ID, su
 Performs sampling of traces per a given rate using the Trace ID as the unique identifier. If a trace is rate selected, all spans of the trace are output.
 
 <Note>
-This is an experimental feature that is is still in development. For access to this feature, reach out to your Customer Support Manager or support@mezmo.com.
+This is an experimental feature that is still in development. For access to this feature, reach out to your Customer Support Manager or support@mezmo.com.
 </Note>
 
 ## Use
@@ -24,9 +24,9 @@ This Processor supports sampling of [OTel traces only](https://opentelemetry.io/
 | Option | Description | Example | 
 | ---- | ---- | ---- | 
 | Sample Type | The type of sampling to invoke. | `head`  `tail` | 
-| Trace ID field | The field to use as the identifier of a trace. | `.context.trace_id` | 
+| Trace ID field | The field to use as the identifier of a trace. | `.context.traceid` | 
 | Rate | The rate at which to sample traces. For example, `10` means 1 out of every 10 traces will be sampled. | `10` | 
-| Parent Span ID (Tail Only) | The field to use as the parent span identifier. | `.parent_span_id` | 
+| Parent Span ID (Tail Only) | The field to use as the parent span identifier. | `.parent_spanid` | 
 | Conditional (Tail Only) | Used in conjunction with Rate, a conditional statement to define the field for sampling |  | 
 
 ## Examples
@@ -39,8 +39,8 @@ Examples of OTEL traces that can be sampled using the Processor.
 {
   "name": "hello",
   "context": {
-    "trace_id": "5b8aa5a2d2c872e8321cf37308d69df2",
-    "span_id": "051581bf3cb55c13"
+    "traceid": "5b8aa5a2d2c872e8321cf37308d69df2",
+    "spanid": "051581bf3cb55c13"
   },
   "parent_id": null,
   "start_time": "2022-04-29T18:52:58.114201Z",
@@ -67,8 +67,8 @@ Examples of OTEL traces that can be sampled using the Processor.
 {
   "name": "hello-salutations",
   "context": {
-    "trace_id": "5b8aa5a2d2c872e8321cf37308d69df2",
-    "span_id": "93564f51e1abe1c2"
+    "traceid": "5b8aa5a2d2c872e8321cf37308d69df2",
+    "spanid": "93564f51e1abe1c2"
   },
   "parent_id": "051581bf3cb55c13",
   "start_time": "2022-04-29T18:52:58.114492Z",

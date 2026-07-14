@@ -12,7 +12,7 @@ Follow the [Cloud Monitor Implementation Guide](https://control.akamai.com/dl/cu
 | **Origin Server Hostname** | `logs.logdna.com` | 
 | **HTTP Port** | `443` | 
 | **HTTPS Port** | `443` | 
-| **Content Provider Code** | Select **812828 - Cloud Monitor to LogDNA**<br /><br />If this option isn't available, contact Akami Support | 
+| **Content Provider Code** | Select **812828 - Cloud Monitor to LogDNA**<br /><br />If this option isn't available, contact Akamai Support | 
 | **Use SNI TLS Extension** | Yes | 
 
 | Origin SSL Certificate CN Options | 
@@ -53,9 +53,9 @@ You can find information for each of your datasets in these log entries:
 | **Response Header Data** | `respHdr.*` | 
 | **Web Application Firewall Data 2.0** | `waf_2.*` | 
 
-The information about each dataset and the definition of each field can be found in _Appendix A: Cloud Monitor Default Connectors_ section of [Cloud Monitor Implementation Guide](https://control.akamai.com/dl/customers/ALTA/Cloud-Monitor-Implementation.pdf).
+The information about each dataset and the definition of each field can be found in Appendix A: Cloud Monitor Default Connectors section of [Cloud Monitor Implementation Guide](https://control.akamai.com/dl/customers/ALTA/Cloud-Monitor-Implementation.pdf).
 
-Unless specified, **hostname** is always `http.reqPath` and **app** is always _AkamaiCloudMonitor_.
+Unless specified, **hostname** is always `http.reqPath` and **app** is always AkamaiCloudMonitor.
 
 The log line is formatted using some `http.*` fields as in this example:
 `cliIP reqMethod reqPath?reqQuery proto/protoVer status bytes reqCT reqLen respCT respLen UA`

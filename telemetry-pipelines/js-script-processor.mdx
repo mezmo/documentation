@@ -53,7 +53,7 @@ These functions are available to use on any respective value. At this time, thes
 | `new Date(date_string)` | Parses `date_string` to produce a timestamp.  The following formats are supported - ISO8601, W3C, Apache, nginx:<br /><br />`%+`<br /><br />`%Y-%m-%d %T%.f%#z`<br /><br />`%Y-%m-%d %T%.f`<br /><br />`%d/%b/%Y:%T%.f %z`<br /><br />`%Y/%m/%d %T%.f`<br /><br />`%Y/%m/%d %T%.f#z` | 
 | `JSON.parse(json_string)` | Parses a JSON string into a JS type. It defaults to `null` when parsing fails. | 
 | `JSON.stringify(value)` | Converts a JavaScript value to a JSON string. You should use this for converting any JSON object, instead of the `toString()` method. | 
-| `Object.entries(value)` | Returns an array of property key-value pairs of the spedified object. It returns an empty array when the provided value is not an object, or `null`. | 
+| `Object.entries(value)` | Returns an array of property key-value pairs of the specified object. It returns an empty array when the provided value is not an object, or `null`. | 
 | `Object.keys(value)` | Returns an array of property keys of the provided object. It returns an empty array when the provided value is not an object or `null`. | 
 | `parseInt(value)` | Attempts to parse the data as an integer and returns the integer. It defaults to `0`when it fails. | 
 | `parseFloat(value)` | Attempts to parse the data as a float and returns the float. It defaults to `0.0`when it fails. | 
@@ -95,7 +95,7 @@ An arithmetic operator takes numerical values as their operands and returns a si
 
 ### String Operations
 
-String operations supported follow the standard Javascript conventions.
+String operations supported follow the standard JavaScript conventions.
 
 | Operator | Description | 
 | ---- | ---- | 
@@ -106,7 +106,7 @@ String operations supported follow the standard Javascript conventions.
 | .charAt() | Retrieve an character at the specific index from a string | 
 | .indexOf() | Return the first index of a value in a string | 
 | .lastIndexOf() | Return the last index of a value in a string | 
-| .length | Returns the number of characters in a string<br /><br />_Note that to avoid collisions with a field name of_ `.length`_the function checks to ensure that field does not exist first. If it does, it will return the value of the field, not the computed length._ | 
+| .length | Returns the number of characters in a string<br /><br />Note that to avoid collisions with a field name of `.length`_the function checks to ensure that field does not exist first. If it does, it will return the value of the field, not the computed length._ | 
 | .padEnd() | Adds additional specified characters to the end of a string | 
 | .padStart() | Adds additional specified characters to the beginning of a string | 
 | .repeat() | Returns a new string with a number of copies of the original string | 

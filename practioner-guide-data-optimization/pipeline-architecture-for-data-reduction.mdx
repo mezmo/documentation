@@ -23,7 +23,7 @@ For Kafka data, the log types we identified that can be easily optimized include
 
 For this example, the [HTTP Endpoint](/telemetry-pipelines/http-destination) Source includes a data sample that represents Kafka logs. We are using this source because it can accept any log data via an HTTP post request. In practice, you may be using an Agent of some kind, but the same principles apply.
 
-- To view this sample within the Mezmo Web App, go to **Pipelines &gt; Mezmo Java Demo &gt; Sample Managemen**t, then click on the sample. 
+- To view this sample within the Mezmo Web App, go to **Pipelines &gt; Mezmo Java Demo &gt; Sample Management, then click on the sample. 
 - You can run this sample by selecting the HTTP Endpoint Source, then select **Simulate Pipeline**. 
 - To view the effect of the Processors on the data, select a Processor, then select **Tap egress**.
 
@@ -62,7 +62,7 @@ if (.description contains 'partition')
 
 **Error and Warnings**
 
-This statement matches the terms `warn` and `error` in the .`level` field of the data, and routes it directly the the Log Consumer destination. 
+This statement matches the terms `warn` and `error` in the .`level` field of the data, and routes it directly the Log Consumer destination. 
 
 <Tip>
 Critical events, like errors and warnings, should be routed directly to storage or your log analysis system to preserve full-fidelity copies for later analysis. If the warnings are especially verbose, you could also convert them to metrics based on your specific needs.

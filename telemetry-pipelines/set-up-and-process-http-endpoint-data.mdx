@@ -1,6 +1,6 @@
 ---
 title: "Set Up and Test an HTTP Endpoint Source"
-description: "Walkthrough for configuring an HTTP endpoint pipeline source, sending test data with cURL, adding a processor, and routing the data to a destination."
+description: "Walk-through for configuring an HTTP endpoint pipeline source, sending test data with cURL, adding a processor, and routing the data to a destination."
 ---
 
 This topic describes how to set up an HTTP endpoint as a Pipeline Source, and then process and inspect the endpoint data before sending it to a destination, such as [Mezmo Log Analysis](/docs/about-mezmo-log-analysis), or [AWS S3 Storage](/telemetry-pipelines/s3-destination).
@@ -59,7 +59,7 @@ Now that you've got your pipeline accepting data, the next step is to start addi
 4. Provide a **Title** and **Description** for the node, like `Sensitive Data` and `Drop sensitive data fields`.
 5. For **Fields**, enter `.sensitive`. In this case, the `.` notation is used to designate that the configuration object is a field. You can find more information in [Pipeline Event Data Model](/telemetry-pipelines/pipeline-event-data-model) on how to designate fields, sub-fields, and string and numeric values.
 6. **Save** the Processor.
-7. To connect the Processor and Source, hover your cursor over the right side of the until a blue circle appears, then click the circe and draw a Connector between the Source and Processor.
+7. To connect the Processor and Source, hover your cursor over the right side of the until a blue circle appears, then click the circle and draw a Connector between the Source and Processor.
 8. Click **Deploy Pipeline**. You can again ignore the **Unconnected Node** warning.
 9. Open the Pipeline Tap window for the Processor.
 10. Go back to your cURL terminal and send this command:

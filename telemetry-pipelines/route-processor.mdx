@@ -10,7 +10,7 @@ With the Route processor, you can separate events from a single stream into mult
 A typical use of this processor would be to route processed log data to different destinations, for example sending one set of log events to storage, and another to Mezmo Log Analysis.
 
 ## Configuration
-The Route processor determines where to send the log data based on a conditional statement applied to a specified field. The format of this conditional statement is: `Field (comparison operator) Value`. You can add conditions including AND and OR, as well as nested expressions. A Route Processor can contain multiple conditional statements.
+The Route processor determines where to send the log data based on a conditional statement applied to a specified field. The format of this conditional statement is: `Field (comparison operator) Value`. You can add conditions including `AND` and `OR`, as well as nested expressions. A Route Processor can contain multiple conditional statements.
 
 The **Field** can be either:
 - An event field path, for example `.transaction.result` or `.level`

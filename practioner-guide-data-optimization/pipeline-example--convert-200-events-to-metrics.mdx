@@ -34,7 +34,7 @@ Use the [HTTP Source](/telemetry-pipelines/http-source) to connect the Pipeline 
 
 The [Route Processor](/telemetry-pipelines/route-processor) enables you to set conditions under which telemetry data will be sent to other points in the processing chain. In this case, it is set to send 200 events down the Processor Chain for conversion to metrics, while unmatched data is sent directly to the Destination. This example uses the Blackhole destination, where all data is dropped, but you could send matched and unmatched data to different destinations depending on your use case.
 
-| Configuration Pameter | Setting | 
+| Configuration Parameter | Setting | 
 | ---- | ---- | 
 | Conditional Statement for 200 Route | `if(.status equal 200)` | 
 

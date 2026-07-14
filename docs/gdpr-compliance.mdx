@@ -11,7 +11,7 @@ In this guide, we’ll explain how to remain compliant with the GDPR as a custom
 
 ## The Basics of GDPR
 
-The crux of the GDPR is _personal data_, which is defined under Article 4 as “any information relating to an identified or identifiable natural person.” This includes names, addresses, physiological data, and even online identifiers like IP addresses. Anyone who can be identified through this information is considered a _data subject_. Essentially, the GDPR protects data subjects by restricting the use of their personal data.
+The crux of the GDPR is personal data, which is defined under Article 4 as “any information relating to an identified or identifiable natural person.” This includes names, addresses, physiological data, and even online identifiers like IP addresses. Anyone who can be identified through this information is considered a data subject. Essentially, the GDPR protects data subjects by restricting the use of their personal data.
 
 Some of the rights that the GDPR gives to data subjects include:
 
@@ -25,7 +25,7 @@ Some of the rights that the GDPR gives to data subjects include:
 
 ### Data Controllers and Data Processors
 
-The GDPR makes a distinction between [data controllers and data processors](https://ec.europa.eu/info/law/law-topic/data-protection/reform/rules-business-and-organisations/obligations/controller-processor/what-data-controller-or-data-processor_en). A _data controller_ determines how and why personal data is collected and processed. A _data processor_ processes personal data on behalf of a data controller. The relationship between a processor and a controller must be outlined in a legal document explaining how the data is to be managed. Note that even though controllers and processors have different obligations under the GDPR, a controller can still be held liable for breaches caused by their processors.
+The GDPR makes a distinction between [data controllers and data processors](https://ec.europa.eu/info/law/law-topic/data-protection/reform/rules-business-and-organisations/obligations/controller-processor/what-data-controller-or-data-processoren). A data controller determines how and why personal data is collected and processed. A data processor processes personal data on behalf of a data controller. The relationship between a processor and a controller must be outlined in a legal document explaining how the data is to be managed. Note that even though controllers and processors have different obligations under the GDPR, a controller can still be held liable for breaches caused by their processors.
 
 In addition, Section 4 requires controllers and processors to designate a Data Protection Officer (DPO) to oversee the organization’s GDPR compliance.
 
@@ -63,7 +63,7 @@ If you’re not sure which data is protected, refer to Article 4(1). Examples of
 
 If you need to link a log to a particular data subject, swap out their personal data with pseudonymized data. Pseudonymization is the process of using non-identifying data in place of personal data, while still allowing the non-identifying data to identify an individual.
 
-For example, consider an application that logs each successful login. Normally these logs would contain the name of the user that logged in, but if the logs were ever breached, an attacker could identify all of our active users. Instead, we assign a randomly generated number for each user, store it with the rest of their user data, then log this number in place of the user’s name. This way, we can use the number to find the associated user, but an attacker would only see the random number. This is the key difference from _anonymized_ data, which is impossible to link back to an individual.
+For example, consider an application that logs each successful login. Normally these logs would contain the name of the user that logged in, but if the logs were ever breached, an attacker could identify all of our active users. Instead, we assign a randomly generated number for each user, store it with the rest of their user data, then log this number in place of the user’s name. This way, we can use the number to find the associated user, but an attacker would only see the random number. This is the key difference from anonymized data, which is impossible to link back to an individual.
 
 Under Article 25, pseudonymization is considered an appropriate measure for safeguarding data without losing the ability to log user activities.
 

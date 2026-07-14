@@ -38,8 +38,8 @@ By default, the Mezmo Log Analysis Source sends these fields in the metadata que
 | `logtype` | String | The detected log type according to our [supported log sources](/docs/log-parsing#parsed-log-sources) | 
 | `mac` | String | MAC address of the originating event packet | 
 | `mezmo_line_size` | Number | Number of bytes calculated in the line during processing | 
-| `noindex` | Boolen | Shows true if an [exclusion rule](/docs/excluding-log-lines) prevented the line from being indexed (see note above about fully excluded log lines) | 
-| `nostream` | Boolen | Shows true if a streaming exclusion rule prevented the line from being forwarded | 
+| `noindex` | Boolean | Shows true if an [exclusion rule](/docs/excluding-log-lines) prevented the line from being indexed (see note above about fully excluded log lines) | 
+| `nostream` | Boolean | Shows true if a streaming exclusion rule prevented the line from being forwarded | 
 | `retention` | Number | Retention time in days set for the log line if it matches a [variable retention](/docs/variable-retention) rule | 
 | `tags` | Array | Tags added to the request query parameters that contained the event | 
 

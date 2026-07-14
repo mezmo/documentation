@@ -17,7 +17,7 @@ Click `Add Source` and select your OpenTelemetry Trace source from the `Shared S
 
 We will add the script to enrich each trace with the current pipelines operational state to be able to take advantage of [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) in the future by.   Click the `three dots` on your Otel Trace Source and select `Add Node->Add Processor->Script Execution`.
 
-Paste in the following Javascript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable by tagging this data in-flight.
+Paste in the following JavaScript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable by tagging this data in-flight.
 
 ```javascript
 function processEvent(message, metadata, timestamp, annotations) {
@@ -83,7 +83,7 @@ Same as with the Logs, let's initiate the State and save the `State ID` of this 
 
 First, flip the State in the UX from Normal to Incident and back to Normal to initialize.
 
-Then, in your terminal run run the following command with the metric `pipeline's ID` and grab that `State ID`.
+Then, in your terminal run the following command with the metric `pipeline's ID` and grab that `State ID`.
 
 ```bash
 curl --request GET \

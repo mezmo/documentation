@@ -49,5 +49,5 @@ For `ingest_key`in the `config.yaml` file, enter your Mezmo Ingestion Key. You c
 </Note>
 
 <Note>
-`otel`will be set at the default hostname for collector logs only if your logs don’t have a hostname set in the log metadata. You cannot set this metadata hostname in your collector configuration. Instead, recent changes to the collector configuration will enable the collector to recognize the hostname data from from incoming logs, and add that data to the internal OTEL representation of the log. The Mezmo OTEL Exporter will then attach the hostname data to the outgoing logs. For more information, see [the OTel Exporter changelog in GitHub](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/CHANGELOG.md).
+`otel`will be set at the default hostname for collector logs only if your logs don’t have a hostname set in the log metadata. You cannot set this metadata hostname in your collector configuration. Instead, recent changes to the collector configuration will enable the collector to recognize the hostname data from incoming logs, and add that data to the internal OTEL representation of the log. The Mezmo OTEL Exporter will then attach the hostname data to the outgoing logs. For more information, see [the OTel Exporter changelog in GitHub](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/CHANGELOG.md).
 </Note>
