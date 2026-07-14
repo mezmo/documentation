@@ -27,7 +27,7 @@ You can configure the Destination using these options.
 
 | Option | Description | 
 | ---- | ---- | 
-| Collector Endpoint | The OpenTelemetry Collector URL that receives the data. Only http protocol is supported. No paths `/v1/logs` `/v1/metrics` `/v1/traces` needed, they will be added automatically based on a data type detected by the Destination. | 
+| Collector Endpoint | The OpenTelemetry Collector URL that receives the data. Only HTTP protocol is supported. No paths `/v1/logs` `/v1/metrics` `/v1/traces` needed, they will be added automatically based on a data type detected by the Destination. | 
 | End-to-end acknowledgement | Enable this option to receive verification that OpenTelemetry data is being received by OTLP collector. | 
 | Strategy | The authentication strategy to use. | 
 | HTTP Headers | Additional headers to be sent with a request. The most common case is to set a secret key to authorize a request.<br /><br />**Note**: Authorization header is prohibited in case if some strategy has been already set up. | 
