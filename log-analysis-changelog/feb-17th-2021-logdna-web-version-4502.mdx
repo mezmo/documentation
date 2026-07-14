@@ -1,0 +1,17 @@
+---
+title: "Feb 17th, 2021 - LogDNA Web Version 4.50.2"
+description: "Auto-subscribes admins to usage digest emails and fixes usage quota exclusion rule reevaluation and view-specific alert imports."
+---
+
+## Features and Enhancements
+
+- New users who are administrators of the organization are automatically subscribed to the monthly and weekly usage digest emails. Admins can opt-out of the digests. [LOG-8727]
+
+## Fixed Issues
+- We made a change to disable any associated usage quota exclusion rules whenever a user edits the values for either the daily or monthly usages values. This behavior prompts a reevaluation of the existing rules in terms of the newly edited values. Note that these are the usage quota triggered exclusion rules, which are separate and distinct from standalone exclusion rules. [LOG-8808]
+
+- Fixed an issue where during import process, not all details of the attached view-specific alerts were imported properly. [LOG-8701]
+
+## Support
+
+If you have support-related questions about any of the above features or fixes, please reach out to us at [support@logdna.com](mailto:support@logdna.com).

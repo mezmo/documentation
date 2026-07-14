@@ -1,0 +1,49 @@
+---
+title: "VictorOps Alert Integration"
+description: "Trigger VictorOps incidents from Mezmo log alerts by configuring the URL to notify and routing key for the integration."
+---
+
+The VictorOps alert integration enables users to easily trigger incidents in VictorOps based off of log data in Mezmo.
+
+## Integrating with VictorOps
+
+1. On the alerts creation page, select the VictorOps logo.
+2. Define the alert properties.
+
+![](/images/docs/q11205ke8dtbj6ca7ac2xis1ahhc0qz251n0r6o9ik4ejzef9y7xacyqe4541gt3.png)
+
+To retrieve the URL to notify go to Integrations -&gt; REST -&gt; URL to notify and input the url up to the final / into the URL to notify section of the Mezmo VictorOps alert integration.
+
+<Warning>
+The URL to notify has a few requirements:
+
+- The URL can't point to a private IP address, such as `192.168.x.x`, `10.x.x.x`, or `172.16.x.x` through `172.31.x.x`
+- The hostname can't resolve to a private IP address via DNS
+- The URL can't return a redirect response because Mezmo won't follow redirects
+
+If your URL doesn't meet these requirements, the request will fail.
+</Warning>
+
+![](/images/docs/q11205ke8dtbj6ca7ac2xis1ahhc0qz251n0r6o9ik4ejzef9y7xacyqe4541gt3.png)
+
+![](/images/docs/n58it379sc4ab6s9eetlt6k6nwmhuak3xkn0hrv9eh5xbxsr6snfr7zd1h3cfbl8.png)
+
+For the routing key, go to Settings -&gt; Routing Key. More information on routing keys can be found [here](https://help.victorops.com/knowledge-base/routing-keys/#:~:text=%3E%3E%20Routing%20Keys.-,Creating%20Routing%20Keys%20in%20VictorOps,Escalation%20Policy%20for%20a%20team).
+
+![](/images/docs/q11205ke8dtbj6ca7ac2xis1ahhc0qz251n0r6o9ik4ejzef9y7xacyqe4541gt3.png)
+
+![](/images/docs/n58it379sc4ab6s9eetlt6k6nwmhuak3xkn0hrv9eh5xbxsr6snfr7zd1h3cfbl8.png)
+
+![](/images/docs/ycuy16zetyd7oeddvzm4041rx9fx51o1q6dxzgnxbkxw0b1ywg84h2ggr6g91fh2.png)
+
+After clicking test alert from the Mezmo alert UI, you will now see incidents in VictorOps!
+
+![](/images/docs/q11205ke8dtbj6ca7ac2xis1ahhc0qz251n0r6o9ik4ejzef9y7xacyqe4541gt3.png)
+
+![](/images/docs/n58it379sc4ab6s9eetlt6k6nwmhuak3xkn0hrv9eh5xbxsr6snfr7zd1h3cfbl8.png)
+
+![](/images/docs/ycuy16zetyd7oeddvzm4041rx9fx51o1q6dxzgnxbkxw0b1ywg84h2ggr6g91fh2.png)
+
+![](/images/docs/pi62qhs52cg6mdled9j12nqbo1jinqjlieh3muflk1fohzdbtvmm68w7qcs4x57u.png)
+
+**Note:** When creating a new Routing Key, changes may take up to 10 minutes to propagate on the VictorOps side. If you don't see an alert show up in the VictorOps dashboard, please try again in 10 minutes.

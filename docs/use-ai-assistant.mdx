@@ -1,0 +1,197 @@
+---
+title: "Use the AI Assistant"
+description: "Analyze logs and telemetry in natural language with the Mezmo AI Assistant using prompts, time expressions, context mentions, and slash commands."
+---
+
+The Mezmo AI Assistant helps you analyze logs, investigate issues, and work with your telemetry data using natural language. Ask questions and get insights without writing complex queries.
+
+## Access the AI Assistant
+
+You can access the AI Assistant from two locations:
+
+- **From the homepage**: Click the AI Assistant icon or prompt area to start a conversation
+- **From the AI Agent page**: Navigate to the dedicated AI Agent interface for an expanded view with chat history
+
+The AI Assistant is available throughout your Mezmo workspace and provides context-aware help based on where you access it.
+
+## Ask Questions
+
+Type your questions or requests in plain language. The AI Assistant can help with:
+
+- Analyzing log patterns and trends
+- Performing root cause analysis on issues
+- Exploring your log data
+- Getting information about your pipelines
+- Searching the Mezmo knowledge base
+
+**Example prompts:**
+- "Show me error logs from the last hour"
+- "Analyze logs for root causes of the recent spike"
+- "What fields are available in my logs?"
+- "Count logs matching 'authentication failed'"
+
+## Using Time Expressions
+
+You can use natural language time expressions when querying log data with the AI Assistant.
+
+### Time Formats
+
+You can specify time ranges using any of these patterns:
+
+- "last 30 seconds" or "30 seconds ago" or "30 seconds"
+- "last 5 minutes" or "5 minutes ago" or "5 minutes"
+- "last 1 hour" or "1 hour ago" or "1 hour"
+- "last 2 days" or "2 days ago" or "2 days"
+- "last 3 weeks" or "3 weeks ago" or "3 weeks"
+
+### Time Units
+
+Supported time units (singular or plural):
+- second or seconds
+- minute or minutes
+- hour or hours
+- day or days
+- week or weeks
+
+### Example Queries
+
+- "Show me error logs from the last hour"
+- "Analyze logs from 30 minutes ago"
+- "Count authentication failures in the last 5 minutes"
+- "Deduplicate logs from 2 days"
+- "What happened in the last 24 hours?"
+
+## Add Context with @ Mentions
+
+Use the `@` symbol to attach context to your prompts for more relevant responses.
+
+**To add context:**
+1. Type `@` in the prompt input.
+2. Select from available context types: pipelines, pipeline nodes (when viewing a pipeline), tap data (when available), or other context relevant to your current view.
+3. Continue typing your prompt.
+
+You can attach multiple pieces of context to a single prompt. The AI Assistant will show suggested prompts based on your attached context.
+
+## Use Slash Commands
+
+Slash commands give you quick access to common prompts and actions.
+
+1. Type `/` in the prompt input.
+2. Select a category from the menu, such as **Pipeline prompts** or **Log Analysis prompts**.
+3. Select a prompt to add it to your message.
+
+The default prompts change based on where you open the AI Assistant:
+
+- **Pipeline pages**: Pipeline-related prompts
+- **Log Analysis or Live Tail pages**: Log Analysis prompts
+
+When you attach context with `@` mentions, the available prompts update to match.
+
+## View Tool Call Progress
+
+When the AI Assistant performs operations like analyzing logs or querying data, you'll see progress indicators showing:
+
+- Which tool is currently running
+- Progress updates as the operation proceeds
+- Results when the operation completes
+
+You can cancel long-running requests by clicking the stop button.
+
+## View Completed Tool Calls
+
+After the AI Assistant responds, you can review the tools used during the conversation. A collapsible section below the response shows how many tools were called.
+
+### Tool Summary
+
+Click **"X tool(s) used"** to expand or collapse the list. Use **Expand all** and **Collapse all** to control all tool details at once.
+
+### Tool Details
+
+Each tool displays:
+
+- **Status**: Green checkmark for success, red X for error
+- **Tool name**: What the tool does
+- **Duration**: How long the tool took to run
+
+Click any tool to expand its details:
+
+- **Tool**: The specific tool that was called
+- **Arguments**: Parameters passed to the tool
+- **Result**: Output returned (successful calls)
+- **Error**: Error message (failed calls)
+
+## What the AI Assistant Can Do
+
+The AI Assistant uses specialized tools to help you work with your data:
+
+**Log Analysis and Root Cause Analysis**
+- Analyze logs to identify root causes using time ranges or relative time expressions (for example, "last hour")
+- Investigate patterns and anomalies in your log data
+
+**Cross-Source Timeline Correlation**
+- Correlate logs across multiple sources (apps, hosts, or custom groupings) to find root causes
+- View per-source timelines in chronological order
+- See a combined timeline with relative timestamps to compare events across sources
+- Use template-based deduplication to reduce noise while keeping unique log patterns
+
+**Log Exploration and Metrics**
+- Count logs matching specific queries
+- Get context around specific log lines
+- List available fields in your log data
+- Query log histograms to understand volume over time
+- Group logs by specific fields
+
+**Log Deduplication and Pattern Discovery**
+- Deduplicate logs using time ranges or relative time expressions
+- Find patterns and recurring log messages
+
+**Pipeline Operations**
+- List your available pipelines
+- Get details about specific pipelines
+- Understand pipeline configurations
+
+**Trace Analysis**
+
+If your account has trace analysis enabled, the AI Assistant can help you analyze OpenTelemetry trace data:
+
+- View service graphs showing how your services communicate
+- List failed traces for a time range, optionally filtered by service
+- Get span details for a trace to understand request flow and timing
+- Find latency anomalies grouped by service, edge, or operation
+- Sort anomalies by count, score, or latency multiplier to prioritize investigation
+- Compare latency between two time periods to detect degraded service edges
+- Get bucketed latency summaries for service-to-service calls with p50, p95, and p99 metrics
+- View service failure rates as a histogram, optionally grouped by service, edge, or operation
+- Fetch individual service failure records with optional filtering by service, edge, or operation
+
+**Knowledge Base and General Help**
+- Search the Mezmo knowledge base for product information
+- Get help with Mezmo features and best practices
+
+**Time and Utility Functions**
+- Get the current time for time-based queries
+
+## Chat History
+
+Your conversations with the AI Assistant are automatically saved. The homepage sidebar shows your recent chat history, so you can review previous conversations, continue earlier discussions, and access past analysis and insights.
+
+## Responses and Formatting
+
+The AI Assistant provides responses in formatted markdown, including:
+
+- **Code blocks** with syntax highlighting for technical content
+- **Tables** for structured data
+- **Lists** for organized information
+- **Mermaid diagrams** for visualizing workflows and relationships
+- **Links** to relevant documentation
+
+## Tips for Effective Use
+
+- **Be specific**: Include relevant details like time ranges, field names, or error messages
+- **Use context**: Attach pipelines or other context with `@` mentions for more accurate responses
+- **Ask follow-up questions**: The AI Assistant remembers your conversation context
+- **Try slash commands**: Use `/` to discover common prompts and actions
+
+## Cancel Requests
+
+If a request is taking too long or you want to stop the current operation, click the **Stop** button while the AI Assistant is processing. The partial response will remain visible, and a "Cancelled" message will indicate the request was stopped. You can then start a new prompt or refine your question.

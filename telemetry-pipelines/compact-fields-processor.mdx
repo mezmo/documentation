@@ -1,0 +1,54 @@
+---
+title: "Compact Fields Processor"
+description: "Recursively remove empty arrays and objects from a specified field to clean up null values and empty spaces in messages."
+---
+
+## Description
+Removes all nested fields recursively that contain empty arrays or objects from a specified field. This processor includes options to remove values from Arrays, and from Objects.
+
+## Use
+This processor is particularly useful in cleaning up null values and other empty spaces within messages.
+
+## Configuration
+There are two options to configure for this processor.
+
+| **Option** | **Description** | Example | 
+| ---- | ---- | ---- | 
+| **Fields** | The field or fields to remove empty values from | . | 
+| **Compact Options** | Select to enable Compact for Arrays in the field, Objects in the field, or both | On / Off | 
+
+## Example
+### Before
+
+```json
+{
+  "baz": [],
+  "foo": "bar",
+  "quux": {
+    "corge": {},
+    "grault": 1
+  },
+  "qux": {}
+}
+
+```
+
+### Compact Options
+
+| **Option** | **Value** | 
+| ---- | ---- | 
+| Field | . | 
+| Compact Array | On | 
+| Compact Object | On | 
+
+### After
+
+```json
+{
+  "foo": "bar",
+  "quux": {
+    "grault": 1
+  }
+}
+
+```

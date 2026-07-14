@@ -1,0 +1,54 @@
+---
+title: "Sudden Increase in Source Volume"
+description: "Configure an alert that triggers when a source's data volume rises 60% or more compared to a prior tumbling window, including the custom aggregation script."
+---
+
+This alert is triggered when there is a 60% increase in data volume compared to a prior window. 
+
+## General Configuration
+
+| Field | Value | 
+| ---- | ---- | 
+| Name | Sudden increase in source volume. | 
+| Description | Triggers when a source volume increases by 60% compared to prior window. | 
+
+## Evaluation and Condition Configuration
+
+| Field | Value | 
+| ---- | ---- | 
+| Operation | Custom | 
+| Window Type | Tumbling | 
+| Window Duration (minutes) | 30 | 
+| Group by Field Paths | `.source` | 
+| Operation | Custom | 
+| Window Type | Tumbling | 
+| Window Duration (minutes) | 30 | 
+| Conditional Statement | `if (.log_volume`percent_change`_greater_or_equal 60)` | 
+| Event Timestamp | `.timestamp` | 
+
+## Custom Script
+
+```bash
+// Receives the current event, metadata and an accumulator object. Logic can be performed
+// on the event properties and added to the accumulator object for later analysis.
+// The accumulator is persisted, and will become the emitted event when
+// conditions are true, OR if the time window naturally expires. Those same conditions
+// will also be evaluated against the emitted event to determine if the alert should
+// be triggered.
+
+function alertAggregation(accum, event, metadata) {
+  let new_accum = accum
+  if (!new_accum.message.log_volume) {
+    const accum_str = JSON.stringify(accum)
+    const accum_length = accum_str.length
+    new_accum = {message: {log_volume: accum_length}}
+  }
+  
+  const event_str = JSON.stringify(event)
+  const event_length = event_str.length
+  new_accum.message.log_volume = new_accum.message.log_volume + event_length
+  
+  return new_accum
+}
+
+```

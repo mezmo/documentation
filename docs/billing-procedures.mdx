@@ -1,0 +1,18 @@
+---
+title: "Billing Procedures"
+description: "Understand how Mezmo handles failed payments on self-service paid plans, including retry timing, paywalls, and account archiving."
+---
+
+## Resolving Failed Payments
+
+For self-service accounts on paid plans where a credit card on file is no longer valid, Mezmo follows this procedure.
+
+1. Attempt billing. If failed, go to next step.
+2. Wait 1 day. Retry billing. If failed, go to next step.
+3. Wait 5 days. Retry billing. If failed, go to next step.
+4. Wait 7 days. Retry billing. If failed, paywall is implemented on the account. Go to next step.
+5. Wait until the end of the month. Retry billing. If failed, the account will be archived. Data ingested will no longer be saved.
+
+<Note>
+Enterprise accounts are not subject to automatic downgrades. If your Enterprise plan has a failed payment, contact your account representative or Mezmo support to resolve the issue.
+</Note>

@@ -1,0 +1,43 @@
+---
+title: "Remove Fields Processor"
+description: "Drop specified JSON fields from each record in the data stream before sending it to storage or other processors."
+---
+
+## Description
+The Remove Fields processor drops JSON fields from each record in the data stream.
+
+## Use
+This processor is useful when there are specific fields that you want to remove from your data before sending it to storage or to additional processors.
+
+## Configuration
+There is one option to configure for this processor.
+
+| Option | Description | Example | 
+| ---- | ---- | ---- | 
+| Fields | The field or fields to drop from each record in the data stream. | `.baz` | 
+
+## Example
+### Before
+
+```json
+{
+  "foo": "bar",
+  "baz": 1
+}
+
+```
+
+### Remove Fields Options
+
+| Option | Value | 
+| ---- | ---- | 
+| Fields | `.baz` | 
+
+### After
+
+```json
+{
+  "foo": "bar"
+}
+
+```

@@ -1,0 +1,77 @@
+---
+title: "HTTP Source for Mezmo Edge"
+description: "Configure any source to send data to a Mezmo Edge Pipeline via a RESTful POST over an allocated HTTP port."
+---
+
+## Description
+
+You can configure any source to send data via a RESTful POST to a Mezmo Edge Pipeline.
+
+<Note>
+When using the HTTP source, your content must be encoded appropriately, and packaged in a way that enables it to be parsed after ingestion. Structured formats, such as JSON, do not require additional parsing unless you want to further parse a specific value within the JSON.
+</Note>
+
+You would typically use an HTTP request as a Source when the type of Source you want to send data from is not supported. For example, you may want to send and process data from an uncommon open source application. As long as you're able to use a RESTful POST transport to send the data to an endpoint, you can send the data into the Pipeline.
+
+## Configuration
+
+This Source requires an allocated port that you will forward the data to. You must use a port that has been configured within your Edge instance during set up.
+
+<Note>
+The default Edge port range is 8000-8010, unless you modified it during set up.
+</Note>
+
+### Configuration Options
+
+| **Setting** | **Description** | 
+| ---- | ---- | 
+| **Title** | A name for your source. | 
+| **Description** | A short description of the source. | 
+| **Port** | The port number to listen on within the Edge instance. | 
+
+## Exposing for External Ingress 
+
+<Tip>
+It is highly recommended that a scalable load balancer be used like [Nginx](https://nginx.org).  The following is a simple example using the default LoadBalancer for your system which ignores TLS and the like.
+</Tip>
+
+A simple, non-prod method of exposing the HTTP Source to external ingress is to use the system default LoadBalancer.   
+
+To do this we will create a load balancer service which exposes the port configured by the HTTP Source.
+
+Sample Config: edge-load-balancer.yaml
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-load-balancer
+spec:
+  ports:
+  - name: http-source-1a
+    port: <<HTTP_SOURCE_PORT>>
+    protocol: TCP
+    targetPort: <<HTTP_SOURCE_PORT>>
+  selector:
+    app.kubernetes.io/instance: <<EDGE_INSTANCE>>
+    app.kubernetes.io/name: <<EDGE_NAME>>
+  sessionAffinity: None
+  type: LoadBalancer
+
+```
+
+Replace `HTTP_SOURCE_PORT` with your configured port and `EDGE_INSTANCE` + `EDGE_NAME` with those found in your edge services description.  You can find your `instance` and `name` via a command like
+
+```bash
+kubectl get service EDGE_SERVICE_NAME -o yaml > tmp.yaml
+
+```
+
+ Finally, apply to your cluster with the following command
+
+```bash
+kubectl apply -f edge-load-balancer.yaml
+
+```
+
+You can now send data to the HTTP Source by routing data to `http://EXTERNAL_IP:HTTP_SOURCE``_PORT`.  Note th

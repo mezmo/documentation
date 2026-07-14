@@ -1,0 +1,19 @@
+---
+title: "Stringify Processor"
+description: "Render an entire event's JSON object into a single text string for downstream steps that require string input, such as the Encrypt processor."
+---
+
+## Description
+This processor renders any JSON object into a single string. You can only apply this processor to the entire event rather than fields within the event.
+
+## Use
+This processor is used for cases when a subsequent processing step requires a string as input. This can include destinations such as Mezmo Log Analysis, or Processors such as the Encrypt processor.
+
+The output of this processor takes any structured input event and outputs it as a text string.
+
+## Example
+
+| Before | After | 
+| ---- | ---- | 
+| `{   "host": "localhost",  `<br /><br />`"port": 3030,`<br /><br />`"public": "../public/",`<br /><br />`"paginate": {`<br /><br />`"default": 10,`<br /><br />`"max": 50`<br /><br />`},`<br /><br />`"mongodb": "mongodb://localhost:27017/api"`<br /><br />`}` | `{   "host": "localhost",   "port": 3030,   "public": "../public/",   "paginate": {     "default": 10,     "max": 50   },   "mongodb": "mongodb://localhost:27017/api" }` | 
+|  |  | 

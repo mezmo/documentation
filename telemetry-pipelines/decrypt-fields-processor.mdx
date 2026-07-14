@@ -1,0 +1,50 @@
+---
+title: "Decrypt Field Processor"
+description: "Decrypt an encrypted string field using a secret key and initialization vector, reversing the Encrypt Field Processor."
+---
+
+## Description
+This processor decrypts a single encrypted string using a defined secret as well as a specified Initialization Vector (IV) field. 
+
+## Use
+Typically you would use the Decrypt processor to remove the encryption applied by the Encrypt processor.
+
+## Configuration
+The Decrypt processor uses the same configuration options as the Encrypt processor.
+
+| **Option** | **Description** | **Example** | 
+| ---- | ---- | ---- | 
+| **Field** | The field you want to decrypt. | `.foo` | 
+| **Encryption algorithm** | The encryption algorithm to apply. These options also determine how many characters to use for the encryption key and initialization vector. | `AES-256-CFB (key=32 characters, iv=16characters)` | 
+| **Encryption key** | The key used by the algorithm to encrypt the field. | `6B58703273357638792F423F4528482B` | 
+| **Initialization vector (IV) field** | This value is used by the algorithm as the initialization key. | .`encrypt_iv` | 
+
+## Example
+### Before
+
+```json
+{
+  "encrypt_iv": "FmXUb0OPOWm1A2kw6diKYw==",
+  "foo": "vFza"
+}
+
+```
+
+### Decryption Options
+
+| Option | Value | 
+| ---- | ---- | 
+| Field | `.foo` | 
+| Decryption algorithm | `AES-256-CFB (key=32 characters, iv=16characters)` | 
+| Decryption key | `6B58703273357638792F423F4528482B` | 
+| Initialization vector (IV) field | `.encrypt_iv` | 
+
+### After
+
+```json
+{
+  "encrypt_iv": "FmXUb0OPOWm1A2kw6diKYw==",
+  "foo": "bar"
+}
+
+```

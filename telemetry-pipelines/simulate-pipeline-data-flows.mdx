@@ -1,0 +1,49 @@
+---
+title: "Simulate and Test Pipeline Data Streams"
+description: "Use Simulation mode to test data flow through processors and destinations with sample data, compare input and output with diff view, and add custom samples."
+---
+
+You can use Simulation mode to test the data stream through your Processors to your destinations with sample data before streaming live operational data.
+
+<Note>
+You can only use Simulation mode with deployed Pipelines.
+</Note>
+
+1. Select a Pipeline to simulate.
+2. In **Edit** mode, click **Simulate** for the Source you want to test. The topic [View and Sample Pipeline Data](/telemetry-pipelines/view-pipeline-data) provides more information on how to use Pipeline Taps to view data, and to collect samples.
+3. Choose a data sample to use, and click **Run simulation**.
+4. Click **X Close** to end the simulation.
+5. Select any Source, Processor, or Destination to view egressing or ingressing data for that node.
+
+You can repeat these steps as necessary until you are satisfied with the data processing and routing for you Pipeline.
+
+## Compare Input and Output with Diff View
+
+Use the diff view to compare input and output data for a Processor node. This shows exactly what changed as data passed through.
+
+1. Run a simulation on your Pipeline.
+2. Select a Processor node to view its data.
+3. Toggle **Show Diff** to enable the diff view.
+4. Use the **Unified/Split** toggle to switch between a single-column or two-column view.
+
+The diff view highlights additions, removals, and changes side by side. This is especially useful for verifying that processors that modify, filter, or transform data produce the expected results.
+
+## Using Downloaded and Custom Sample Data
+
+You can use saved data from other Pipeline Sources, or custom data, in your simulation.
+
+1. Click the **Simulate** button for the pipeline on any source
+2. Click the **Create New Sample**
+3. Either paste your data or upload a formatted file
+    1. Paste JSON objects or arrays with all of your events
+    2. Paste NDJSON with all of your events
+    3. Paste text with each line as a separate event
+    4. Upload a file with the events separated by line
+
+4. Click Add sample data if you pasted the input
+5. Verify the resulting sample set in the preview
+6. Name the sample if you wish or leave the default naming
+
+Repeat as needed to add more sample sets. The limit on sample size is 1000 events or 4 MB, whichever is reached first.
+
+## Demo Overview

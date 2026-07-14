@@ -1,0 +1,89 @@
+---
+title: "Route Processor"
+description: "Separate events from a single stream into multiple streams using conditional statements, so you can send events to different processors or destinations."
+---
+
+## Description
+With the Route processor, you can separate events from a single stream into multiple streams. This allows you to choose the next processor or destination to which an event is sent.
+
+## Use
+A typical use of this processor would be to route processed log data to different destinations, for example sending one set of log events to storage, and another to Mezmo Log Analysis.
+
+## Configuration
+The Route processor determines where to send the log data based on a conditional statement applied to a specified field. The format of this conditional statement is: `Field (comparison operator) Value`. You can add conditions including AND and OR, as well as nested expressions. A Route Processor can contain multiple conditional statements.
+
+The **Field** can be either:
+- An event field path, for example `.transaction.result` or `.level`
+- A pipeline state variable using the `state.<variable_name>` syntax, for example `state.operational_state`
+
+State variables in routing conditions work well with [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines). You can route events differently based on the pipeline's operational state.
+
+<Note>
+The filter terms you enter for **Value** are treated as case-insensitive by default. Click the button next to the **Value** field to activate case-sensitivity.
+</Note>
+
+## Interactive Demo
+
+The topic [Tutorial: Route Data](/practioner-guide-data-optimization/pipeline-module--route) contains an interactive demo for using the Route Processor to combine data from multiple sources and send it along specific Pipeline branches for processing, along with a tutorial for experimenting with demo data.
+
+## Exclusivity
+
+The routes are not in a sequential order of operation. Any conditional expression that matches sends a copy of the matching event through to the subsequent step.
+
+If you want to make the routes exclusive, make that you create the conditions to oppose sending events down multiple paths if needed.
+
+## Operators and Conditions
+Logical conditions are used to determine when a specific event qualifies for sending on to a subsequent step. Each condition uses a source field, operator, and potentially an evaluation to return a true-false result.
+
+### Comparison Operators
+
+| Operator | Description | 
+| ---- | ---- | 
+| Equals | Compares the values for equivalency. <br /><br />The specified value can be a number or a string. | 
+| Not Equals | Compares the values for non-equivalency. <br /><br />The specified value can be a number <br /><br />or a string. | 
+| Greater Than | If the specified field value is greater, this returns true. <br /><br />This comparison only works for numeric values. | 
+| Greater Than or Equal | If the specified field value is greater or equivalent, this returns true. <br /><br />This comparison only works for numeric values. | 
+| Less Than | If the specified field value is less than, this returns true. <br /><br />This comparison only works for numeric values. | 
+| Less Than or Equal | If the specified field value is less than or equivalent, this returns true. <br /><br />This comparison only works for numeric values. | 
+
+### Contents Operators
+
+| Operator | Description | 
+| ---- | ---- | 
+| Not Contains | This operator looks for a specified string to not exist anywhere within the value of the field. | 
+| Contains | This operator looks for a specified string to exist anywhere within the value of the field. | 
+| Exists | Returns true if the specified field exists regardless of the value. | 
+| Not Exists | Returns true if the specified field does not exist regardless of the value. | 
+| Is IP in CIDR Range | Route events based on their IPv4 or IPv6 range | 
+
+### Type Operators
+| **Operator** | Description | 
+| ---- | ---- | 
+| Is Array | Checks if the field contains an array | 
+| Is Boolean | Checks if the field contains a Boolean value | 
+| Is Empty | Checks if the field is empty | 
+| Is Null | Checks if the field value is null | 
+| Is Number | Checks if the field contains a number | 
+| Is Object | Checks if the field is an object | 
+| Is String | Checks if the field value is a string | 
+
+### String Operators
+| **Operator** |  |  |  | 
+| ---- | ---- | ---- | ---- | 
+| Ends with |  |  |  | 
+| Starts with |  |  |  | 
+
+## Example
+| Conditional Statement | Result | 
+| ---- | ---- | 
+| `IF transaction.result equal success`<br /><br />`AND transaction.total_price is_greater_or_equal_to 0` | Checks the fields `transaction.result`and `transaction.total_price`for the values shown, and if a match is found, sends that data to the Encryption Processor chain. | 
+| `IF transaction.result equal fail`<br /><br />`AND transaction.total_price not 0` | Checks the fields `transaction.result`and `transaction.total_price`for the values shown, and if a match is found, sends that data to the Encryption Processor chain. | 
+
+### Route by State Variable
+
+You can route events based on a pipeline state variable. This example shows how to create separate routes for normal and incident operational states:
+
+| Conditional Statement | Result | 
+| ---- | ---- | 
+| `IF state.operational_state equal normal` | Routes events to the normal processing path when the pipeline is in normal operational state. | 
+| `IF state.operational_state equal incident` | Routes events to the incident processing path when the pipeline is in incident mode, enabling high-fidelity data capture during incidents. | 

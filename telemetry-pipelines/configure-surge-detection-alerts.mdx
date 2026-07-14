@@ -1,0 +1,47 @@
+---
+title: "Set Surge Detection Alerts"
+description: "Configure Surge Detection alerts in the Data Profiler Processor to be notified of significant data volume spikes by app, host, level, or label."
+---
+
+This topic provides steps to configure Surge Detection alerts in Mezmo. Surge Detection is a new alert type within the [Data Profiler Processor](/telemetry-pipelines/data-profiler-processor) that notifies you of significant increases in your data volume based on predefined settings.
+
+## **Overview of Surge Detection**
+
+Surge Detection alerts are built upon the [View Event Metrics](/telemetry-pipelines/view-event-metrics) that Mezmo collects. It takes approximately 24 hours for the system to establish an initial baseline, after which it can detect surges in your data. The alerts are triggered when your data volume exceeds a certain number of standard deviations above your average. You will receive notifications via email, Slack, or webhook.
+
+You can configure Surge Detection alerts based on various dimensions such as apps, hosts, levels, or labels. You can specify particular apps or services to monitor, or leave it open-ended to receive alerts for any app or host that triggers a surge. If no dimension is chosen, the system aggregates by app type and monitors each app individually.
+
+## **Configure a Surge Detection Alert**
+
+To configure a new Surge Detection alert:
+
+1. Log into the [Mezmo Web App](https://app.mezmo.com).
+2. Navigate to the **Data Profiler** processor in the pipeline where you want to create the alert. 
+3. In the **Data Profiler**, select **Alerts**.
+4. Click **Create new surge alert**.
+5. Configure the alert based on your desired dimensions:
+
+- **Apps**: Monitor surges related to specific applications.
+- **Hosts**: Monitor surges related to specific hosts.
+- **Levels**: Monitor surges related to specific log levels.
+- **Labels**: Monitor surges related to specific labels, such as container IDs.
+- If you do not select any specific dimensions, the system will aggregate and monitor each app type individually.
+
+6. Select your preferred notification channel:
+
+- **Email**: The default notification method.
+- **Slack**: Enter a Slack URI to send notifications to a specific channel.
+- **Webhook**: Enter a Webhook URL to send alert information, including the dimension and value that triggered the surge.
+
+7. Set the **Alert Interval**. This determines how often you will be alerted if the data volume remains above the set average. For example, if set to one hour, you will only receive an alert every hour even if the surge persists.
+
+## **Surge Detection Alert Information**
+
+When a Surge Detection alert fires, you will receive a notification that includes the following information:
+
+- **Z-score**: The statistical measure indicating how many standard deviations an element is from the mean.
+- **Dimension**: The specific dimension (for example, chat service) that triggered the alert.
+- **Max (for Slack)**: The maximum value you are looking for.
+- **Value (for Slack)**: The specific value related to the surge.
+- **Alert Name (for Slack)**: The name of the alert that fired.
+- Links to the **Pipeline Dashboard** and your **Alert Settings** (for Slack).

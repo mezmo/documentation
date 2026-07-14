@@ -1,0 +1,95 @@
+---
+title: "Set Up Mezmo Edge in a Docker Container"
+description: "Run a single Mezmo Edge instance as a Docker container using Docker Compose, including the compose and processor config files."
+---
+
+## Getting Started
+
+You can run Edge as a single Docker container within a suitable environment. In this deployment model, there is no default scaling other than the vertical scaling from the container resource allocation. You should be aware of this when planning your deployment resource allocation.
+
+## Environment
+
+You must have access to a Docker environment with sufficient privileges
+
+### Set Environmental Variables
+
+Set these default variables, including your Pipeline Service Key.
+
+<Note>
+If you need a service key for your Edge instance, in your account go to **Settings** **&gt; Organization &gt; API keys** and find the "Service Keys" section at the bottom of the page.
+</Note>
+
+```bash
+export EDGE_ID=<your name here>
+export MEZMO_API_URI=https://api.mezmo.com/v3/pipeline/account/local-deploy
+export MEZMO_PIPELINE_SERVICE_KEY='your_key_here'
+
+```
+
+### Add Config Files
+
+Add these two `.yaml`files to your working directory.
+
+#### compose.yaml
+
+```yaml
+services:
+  edge:
+    image: 'mezmo/vector:8.0.1'
+    environment:
+      MEZMO_LOCAL_DEPLOY_AUTH_TOKEN: ${MEZMO_PIPELINE_SERVICE_KEY}
+      MEZMO_API_URI: ${MEZMO_API_URI}
+      MEZMO_EDGE_ID: ${EDGE_ID}
+      MEZMO_METRICS_ENDPOINT_URL: ${MEZMO_API_URI}/metric/usage?edge_id=${EDGE_ID}
+      MEZMO_TASKS_FETCH_ENDPOINT_URL: ${MEZMO_API_URI}/tasks?edge_id=${EDGE_ID}
+      MEZMO_TASKS_POST_ENDPOINT_URL: ${MEZMO_API_URI}/tasks/:task_id/results
+      MEZMO_RESHAPE_MESSAGE: 1
+    ports:
+      # these ports are designed to receive traffic from server-listener sources
+      # and are set up in the Mezmo Edge pipeline configuration UI
+      # EX: Fluent, Syslog, OpenTelemetry, Datadog Agent
+      - "8000-8010:8000-8010" # specify the port allocation range
+    volumes:
+      - ${PWD}/processor.yaml:/etc/vector/processor.yaml
+      # change this to a host mount to test specific volumes for disk buffering
+      - ${PWD}/tmp-data:/data/vector
+    command: ["--config-dir", "/etc/vector"]
+
+```
+
+#### processor.yaml
+
+```yaml
+provider:
+  type: http
+  url: ${MEZMO_API_URI}/config
+  poll_interval_secs: 15
+  request:
+    headers:
+      authorization: "Token ${MEZMO_LOCAL_DEPLOY_AUTH_TOKEN}"
+    payload: |
+      {
+        "deployment_group": "<optional deployment group>",
+        "edge_id": "${MEZMO_EDGE_ID}",
+        "name": "edge",
+        "namespace": "default",
+        "ports": [8000, 8001, 8002, 8003, 8004, 8005, 8006, 8007, 8008, 8009, 8010],
+        "replica": "0",
+        "version": "edge-8.0.1"
+      }
+
+```
+
+### Run Docker Compose
+
+```bash
+docker compose up -d
+
+```
+
+Start the Edge instance with this command:
+
+```bash
+docker ps
+
+```

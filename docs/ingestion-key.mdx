@@ -1,0 +1,103 @@
+---
+title: "Generate Service and Ingestion Keys"
+description: "Create and manage Mezmo ingestion keys and IAM access keys (personal, service, and enterprise), with security best practices for handling tokens."
+---
+
+<Warning>
+Generation 1 service keys are being deprecated in favor of Generation 2 IAM access keys. Gen 2 access keys can clearly be identified by its well known prefix format.
+
+Support for generation 1 Service keys will be removed January 31, 2026.
+</Warning>
+
+You use personalized, private service and ingestion keys associated with your account to connect Mezmo to third-party applications and services. They enable users, and programs such as log collectors to authenticate with Mezmo without requiring you to share your account details.
+
+<Warning>
+Anyone who has access to your service and ingestion keys can send or retrieve logs to or from your account with no additional authentication. Be sure to keep your API keys secret.
+</Warning>
+
+### Security Best Practices
+
+- Rotate tokens regularly. Use expirations and rotate before they expire.
+- Grant only what you need. Prefer minimal scopes.
+- Use service accounts for automation. Avoid personal tokens in CI/CD.
+- Store tokens in environment variables or a secret manager. Do not hard‑code tokens.
+
+```bash
+# Good
+export MZM_ACCESS_KEY="sta_34b8f6897cd3396e6af781c3bfe34065b690f90b"
+curl -H "Authorization: Token $MZM_ACCESS_KEY" https://api.mezmo.com/v3/pipeline
+
+# Avoid
+curl -H "Authorization: Token sta_34b8f6897cd3396e6af781c3bfe34065b690f90b" \ 
+     https://api.mezmo.com/v3/pipeline
+
+```
+
+---
+
+There are two primary types of keys you can manage, Ingestion Keys and IAM Service Keys.
+
+### Ingestion Keys
+
+Ingestion keys are used by log collectors like the Mezmo Agent to send log data to Mezmo, and are also used in commands for the Ingest API. You can have up to 10 ingestion keys active at a time.
+
+### IAM Service Keys
+
+ Identity and Access Management (IAM) access keys represents a significant step forward in enhancing the security of your interactions with our services. IAM access tokens offer several key advantages over the Generation 1 service keys, including:
+
+- **Enhanced Security:** IAM access keys provide more granular control over permissions and integrate with advanced security features, reducing the risk of unauthorized access.
+- **Improved Auditing Capabilities**: IAM Access keys offer enhanced auditing over legacy service keys, detailing _who_, _what_, _when_, and _where_ actions occur. This improves security breach identification, suspicious activity investigation, and audit trails for compliance, offering clearer visibility for proactive security and efficient incident response.
+- **Improved Flexibility:** The new access key system allows for more flexible and dynamic management of access rights, enabling you to manage your integrations with greater precision.
+- **Future-Proofing:** This change aligns with industry best practices for secure access management, ensuring that our security infrastructure remains robust and adaptable to evolving threats.
+
+There are three distinct types of IAM Access Keys, each of which can be identified by a unique prefix
+
+| Prefix | Key Type | Example | 
+| ---- | ---- | ---- | 
+| `sta_` | Personal Access Key | `sta_1a2b3c4d5e6f7890abcdef1234567890abcdef12` | 
+| `sts_` | Service Key | `sts_9876543210fedcba0987654321fedcba09876543` | 
+| `ste_` | Enterprise Key | `ste_d710b57dc7dedde45ccc4c35b68cf385b89f8dc3` | 
+
+---
+
+#### Personal Access Keys (`sta`)
+
+<Note>
+Personal Access Keys will be generally available End of Q1 2026
+</Note>
+
+Personal Access Keys provide user-specific authentication for API operations. These keys are tied to individual user accounts and inherit the permissions of the user who created them. Personal Access Keys can be used for:
+
+- Accessing APIs with user-level permissions
+- Automating tasks that require user authentication
+- Integrating with third-party tools and services
+- Performing operations within the scope of the user's access
+
+Personal Access Keys are scoped to the user's permissions and cannot exceed the access level of the user the access token is associated with. Individual users looking to explore the Mezmo Platform APIs should be encouraged to create Personal Access Keys to do so.
+
+#### Service Keys (`sts`)
+
+Service keys are access Key associated with a service account for automation and CI/CD. These tokens are not associated with a normal user with in your organizations and as such, its level of access is only limited by the access it is granted. For this reason it is highly recommended that the ability to create service account and keys be reserved for account administrators. You can have up to 50 service keys active at a time.
+
+#### Enterprise Access Keys (`ste`)
+
+Enterprise access accounts and their access keys are associated with an enterprise rather than an individual Mezmo account. These types of access keys are enabled to perform operations and interactions across many accounts in an effort to streamline and optimized account management for large customers who may have many dozens to hundreds of accounts. 
+
+<Note>
+Enterprise Service Accounts are only available through our enterprise dashboard.
+</Note>
+
+---
+
+## Access and Generate New Keys
+
+1. Log in to [the Mezmo Web App](https://app.logdna.com/account/signin).
+2. Go to **Settings &gt;** **Organization &gt; API Keys**.
+3. To generate additional ingestion keys, click **Generate Ingestion Key** for up to a total of 10 keys.
+4. To generate additional service keys, click **Generate Service Key** for up to a total of 20 keys.
+5. Remove an ingestion key by clicking the X next to it.
+Note that any applications actively using this key will no longer be able to send logs to your account
+
+![Access to the API Keys through **Settings &gt; Organization**](/images/docs/j42gmtllmavb26q8m4e1r3drgyd9dfa4zhr2r7ln5m4yy8qwo1iksokj1fupb75c.png)
+
+For information on using IAM Service keys to interact with the mezmo platform APIs, see: [Authenticating With The API](/docs/authenticating-with-the-api)

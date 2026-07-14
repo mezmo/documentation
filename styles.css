@@ -1,0 +1,130 @@
+
+:root,
+:root.dark,
+:root.light,
+html,
+html.dark,
+html.light,
+body {
+    /* ---- Primary → Mezmo Purple ---- */
+    --primary: 118 81 177;        /* #7651B1  purple-500 */
+    --primary-light: 147 131 194; /* #9383C2  purple-400 */
+    --primary-dark: 97 71 158;    /* #61479E  purple-600 */
+
+    /* ---- Purple scale ---- */
+    --purple-50:  232 228 241;  /* #E8E4F1 */
+    --purple-100: 213 207 227;  /* #D5CFE3 */
+    --purple-200: 194 187 211;  /* #C2BBD3 */
+    --purple-300: 177 165 211;  /* #B1A5D3 */
+    --purple-400: 147 131 194;  /* #9383C2 */
+    --purple-500: 118 81 177;   /* #7651B1 */
+    --purple-600: 97 71 158;    /* #61479E */
+    --purple-700: 80 58 130;    /* #503A82 */
+    --purple-800: 67 52 101;    /* #433465 */
+    --purple-900: 52 41 76;     /* #34294C */
+    --purple-950: 40 34 52;     /* #282234 */
+
+    /* ---- Gray scale (Mintlify's neutral UI scale) ---- */
+    --gray-50:  244 244 244;  /* #F4F4F4 */
+    --gray-100: 230 230 229;  /* #E6E6E5 */
+    --gray-200: 206 206 206;  /* #CECECE */
+    --gray-300: 183 183 183;  /* #B7B7B7 */
+    --gray-400: 160 160 160;  /* #A0A0A0 */
+    --gray-500: 137 137 137;  /* #898989 */
+    --gray-600: 114 114 114;  /* #727272 */
+    --gray-700: 91 91 91;     /* #5B5B5B */
+    --gray-800: 68 68 68;     /* #444444 */
+    --gray-900: 45 45 45;     /* #2D2D2D */
+    --gray-950: 10 9 12;      /* #0A090C */
+
+    /* ---- Some Mintlify builds also expose these neutral aliases ---- */
+    --background-light: 244 244 244; /* #F4F4F4  gray-50 */
+    --background-dark:  10 9 12;     /* #0A090C  gray-950 */
+}
+
+:root {
+    --color-primary: #7651B1;
+    --color-primary-light: #9383C2;
+    --color-primary-dark: #61479E;
+}
+
+h1 {
+    font-weight: 500 !important;
+}
+
+.card h2 {
+    font-size: 1.3rem !important;
+}
+
+.card a {
+    font-size: 1.125rem !important;
+}
+
+.card a:hover {
+    color: #9383c2 !important;
+    background-color: #9383c21a !important;
+}
+
+.card {
+    background-color: transparent !important;
+}
+
+#body-content {
+    background-color: #f4f4f4 !important;
+}
+
+.dark #body-content {
+    background-color: #1b1a1c !important;
+}
+
+/* Header nav: neutral gray drop shadow (same in light and dark) */
+#navbar {
+    box-shadow: 0 2px 5px #72727230 !important;
+}
+
+/* Tables: fit the content column instead of overflowing it. */
+#body-content div.table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+#body-content table {
+    width: 100%;
+    min-width: 0;
+    table-layout: auto;
+}
+
+#body-content table th,
+#body-content table td,
+#body-content table a,
+#body-content table code {
+    overflow-wrap: anywhere;
+}
+
+/* Mintlify floors cells at 150px, which on a phone adds up to more than the
+   screen. Lower the floor so narrow viewports still fit. */
+@media (max-width: 640px) {
+    #body-content table th,
+    #body-content table td {
+        min-width: 90px;
+    }
+}
+
+@font-face {
+    font-family: 'Onest';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url('/fonts/onest-variable-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Onest';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url('/fonts/onest-variable-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}

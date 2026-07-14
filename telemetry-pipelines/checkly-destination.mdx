@@ -1,0 +1,31 @@
+---
+title: "Checkly"
+description: "Send Checkly-related spans to Checkly via the OpenTelemetry Destination, using a Route Processor to filter the correct traces."
+---
+
+## Description
+
+[Checkly](https://www.checklyhq.com/) enables you to quickly test, monitor, and observe your apps and APIs using Playwright and OpenTelemetry in a single workflow.
+
+## Configuration
+
+You can send data to a Checkly using the [OpenTelemetry](/telemetry-pipelines/opentelemetry-destination) Destination. 
+
+### Configuration Options
+
+<Note>
+You will also need to provide the access key for your Checkly instance.
+</Note>
+
+| Option | Description | 
+| ---- | ---- | 
+| Collector Endpoint | [`https://otel.eu-west-1.checklyhq.com/`](https://otel.eu-west-1.checklyhq.com/) | 
+
+### Route Processor Configuration
+
+Because Checkly only accepts Checkly-related spans, you will need to configure a [Route Processor](/telemetry-pipelines/route-processor) to send those spans to your destination.  Use this conditional statement to route the spans to the destintation. 
+
+```bash
+if trace_state: checkly=true
+
+```

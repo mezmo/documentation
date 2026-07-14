@@ -1,0 +1,45 @@
+---
+title: "Types of Telemetry Data Pipelines"
+description: "Compare Mezmo pipeline patterns for ingestion, optimization, archiving and rehydration, and responsive processing, with example pipelines for each."
+---
+
+In the Mezmo O'Reilly Report [_The Fundamentals of Telemetry Pipelines_](https://www.mezmo.com/resources/oreilly-report-the-fundamentals-of-telemetry-pipelines), telemetry data is described as a raw resource that must be refined in order to become useful information. The process of refinement is carried out through a telemetry pipeline. There is, however, no one-size-fits-all approach to telemetry pipeline design - you must design the pipeline to produce the type of information that suits your purpose. 
+
+While the word "pipeline" brings to mind images of pipes, valves, and other plumbing fixtures, a data pipeline is better thought of as an algorithm - a series of operations executed in a spedific order to produce a result. Within a telemetry data pipeline, the operations are represented by processors or processor groups that perform specific functions. 
+
+In this guide you'll find examples of Mezmo Telemetry Pipelines that are designed for specific purposes, along with descriptions of the processors typically used in each type of pipeline. You will also find tutorials for  building "Pipettes" using [Mezmo Demo Source Data](/telemetry-pipelines/demo-logs-source), and interactive demos to help you understand how data is transformed into information as it passes through the pipeline. 
+
+## Data Ingestion Pipelines
+
+Data ingestion pipelines are designed to send log data to Mezmo Log Analysis. 
+
+|  |  | 
+| ---- | ---- | 
+| [Basic Log Analysis Pipeline](/guide-to-pipeline-architecture/basic-log-analysis-pipeline) | This pipeline is designed to optimize data before it is sent to Mezmo Log Analysis. In this case, you would tailor the optimization processes to your specific data type, as shown in the **Data Optimization Pipelines** section. The tutorial shows you how to send source data directly to Mezmo Log Analysis, and then view the live tail of that data. | 
+| [Mezmo Log Analysis Source Pipeline](/guide-to-pipeline-architecture/log-analysis-source-pipeline) | This pipeline was originally designed to provide users of the Mezmo Log Analysis product with a migration path to the Mezmo Platform. | 
+
+## Data Optimization Pipelines
+
+Data optimization pipelines are designed to optimize specific types of data before sending it to observability tools and storage. These pipelines typically use processors like [Filter](/telemetry-pipelines/filter-processor), [Route](/telemetry-pipelines/route-processor), [Event to Metric](/telemetry-pipelines/event-to-metric-processor), and [Aggregate](/telemetry-pipelines/aggregate-processor) to transform the data into the format required for the destinations. The [Mezmo Data Profiler](/telemetry-pipelines/data-profiler-processor)  can help you [understand your data](/guide-to-pipeline-architecture/understanding-your-data-to-optimize-it) and provide recommendations for how to optimize it. 
+
+| Example Pipelines | Description | 
+| ---- | ---- | 
+| [Basic Data Optimization Pipeline](/guide-to-pipeline-architecture/basic-data-optimization-pipeline) | A basic pipeline to demonstrate the typical data optimization operations. | 
+| [Kafka Data Optimization Pipeline](/guide-to-pipeline-architecture/kafka-data-optimization-pipeline) | A pipeline designed to optimize Kafka data. | 
+| [Kubernetes Data Optimization Pipeline](/guide-to-pipeline-architecture/kubernetes-data-optimization-pipeline) | A pipeline designed to optimize Kubernetes data. | 
+
+## Data Archiving and Rehydration Pipelines
+
+Data archiving and rehydration pipelines are designed to optimize data for storage by reducing its volume, but then being able to restore or "rehydrate" it as needed for incident or other investigations. The archiving pipeline will typically include elements of a data optimization pipline, as well as processors to [Mask and Encrypt Data](/guide-to-pipeline-architecture/mask-and-encrypt-data) in situations in which the data potentially includes Personally Identifying Information (PII). The rehydration pipeline will typically include processors like [Filter](/telemetry-pipelines/filter-processor) and [Map Fields](/telemetry-pipelines/map-fields-processor), to make sure the data is in the correct format for your log analysis tool. 
+
+| Example Pipelines | Description | 
+| ---- | ---- | 
+| [Basic Data Rehydration Pipeline](/guide-to-pipeline-architecture/basic-data-rehydration-pipeline) | A basic set of archive and rehydration pipelines to show typical components, and how to create a restoration task. | 
+
+## Responsive Pipelines
+
+[Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) are designed to change the pipeline's data processing operations when a defined condition is detected in the data, for example a surge in data from a particular source, or the detection of PII data. This enables you to preserve full-fidelity copies of your data during an incident, for example, and is intended to help you reduce Mean Time to Resolution (MTTR).
+
+| Example Pipelines | Description | 
+| ---- | ---- | 
+| [Responsive Otel Pipeline Workshop](/guide-to-pipeline-architecture/responsive-otel-pipeline-tutorial) | Workshop presented by Mezmo's Braxton Johnston at PlatformCon in July 2025. | 

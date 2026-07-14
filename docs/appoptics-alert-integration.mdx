@@ -1,0 +1,24 @@
+---
+title: "AppOptics Alert Integration"
+description: "Connect Mezmo alerts to the AppOptics Measurement API using a Record Only API token so triggered alerts create measurements in AppOptics."
+---
+
+Mezmo’s alert integration with AppOptics interfaces with the [App Optics Measurement API](https://docs.appoptics.com/api/#measurements) and allows alerts set in Mezmo to create measurements in AppOptics.
+
+## Integrating with AppOptics
+
+On the alerts creation page, select the AppOptics logo. 
+
+To find an API token, in your AppOptics dashboard, go to [Settings → API Tokens ](https://my.appoptics.com/organization/tokens)page to copy an existing or create a new API token with “Record Only” permission.
+
+![](/images/docs/h3u2sns7lk9rnw5x9eiwzn4wy58s8uxqkeem3kgp6xoidjjln8nr7bssm5y4gl7s.png)
+
+Remember to save your alert so that your  alerts will now trigger in AppOptics and new alerts will be in yourAppOptics dashboard. Specifically, new alerts can be found by navigating to: AppOptics -&gt; Dashboards and Metrics -&gt; mezmo.alerts.
+
+![](/images/docs/h3u2sns7lk9rnw5x9eiwzn4wy58s8uxqkeem3kgp6xoidjjln8nr7bssm5y4gl7s.png)
+
+![](/images/docs/q1n5ulylkflwb8f86z1z7i9n77enfdgbgibp7szb1b3pxmjnw3qnpglfmanrb8j8.png)
+
+## Testing your AppOptics alert integration
+
+Before saving your AppOptics alert, you can also trigger a test alert with test data. As long as you have pasted a valid API token from AppOptics, you will be able to create a test alert.

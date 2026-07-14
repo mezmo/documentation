@@ -1,0 +1,113 @@
+---
+title: "Datadog Agent V2"
+description: "Receive logs, metrics, and traces from a Datadog Agent on separate output ports so each telemetry type can be routed independently."
+---
+
+<Note>
+This feature is experimental. Behavior and configuration options may change in future releases.
+</Note>
+
+## Description
+
+The Datadog Agent V2 source receives logs, metrics, and traces directly from a Datadog Agent. Unlike the original Datadog Agent source, this version provides separate output ports for each telemetry type, so you can route logs, metrics, and traces to different destinations in your pipeline.
+
+## Outputs
+
+- **Logs**: Log events from the Datadog Agent
+- **Metrics**: Metric events from the Datadog Agent, including sketches (distribution metrics)
+- **Traces**: Trace events from the Datadog Agent
+
+Connect each output to your desired processor or destination. You can leave outputs unconnected if you don't need that telemetry type.
+
+## Configuration
+
+Add a source and choose **Datadog Agent V2**, optionally enter a **Title** and **Description**, then click **Save**.
+
+Under **Access Key Management**:
+
+1. Click **Create new key**.
+2. Enter a title.
+3. Set the type to **User Defined** and enter your Datadog API key.
+4. Click **Create**.
+
+### Datadog Agent Configuration
+
+Configure the Datadog Agent to send data to your Mezmo pipeline URLs. The Datadog Agent V2 source uses Observability Pipelines Worker configuration options.
+
+#### Requirements
+
+The running agent version must be [ &gt;= 6.45.0 or &gt;= 7.45.0 ]
+
+#### Configuration Options
+
+| Option | Description | 
+| ---- | ---- | 
+| `DD_API_KEY` | The API key the agent is running with. | 
+| `DD_LOGS_ENABLED` | Set to `true` to allow the agent to collect logs. | 
+| `DD_OBSERVABILITY_PIPELINES_WORKER_LOGS_ENABLED` | Set to `true` to enable the agent to send logs to Mezmo. | 
+| `DD_OBSERVABILITY_PIPELINES_WORKER_LOGS_URL` | The Mezmo pipeline URL to send logs to. Use the format `<route-id>.v1.pipeline.mezmo.com:443`. | 
+| `DD_OBSERVABILITY_PIPELINES_WORKER_METRICS_ENABLED` | Set to `true` to enable the agent to send metrics to Mezmo. | 
+| `DD_OBSERVABILITY_PIPELINES_WORKER_METRICS_URL` | The Mezmo pipeline URL to send metrics to. Use the format `https://pipeline.mezmo.com/v1/<route-id>`. | 
+| `DD_OBSERVABILITY_PIPELINES_WORKER_TRACES_ENABLED` | Set to `true` to enable the agent to send traces to Mezmo. | 
+| `DD_OBSERVABILITY_PIPELINES_WORKER_TRACES_URL` | The Mezmo pipeline URL to send traces to. Use the format `https://pipeline.mezmo.com/v1/<route-id>`. | 
+
+#### Running the Datadog Agent via Docker
+
+Example pipeline publishing logs, metrics, and traces to Mezmo:
+
+```bash
+docker run -d --name datadog-agent \
+--cgroupns host \
+--pid host \
+-e DD_API_KEY=<DATADOG_API_KEY> \
+-e DD_LOGS_ENABLED=true \
+-e DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true \
+-e DD_LOGS_CONFIG_DOCKER_CONTAINER_USE_FILE=true \
+-e DD_CONTAINER_EXCLUDE="name:datadog-agent" \
+-e DD_OBSERVABILITY_PIPELINES_WORKER_LOGS_ENABLED=true \
+-e DD_OBSERVABILITY_PIPELINES_WORKER_LOGS_URL="<route-id>.v1.pipeline.mezmo.com:443" \
+-e DD_OBSERVABILITY_PIPELINES_WORKER_METRICS_ENABLED=true \
+-e DD_OBSERVABILITY_PIPELINES_WORKER_METRICS_URL="https://pipeline.mezmo.com/v1/<route-id>" \
+-e DD_OBSERVABILITY_PIPELINES_WORKER_TRACES_ENABLED=true \
+-e DD_OBSERVABILITY_PIPELINES_WORKER_TRACES_URL="https://pipeline.mezmo.com/v1/<route-id>" \
+-v /var/run/docker.sock:/var/run/docker.sock:ro \
+-v /var/lib/docker/containers:/var/lib/docker/containers:ro \
+-v /opt/datadog-agent/run:/opt/datadog-agent/run:rw \
+gcr.io/datadoghq/agent:latest
+
+```
+
+Note that `DD_OBSERVABILITY_PIPELINES_WORKER_LOGS_URL` does not include `https` as the protocol is already assumed by the agent.
+
+#### Running the local Datadog Agent
+
+Configure the agent using the `datadog.yaml` configuration file. See the [Datadog Agent configuration files documentation](https://docs.datadoghq.com/agent/guide/agent-configuration-files/?tab=agentv6v7) for file locations.
+
+Example pipeline publishing logs, metrics, and traces to Mezmo:
+
+```yaml
+api_key: <DATADOG_API_KEY>
+logs_enabled: true
+logs_config:
+    container_collect_all: true
+observability_pipelines_worker:
+    logs:
+        enabled: true
+        url: <route-id>.v1.pipeline.mezmo.com
+    metrics:
+        enabled: true
+        url: pipeline.mezmo.com/v1/<route-id>
+    traces:
+        enabled: true
+        url: pipeline.mezmo.com/v1/<route-id>
+
+```
+
+## Example Pipeline
+
+A common setup routes logs to Mezmo for analysis while forwarding metrics and traces back to Datadog:
+
+1. Add a **Datadog Agent V2** source.
+2. Connect the **Logs** output to a **Mezmo Log Analysis** destination.
+3. Connect the **Metrics** output to a **Datadog Metrics** destination.
+4. Connect the **Traces** output to a **Datadog Traces** destination.

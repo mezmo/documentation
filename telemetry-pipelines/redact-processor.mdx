@@ -1,0 +1,131 @@
+---
+title: "Redact Processor"
+description: "Identify and redact PII such as SSNs, emails, credit cards, and phone numbers in your data stream using pattern detection, hashing, or replacement."
+---
+
+## Description
+
+With this Processor you can identify and redact Personally Identifiable Information (PII) in your data stream. This includes items like:
+
+- Social Security numbers
+- Email addresses
+- Credit cards
+- Phone numbers
+
+This Processor identifies PII based on pattern detection. When the specified pattern is detected, you have the option to replace it with a specified string, or use a standard hash. When using this Processor in a [Mezmo Edge Pipelines for Local Data](/mezmo-edge/mezmo-edge-pipelines-for-local-data), you can also specify a regular expression to use for pattern detection.  
+
+## Configuration
+
+| Option | Description | Example/Options | 
+| ---- | ---- | ---- | 
+| **Title** | A title for the processor | Redact SSN | 
+| **Description** | A description of the Processor's function in the Pipeline | Replaces SSNs with a text string | 
+| **Field (Optional)** | The field to search for the pattern. If the field is not specified, the Processor will look for the pattern across all the fields. | `Message` | 
+| **Mask Pattern** |  |  | 
+|  | **Pattern** | Credit card number<br /><br />Email address<br /><br />IPv4 address<br /><br />US or Canada phone number<br /><br />US social security number<br /><br />Custom Regex Pattern ([Mezmo Edge Pipelines for Local Data](/mezmo-edge/mezmo-edge-pipelines-for-local-data)only) | 
+|  | **Action** | Hash<br /><br />Replace<br /><br />Detect Only | 
+|  | Hash Options<br /><br />The value is hashed and base64 encoded | md5<br /><br />sha1<br /><br />sha2 (sha2-512_256)<br /><br />sha3 (sha3-512) | 
+|  | Replacement | &lt;Any text string&gt; | 
+| **PII Presence** | When pre-set or custom PII patterns are detected in an event, a metadata field will be added to the event that can be used by down stream processors for collecting metrics or [trigger an alert](/telemetry-pipelines/presence-of-personally-identifying-information--pii-) that this pattern is present. Metadata field will indicate one or more PII patterns detected in the event as shown below:<br /><br />"pii_presence": \{<br /><br />"email_address": "yes",<br /><br />        "us_social_security_number": "yes"<br /><br />      \}<br /><br />If no PII patterns are detected,  _pii_presence_ field will not be added to the metadata. | On or Off | 
+
+### Pre-defined Patterns
+
+#### Social Security Number
+
+The US social security number pattern matches any valid social security number sequence, with or without optional delimiters.
+
+Examples:
+
+- XXX YY ZZZZ
+- XXX-YY-ZZZZ
+- XXX YY-ZZZZ
+- XXX-YY ZZZZ
+- XXXYYZZZZ
+
+#### Phone Number
+
+The phone number pattern matches valid phone numbers, with or without space, hypen or period (.) delimiters.
+
+Valid phone numbers include:
+
+1. +1 XXX YYY ZZZZ
+2. +1 (XXX) YYY ZZZZ
+3. +1.(XXX).YYY.ZZZZ
+4. +1XXXYYYZZZZ
+5. +1-XXX YYY.ZZZZ, etc. .
+
+The matcher will also match parts of sequences (false positives). Partially matched phone numbers includes:
+
+1. XXX.YYY.ZZZZ will be matched in the input +1_XXX.YYY.ZZZZ
+2. XXX.YYY.ZZZZ will be matched in the input +1.MXXX.YYY.ZZZZ
+
+#### Credit Card Number
+
+The credit card pattern currently matches Visa, Mastercard, American Express, Diners club and JCB card numbers.
+
+**Visa**
+
+13 to 16 digit numbers starting with 4. Examples: 4XXXXXXXXXXXX or 4XXXXXXXXXXXXXXX
+
+**Mastercard**
+
+16 digit numbers starting with 21-27 (new range) or 51-57 (old range).
+
+Examples: 21XXXXXXXXXXXXXX or 56XXXXXXXXXXXXXX
+
+**American Express (AMEX)**
+
+15 digit numbers starting with 34 or 37. Examples: 34XXXXXXXXXXXXX or 37XXXXXXXXXXXXX
+
+**Diners Club**
+
+14 digit numbers starting with 300-305 or 360-389. Examples: 300XXXXXXXXXXX or 389XXXXXXXXXXX
+
+**JCB**
+
+15 digit numbers starting with 2131 or 1800 or 16 digit numbers starting with 35. Examples: 2131XXXXXXXXXXX.
+
+### Email Address
+
+Matches RFC 5322 compliant email addresses.
+
+Examples: [user@dummy.com](mailto:user@dummy.com), [user@127.0.0.1](mailto:user@127.0.0.1), etc
+
+## Interactive Demo
+
+Check out an interactive demo of the Redact Processor as a component in [a Compliance group](/practioner-guide-data-optimization/pipeline-module--security-and-compliance), as well as instructions for building a version of the Pipette with your own sample data. 
+
+## Examples
+
+### Redact Social Security Number with String
+
+| Option | Value | 
+| ---- | ---- | 
+| Pattern | US social security number | 
+| Action | Replace | 
+| Replacement | 000-00-000 | 
+
+### Redact Social Security Number to Hash
+
+| Option | Value | 
+| ---- | ---- | 
+| Pattern | US social security number | 
+| Action | Hash | 
+| Hash | md5 | 
+
+### Custom Regex Example: Redact Canadian Social Security Number
+
+| Option | Value | 
+| ---- | ---- | 
+| Pattern | Custom | 
+| Action | Replace | 
+| Expression | (?&lt;ssn_canada&gt;(\d\{3\})-(\d\{3\})-(\d\{3\})) | 
+| Replacement | 111-111-111 | 
+
+### Redact Email Address to String
+
+| Option | Value | 
+| ---- | ---- | 
+| Pattern | Email address | 
+| Action | Replace | 
+| Replacement | [someone@nowwhere.com](mailto:someone@nowwhere.com) | 

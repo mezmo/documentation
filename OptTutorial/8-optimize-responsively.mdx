@@ -1,0 +1,61 @@
+---
+title: "Updating to Responsive Pipelines"
+description: "Use a REST API shell script to switch your log, metric, and trace pipelines into incident mode for full-fidelity data on demand."
+---
+
+---
+
+Telemetry data is both fundamental and costly for any business.  While this data is invaluable for troubleshooting, monitoring and various other concerns, it is not always valuable at the same time.Mezmo [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) adapt in real time to the content and conditions of your telemetry data, ensuring it’s routed and processed intelligently. They enable dynamic filtering, sampling, enrichment, and destination routing without manual reconfiguration. This flexibility helps teams reduce noise, control costs, and deliver the right data to the right tools when it matters most.
+
+Responsive pipelines can be integrated with a number of tools, here we will explore the most flexible and generic. REST API calls and a simple shell script to `Incident` mode across multiple pipelines at once.
+
+## Step 1: Modify and Run Responsive Test Script
+
+Take the below shell script and update with your Log, Metric, and Trace Pipeline State IDs that you grabbed at the end of each step.  Save it as `switch_state.sh`
+
+```bash
+API_TOKEN="<YOUR_API_TOKEN>"
+LOG_PIPELINE_ID="<YOUR_LOG_PIPELINE_ID>"
+LOG_PIPELINE_STATE_ID="<YOUR_LOG_PIPELINE_STATE_ID>"
+METRIC_PIPELINE_ID="<YOUR_METRIC_PIPELINE_ID>"
+METRIC_PIPELINE_STATE_ID="<YOUR_METRIC_PIPELINE_STATE_ID>"
+TRACE_PIPELINE_ID="<YOUR_TRACE_PIPELINE_ID>"
+TRACE_PIPELINE_STATE_ID="<YOUR_TRACE_PIPELINE_STATE_ID>"
+
+curl --request PUT \
+ --url "https://api.mezmo.com/v3/pipeline/state-variable/${LOG_PIPELINE_STATE_ID}" \
+ --header "Authorization: Token ${API_TOKEN}" \
+ --header 'Content-Type: application/json' \
+ --data "{\"pipeline_id\": \"${LOG_PIPELINE_ID}\",\"state\": {\"operational_state\":\"$1\"}}"
+
+curl --request PUT \
+ --url "https://api.mezmo.com/v3/pipeline/state-variable/${METRIC_PIPELINE_STATE_ID}" \
+ --header "Authorization: Token ${API_TOKEN}" \
+ --header 'Content-Type: application/json' \
+ --data "{\"pipeline_id\": \"${METRIC_PIPELINE_ID}\",\"state\": {\"operational_state\":\"$1\"}}"
+
+curl --request PUT \
+ --url "https://api.mezmo.com/v3/pipeline/state-variable/${TRACE_PIPELINE_STATE_ID}" \
+ --header "Authorization: Token ${API_TOKEN}" \
+ --header 'Content-Type: application/json' \
+ --data "{\"pipeline_id\": \"${TRACE_PIPELINE_ID}\",\"state\": {\"operational_state\":\"$1\"}}"
+
+```
+
+Run the saved script with the following command to switch things to incident mode (or any other desired state)
+
+`sh switch_state.sh incident`
+
+## Step 3: Evaluate Impact
+
+Notice that when in `Normal` mode, data in your pipelines are sampled and rolled up ensuring the needed signals are captured while remaining cost conscious.  However, when in `Incident` or `Deployment` modes, data is grabbed at full fidelity.  You will also see this represented in the UX
+
+### Normal Mode
+
+![Normal Mode](/images/OptTutorial/6ut8c98acwltjldpc33fz4njarzy5px6zy4ojyqch3k2ktbukc7e2r7lm6frevz1.png)
+
+### Incident Mode
+
+![Incident Mode](/images/OptTutorial/dzwnyryxlvs79jd6jptvcnb0h8149fw6b1siwus3gvcfnx9slc9cvj1kcrp6c7m7.png)
+
+Due to the flexibility of [Mezmo's API](/docs/api-referencesk9h), any pipeline can be integrated with just about any Incident Management or Deployment method, from PagerDuty to GitHub to Shell scripts.  To learn more, reach out to Mezmo at [support@mezmo.com](mailto:support@mezmo.com).

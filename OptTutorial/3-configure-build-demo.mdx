@@ -1,0 +1,56 @@
+---
+title: "Setting Up the OTel Demo App"
+description: "Clone the OpenTelemetry Demo, configure the collector with your Mezmo Shared Source credentials, and run it via Docker."
+---
+
+---
+
+## Step 1: Clone the OpenTelemetry Demo
+
+As we are using a modified version of the OpenTelemetry Demo with expanded logs we will need to: clone the repo, modify the config, and then build from scratch.
+
+Run `git clone https://github.com/open-telemetry/opentelemetry-demo` into a folder of your choice.
+
+## Step 2: Configure `src/otel-collector/otelcol-config-extras.yml` with Shared Source Credentials
+
+Grab the URL and saved Access Keys from your Log, Metric and Trace Shared Sources (don't worry, if you didn't save the key you can always create a new one).  Modify[ src/otel-collector/otelcol-config-extras.yml](https://github.com/open-telemetry/opentelemetry-demo/blob/main/src/otel-collector/otelcol-config-extras.yml) with the proper credentials and save.  Note that Log, Metrics and Traces will each have their own unique URL and Access Keys.
+
+#### Example OpenTelemetry Extras Configuration YAML
+
+```yaml
+# Example Mezmo Pipeline Configuration for OpenTelemetry Demo
+
+exporters:
+  otlphttp/mezmo_otel_logs:
+    endpoint: "YOUR_MEZMO_PIPELINE_SOURCE_URL"
+    headers:
+      Authorization: "YOUR_MEZMO_PIPELINE_AUTH_TOKEN"
+      
+  otlphttp/mezmo_otel_metrics:
+    endpoint: "YOUR_MEZMO_PIPELINE_SOURCE_URL"
+    headers:
+      Authorization: "OUR_MEZMO_PIPELINE_AUTH_TOKEN"
+
+  otlphttp/mezmo_otel_traces:
+    endpoint: "YOUR_MEZMO_PIPELINE_SOURCE_URL"
+    headers:
+      Authorization: "OUR_MEZMO_PIPELINE_AUTH_TOKEN"
+  
+service:
+  pipelines:
+    logs:
+       exporters: [otlphttp/mezmo_otel_logs, opensearch, debug]
+    metrics:
+      exporters: [otlphttp/mezmo_otel_metrics, otlphttp/prometheus, debug]
+    traces:
+      exporters: [otlphttp/mezmo_otel_traces, otlp, debug, spanmetrics]
+
+```
+
+## Step 3: Run the OpenTelmetry Demo via Docker
+
+From the top level of the repo, run the following command
+
+`docker compose up --force-recreate --remove-orphans --detach`
+
+You will now have a running OpenTelemetry Demo instance up and running at `http://localhost:8080`.  To learn more about the demo's capabilities, check out their [extensive docs](https://opentelemetry.io/docs/demo/docker-deployment/#verify-the-web-store-and-telemetry).  For this workshop, we will be taking advantage of the default output.

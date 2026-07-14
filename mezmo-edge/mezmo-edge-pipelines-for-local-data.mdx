@@ -1,0 +1,21 @@
+---
+title: "Mezmo Edge Pipelines for Local Data"
+description: "Run telemetry pipelines locally with Mezmo Edge to access local sources, process data within your network, and use Rust-based regex."
+---
+
+Mezmo Edge lets you run a telemetry data pipeline locally in your environment when it's preferable to not egress data to our SaaS solution. You can run any Pipeline as a satellite node within an Edge instance. All of the metrics and management of the Pipeline are still handled by the SaaS infrastructure, making it easy to build, test, and deploy without requiring any additional coding or configuration management.
+
+Mezmo Edge can be deployed to any Kubernetes cluster using [a Helm chart](https://helm.sh/docs/intro/quickstart/), as explained in the topic [Set Up Mezmo Edge in Kubernetes](/mezmo-edge/set-up-mezmo-edge-in-kubernetes). By default, Mezmo Edge uses **Horizontal Pod Autoscaling (HPA)** to scale to your workloads, which means you can take advantage of the scalability Kubernetes offers without having to invest substantial time and effort to manage the scaling.  The Helm chart also supports deploying via a **DaemonSet**, which will run on all of the deployed nodes.  This comes in handy when using the Kubernetes Pod Logs source.
+
+## What's New in Mezmo Edge
+
+Because Mezmo Edge is entirely contained and running within your infrastructure, if offers several capabilities for managing and processing your data. These include:
+
+- Accessing local data sources without any changes to your networking, such as punching holes in firewalls
+- Processing and sending data entirely within your local network
+- Sending raw syslog directly to your pipelines without needing any additional security plugins
+- Leveraging the full power of regular expressions (regex) within your pipeline
+
+<Note>
+The regex syntax for Mezmo Edge is based on the Rust implementation of RegEx. This regex syntax  is similar to other regex engines, but it lacks several features that cannot be efficiently implemented. This includes look-around and back references. However, all Rust regex searches have worst case `O(m * n)` time complexity, where `m` is proportional to the size of the regex and `n` is proportional to the size of the string being searched. You can find more information [in the Rust documentation](https://docs.rs/regex/latest/regex/).
+</Note>

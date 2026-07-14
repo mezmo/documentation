@@ -1,0 +1,17 @@
+---
+title: "Google Cloud Monitoring"
+description: "Send metric events to Google Cloud Monitoring, configuring project ID, resource type and labels, and JSON service account credentials."
+---
+
+## Description
+
+This destination enables you to send metrics to Google's Cloud Monitoring product.  This Destination only supports metrics events.  If you want to send logs, you should use the [Google Cloud Operations](/telemetry-pipelines/gcp-cloud-operations-destination) Destination.
+
+## Configuration Options
+
+| Option | Description | 
+| ---- | ---- | 
+| Project ID | The [Project Id](https://support.google.com/googleapi/answer/7014113?hl=en) of your GCP Account. | 
+| Resource Type | The [resource type](https://cloud.google.com/monitoring/api/resources) to which these events are related. | 
+| Resource Labels | An array of key/value objects describing labels of the Monitoring resource. | 
+| JSON Credentials | The Google Cloud [Service Account Key](https://cloud.google.com/iam/docs/keys-create-delete#creating). | 

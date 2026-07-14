@@ -1,0 +1,255 @@
+---
+title: "Filter Processor"
+description: "Pass or drop events using conditional statements with content, string, comparison, and type operators to reduce forwarded data."
+---
+
+## Description
+The Filter by Field processor allows events to pass based on the presence of a specific key-value pair. Events that return `true` for the comparison operands are forwarded.
+
+## Use
+You can use this processor to drop events that may not be meaningful, or to reduce the total amount of data forwarded to a subsequent processor or destination. This can be useful, for example, for dropping events that may be DEBUG level and not needed for long term storage, or metrics that are zero and should not need to be recorded.
+
+## Configuration
+The Filter processor uses conditional statements to set the filter criteria. The format of this conditional statement is: `Field (comparison operator) Value`. You can add conditions including `AND` and `OR`, as well as nested expressions. A Filter Processor can contain multiple conditional statements.
+
+| Option | Description | Example | 
+| ---- | ---- | ---- | 
+| **Field** | The field to filter on. You can specify an event field path (for example, `.foo`) or a pipeline state variable using the `state.<variable_name>` syntax. | `.foo` or `state.operational_state` | 
+| **Operator** | The type of operator to use for the filter. | `greater` | 
+| **Value** | The value for the operator to use. | `10` | 
+
+<Note>
+The filter terms you enter for **Value** are treated as case-insensitive by default. Click the button next to the **Value** field to activate case-sensitivity.
+</Note>
+
+## Operators
+### Contents Operators
+
+| **Operator** | **Description** | **Example** | 
+| ---- | ---- | ---- | 
+| **Not Contains** | Accepts string values. Will drop the record if it does not contain the value in the string. |  | 
+| **Contains** | Accepts string values. Will drop the record if it contains the value in the string. | `bar` | 
+| **Exists** | Drops the record if the field exists |  | 
+| **Not Exists** | Drops the record if the field does not exist |  | 
+
+### String Operators
+
+| **Operator** | **Description** | **Example** | 
+| ---- | ---- | ---- | 
+| **Ends With** | The contents of a given field ends with. | `bar` | 
+| **Starts With** | The contents of a given field starts with. | `foo` | 
+
+### Comparison Operators
+
+| **Operator** | **Description** | Example | 
+| ---- | ---- | ---- | 
+| **Greater** | Accepts only numeric values. | `10` | 
+| **Greater or Equal** | Accepts only numeric values. | `10` | 
+| **Less** | Accepts only numeric values. | `10` | 
+| **Less or Equal** | Accepts only numeric values. | `10` | 
+| **Equal** | Accepts both numeric and string values.  Does a string comparison on non string fields. | `bar` | 
+| **Not Equal** | Accepts both numeric and  string values.  Does a string comparison on non string fields. | `bar` | 
+
+### Type Operators
+
+| Operator | Description | Example | 
+| ---- | ---- | ---- | 
+| **Is Array** | Drops the record if the field is not an array. | `[ "foo", "bar" ]` | 
+| **Is Boolean** | Drops the record if the field is not a boolean. | `true` | 
+| **Is Empty** | Drops the record if the field does not contain an empty string, array or object. | `""` | 
+| **Is Null** | Drops the record if the field is not null. | `null` | 
+| **Is Number** | Drops the record if the field is not a numeric. | `123.45` | 
+| **Is Object** | Drops the record if the field is not an object. | `{ "foo": "bar" }` | 
+| **Is String** | Drops the record if the field is not a string. | `"This is foo bar"` | 
+
+## Examples
+
+### Filter Greater
+
+#### Before
+
+```json
+{ "foo": 10 }
+{ "foo": 20 }
+{ "foo": "25" }
+{ "foo": "bar" }
+
+```
+
+#### Filter Options
+
+| Option | Value | 
+| ---- | ---- | 
+| **Field** | `.foo` | 
+| **Operator** | `greater` | 
+| **Value** | `10` | 
+
+#### After
+
+```json
+{ "foo": 20 }
+
+```
+
+### Filter Equals
+
+#### Before
+
+```json
+{ "foo": 10 }
+{ "foo": 20 }
+{ "foo": "10" }
+{ "foo": "bar" }
+
+```
+
+#### Filter Options
+
+| Option | Value | 
+| ---- | ---- | 
+| **Field** | `.foo` | 
+| **Operator** | `equal` | 
+| **Value** | `10` | 
+
+#### After
+
+```json
+{ "foo": 10 }
+{ "foo": "10" }
+
+```
+
+### Filter Contains
+
+#### Before
+
+```json
+{ "foo": "setting the bar high." }
+{ "foo": "setting the bar low." }
+{ "foo": "below the BAR." }
+{ "foo": "driving around town." }
+
+```
+
+#### Filter Options
+
+| Option | Value | 
+| ---- | ---- | 
+| **Field** | `.foo` | 
+| **Operator** | `contains` | 
+| **Value** | `10` | 
+| **Case Sensitive** | `On` | 
+
+#### After
+
+```json
+{ "foo": "setting the bar high." }
+{ "foo": "setting the bar low." }
+
+```
+
+### Filter is Empty
+
+#### Before
+
+```json
+{ "foo": "setting the bar high." }
+{ "foo": "" }
+{ "foo": null }
+{ "foo": {} }
+{ "foo": { "bar": "baz"} }
+{ "foo": [] }
+{ "foo": [ "bar" ] }
+
+```
+
+#### Filter Options
+
+| Option | Value | 
+| ---- | ---- | 
+| **Field** | `.foo` | 
+| **Operator** | `is_empty` | 
+
+#### After
+
+```json
+{ "foo": "" }
+{ "foo": {} }
+{ "foo": [] }
+
+```
+
+### Filter Debug Data
+
+In some cases, log data streams include extraneous data such as Debug level information. These would normally not be needed in the production monitoring stream and can be discarded.
+
+This example uses the `log level` field as a filtering operator to drop anything with a `DEBUG` value.
+
+#### Before
+
+```json
+[{
+"timestamp": "2022-12-23T12:34:56Z",
+"level": "error",
+"message": "There was an error processing the request",
+"request_id": "1234567890",
+"user_id": "abcdefghij"
+},
+{
+"timestamp": "2022-12-23T12:34:56Z",
+"level": "info",
+"message": "User logged in",
+"user_id": "abcdefghij",
+"user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+},
+{
+"timestamp": "2022-12-23T12:34:56Z",
+"level": "debug",
+"message": "Server starting",
+"server_id": "abcdefghij",
+"start_time": "2022-12-23T12:30:00Z"
+}]
+
+```
+
+#### Filter Options
+
+| Option | Value | 
+| ---- | ---- | 
+| **Field** | `.level` | 
+| **Operator** | `not_equal` | 
+| **Value** | `debug` | 
+
+#### After
+
+```json
+[{
+"timestamp": "2022-12-23T12:34:56Z",
+"level": "error",
+"message": "There was an error processing the request",
+"request_id": "1234567890",
+"user_id": "abcdefghij"
+},
+{
+"timestamp": "2022-12-23T12:34:56Z",
+"level": "info",
+"message": "User logged in",
+"user_id": "abcdefghij",
+"user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+}]
+
+```
+
+### Filter by State Variable
+
+Filter events based on a pipeline state variable. This works well with [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines), where you can change filtering behavior based on the pipeline's operational state.
+
+#### Filter Options
+
+| Option | Value | 
+| ---- | ---- | 
+| **Field** | `state.operational_state` | 
+| **Operator** | `equal` | 
+| **Value** | `incident` | 
+
+This configuration forwards events only when the pipeline's `operational_state` is set to `incident`. During normal operation, the filter drops events.

@@ -1,0 +1,39 @@
+---
+title: "Mezmo Archive Destination"
+description: "Archive telemetry data to S3 or Azure Cloud Storage in a date-partitioned folder structure so it can later be restored into a Pipeline."
+---
+
+## Description
+
+With this Destination, you can set up Archive locations for your telemetry data in S3 and Azure Cloud Storage, and then restore the data from those locations to a Pipeline using the [Archive and Restore Telemetry Data](/telemetry-pipelines/archive-restore-data) feature. 
+
+## Archiving Format and Frequency
+
+If your data is being sent to the archive storage location  on  May 13, 2024, for example, the folder structure for your data files would follow this format: 
+
+`bucket / year=2024 / month=05 / day=13`
+
+By default, data is written to the Archive Destination every five minutes (though you can change this with the `Batch Timeout`value). or at 20k lines, or 10MB of data , whichever comes first.  Since these files are typically very small, there is an hourly  mechanism that will combine these smaller files into larger merged log files.
+
+## Configuration
+
+Configuration is similar to our S3 and Azure Blob Storage destinations, and appropriate rights must be set up for these destinations before configuring the Pipeline Destination.  Check out the topics for [AWS S3 Storage](/telemetry-pipelines/s3-destination) and [Azure Blob Storage](/telemetry-pipelines/azure-blob-storage-destination) for more details.
+
+### Configuration Options
+
+| Option | Description | 
+| ---- | ---- | 
+| Batch Timeout | The maximum amount of time, in seconds, that events will be buffered before being flushed to the destination.<br /><br />Default: 300s | 
+| Archive Provider | The Cloud provider where you'd like to store your archives. | 
+| **S3 Options** |  | 
+| Access Key ID | The access key ID with permissions to your S3 bucket. | 
+| Secret Access Key | The access key secret with permissions to your S3 bucket. | 
+| Bucket | The bucket name.  <br /><br /> Do not include a leading s3:// or a trailing / | 
+| Region | Region in which your bucket is located. | 
+| **Azure Blob Storage Options** |  | 
+| Container Name | The name of the Azure Blob container. | 
+| Connection String | The access key connection string with rights to this container. | 
+
+<Note>
+To aid with downstream processing of these archives, we will copy the event's `timestamp` field into the `message` field as `mezmo_timestamp` .
+</Note>

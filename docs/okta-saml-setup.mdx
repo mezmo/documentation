@@ -1,0 +1,54 @@
+---
+title: "Okta SAML Setup"
+description: "Configure Okta as a SAML identity provider for Mezmo single sign-on, including JIT provisioning and SSO enforcement behavior."
+---
+
+<Note>
+This feature is only available for customers on an Enterprise plan, and is restricted to **Owner** and **Admin** user roles. Please contact your Customer Support Manager or [support@mezmo.com](mailto:support@mezmo.com) for more information.
+</Note>
+
+## Step 1: Get Your Mezmo Single Sign On URL
+
+1. In your Mezmo app go to **Settings &gt; Organization &gt; Access Management**.
+2. Go to **SAML Configuration** and copy the URL under **Single Sign On URL**.
+3. Keep this URL available since it will be used in **Step 2: Configure Okta**.
+
+## Step 2: Configure Okta
+
+1. In Okta go to **Applications &gt; Applications**.
+2. Click **Create App Integration**.
+3. In the window, choose **SAML 2.0**.
+4. Fill out General Settings.
+5. In the next window, enter the Mezmo single sign on URL from **Step 1: Get Your Mezmo Single Sign On URL**
+6. Make sure **Recipient URL and Destination URL** are checked.
+7. Set the **Audience URI (SP Entity ID)** to your account ID. At the end of your URL. For example, `https://app.mezmo.com/auth/saml-consume/<AccountID>`. You can leave the rest of the options as is.
+8. Fill out step 3 Feedback.
+
+## Step 3: SAML Configuration
+
+![Add your Mezmo Sign On URL to Single Sign On URL. Then set your Audience URI to your account ID.](/images/docs/osx697g0dzdrjtvm6qs7m924o2q41taja1olz06g74dhggbjbfcr8ek4tdmb5uac.png)
+
+1. In Okta, on the settings page, click the button; **View SAML setup instructions**.
+2. If not already done, in Mezmo, select **configure manually**.
+3. Copy the **Identity Provider Single Sign-On URL** in Okta to **Identity provider sign-in URL** in Mezmo.
+4. Download the **X.509 Certificate** from Okta and upload it to Mezmo.
+5. Save your config in Mezmo.
+6. You can also copy and save the XML data on Okta under **Optional** and upload it to Mezmo.
+
+## Frequently Asked Questions
+
+**Does the Mezmo integration with Okta have Just In Time (JIT) or other provisioning features? For example, assigning users to the Okta app, or provisioning accounts automatically?**
+
+Yes, it has JIT provisioning and accounts are created automatically.
+
+**Does the Mezmo Integration also automatically expand our licensing count?**
+
+It does not add licensing, it only creates the account.
+
+**If I remove the application assignment from a user, does it deprovision/deactivate their Mezmo account?**
+
+It does not deprovision/deactivate their Mezmo Account. They would need to login with their email address, but they would not have a password. They would need to click **Forgot Password** to create a new one.
+
+**Is Okta SSO enforced, or can people also log in via their Google login?**
+
+When Okta SSO is enforced, it will force normal users to use Okta to login. The one exception is the owner of the account. The account owner may need an alternative access method should there be problems with the SSO setup.

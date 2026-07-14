@@ -1,0 +1,20 @@
+---
+title: "Prometheus Remote Write"
+description: "Send metrics to any destination that accepts the Prometheus Remote Write protocol, such as Grafana, with authentication and endpoint options."
+---
+
+## Description
+
+You can send your metrics to any destination that accepts data using the Prometheus Remote Write protocol (such as sending metrics to Grafana).
+
+## Configuration
+
+You can configure the destination using these options.
+
+### Configuration Options
+
+| Option | Description | 
+| ---- | ---- | 
+| End-to-end acknowledgement | Enable this option to receive verification that log data is being received by Prometheus. | 
+| Strategy | The authentication strategy to use. | 
+| Endpoint | The endpoint for the Prometheus instance where you want to send your logs. | 

@@ -1,0 +1,53 @@
+---
+title: "1 - Introduction"
+description: "Workshop overview and prerequisites for optimizing OpenTelemetry logs, metrics, and traces with Mezmo Pipelines."
+---
+
+<Note>
+If you run into any issues or have feedback on either the workshop or Pipeline, please reach out to us at [support@mezmo.com](mailto:support@mezmo.com).
+</Note>
+
+## Perequisites
+
+- A Mezmo account, you can [sign up for a trial here](https://www.mezmo.com/sign-up-mezmo-platform).
+- [Docker](https://www.docker.com/get-started/)
+
+## Overview
+
+In this workshop, we will be exploring telemetry data produced with the [OpenTelemetry Demo](https://github.com/mezmo/opentelemetry-demo) while optimizing it for both MTTR and cost.
+
+To accomplish this we will:
+
+1. Create a OpenTelemetry Log, Metric, and Trace [Shared Source](/telemetry-pipelines/shared-sources) in Mezmo.
+2. [Configure OpenTelemetry collector](https://github.com/mezmo/opentelemetry-demo/mezmo-otel-config-extras.yml) with Mezmo Shared Source credentials.
+3. Explore the OpenTelemetry Logs via [Data Profiling](/telemetry-pipelines/data-profiling)
+4. Send log data to [Mezmo Log Analysis](/docs)
+5. [Aggregate](/telemetry-pipelines/reduce-processor) specific log patterns
+6. [Parse](/telemetry-pipelines/parse-sequentially-processor) custom Apache data
+7. [Aggregate OpenTelemetry Metrics](/telemetry-pipelines/aggregate-processor) to lower fidelity
+8. [Sample OpenTelemetry Traces](/telemetry-pipelines/sample-processor)
+9. Configure Pipelines to be [Responsive](/telemetry-pipelines/configure-responsive-pipelines) (ie, capture full fidelity when in an incident or deployment state)
+
+## Final Product
+
+In the end you are going to build four Pipelines that look like these
+
+- Log Profiling Pipeline
+
+![Final Pipeline: Log Exploration](/images/guide-to-pipeline-architecture/g96or2pxtsdxpgc45yft3j0xhrwlatg94c4pbkvw5xihtswcv5wgsavbuaffv6os.png)
+
+- Log Handler Pipeline
+
+![Final Pipeline: Log Handler](/images/guide-to-pipeline-architecture/cs3p6z7byoiz26szyfpi0tus3y98un7vtfmvnomu8ekiol0rddevhnpcw6iyuack.png)
+
+- Metric Handler Pipeline
+
+![Final Pipeline: Metric Handler](/images/guide-to-pipeline-architecture/1hr2day4vwx8w6m5977gkvy69q84gkgenqcop679zef4c340ysg0gddibpds66sf.png)
+
+- Trace Handler Pipeline
+
+![Final Pipeline: Trace Handler](/images/guide-to-pipeline-architecture/i7jvfiyk5ps0x8horxotawsrwu2ia7rtiqe321pe0y4tuoz0i2zj9zk35c2hmaa2.png)
+
+These pipelines will optimize your OpenTelemetry data by aggregating, parsing, and configuring data flow responsively. By allowing for easy, granular control you can make sure the right data winds up where it belongs.
+
+The end result is a system that provides the insight needed, at the fidelity when it's needed, leading to an order of magnitude in savings.

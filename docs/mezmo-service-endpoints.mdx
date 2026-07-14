@@ -1,0 +1,84 @@
+---
+title: "Mezmo Service Endpoints"
+description: "Reference the inbound and outbound IP addresses for Mezmo services to configure IP-based firewall rules and allowlists."
+---
+
+This page lists IP addresses for Mezmo services. Use these addresses to configure IP-based firewall rules.
+
+## Inbound IP addresses
+
+Mezmo ingestion services use the following IP addresses. Traffic you send to Mezmo arrives at these endpoints.
+
+Mezmo services use domain name system (DNS) routing, so you do not need to update your agent configuration. You only need these IP addresses if you have IP-based filtering in your firewalls.
+
+**These IP addresses may change over time as our infrastructure evolves. Mezmo cannot guarantee these addresses will remain unchanged indefinitely. The ideal configurations will rely on DNS to reach these services and not the IP addresses directly. Mezmo will keep this document updated on a best-effort basis.**
+
+**Latest Update**: April 6, 2026 at 3:30PM UTC
+
+**api.mezmo.com:**
+
+174.129.121.149
+
+54.198.14.31
+
+54.227.203.3
+
+**logs.mezmo.com:**
+
+174.129.121.149
+
+54.198.14.31
+
+54.227.203.3
+
+**assets.logdna.com:**
+
+54.224.242.53
+
+3.230.116.140
+
+52.4.27.175
+
+**syslog-a.mezmo.com and syslog-u.mezmo.com:**
+
+107.21.191.159
+
+18.210.196.184
+
+18.213.75.161
+
+3.215.157.103
+
+3.217.96.45
+
+3.88.79.246
+
+44.194.176.49
+
+44.198.142.174
+
+52.2.231.144
+
+52.72.2.63
+
+52.86.146.53
+
+54.159.155.79
+
+54.159.171.103
+
+54.162.98.246
+
+54.167.185.230
+
+## Outbound IP addresses
+
+When Mezmo connects to external services like third-party alerting integrations or external APIs, traffic comes from these IP addresses:
+
+34.228.164.79
+
+34.236.93.215
+
+3.229.58.59
+
+If your security policies require IP allowlisting for inbound connections from Mezmo, add these addresses to your allowlist.

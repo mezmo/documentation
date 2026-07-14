@@ -1,0 +1,59 @@
+---
+title: "Edit or Delete a Pipeline"
+description: "Edit Pipeline components and names, compare and roll back revisions, and delete Pipelines through the Mezmo Web App."
+---
+
+Once you're created a Telemetry Pipeline, you can edit it through the Pipeline user interface.
+
+## Edit Pipeline Components
+
+1. Log in to [the Mezmo Web App](https://app.mezmo.com/).
+2. Click **Pipelines**.
+3. Select the Pipeline you want to edit.
+4. Click **Edit pipeline**.
+5. To add **Sources**, **Processors**, or **Destinations**, click **Add** in the appropriate column.
+6. To edit a **Source**, **Processor**, or **Destination**, click the ... icon in the upper-right corner of the Pipeline component node to open the **Configuration** menu.
+7. To remove a **Source**, **Processor**, or **Destination**, click the node to open its Configuration menu and click **Delete**.
+
+As you are editing a Pipeline, you can view the data that is flowing in the deployed version by clicking **Monitor deployed version**.
+
+## Edit Pipeline Name
+
+1. Log in to [the Mezmo Web App](https://app.mezmo.com/).
+2. Click **Pipelines**.
+3. Click the arrow next to the name of the Pipeline you want to edit,. and then click **Settings**.
+4. Enter a new name for the Pipeline, then click **Save**.
+
+## Compare Pipeline Revisions
+
+You can compare two pipeline revisions to see exactly what changed between versions.
+
+1. Log in to [the Mezmo Web App](https://app.mezmo.com/).
+2. Click **Pipelines**.
+3. Select the Pipeline you want to compare.
+4. Click **Edit Pipeline**.
+5. At the top of the Edit window, select a previously deployed version from the dropdown.
+6. Click **Compare Revisions**.
+7. In the **Compare Revisions** modal, use the **Base** and **Compare** dropdowns to select the two revisions you want to compare. You can select **Current draft** or any previously deployed version.
+8. Toggle between **Unified** (line-by-line) and **Split** (side-by-side) view using the switch in the upper-right corner.
+
+The diff view shows the pipeline configuration as JSON, with additions highlighted in green and deletions in red.
+
+## Roll Back to a Previous Pipeline Version
+
+You can revert to a previously deployed version of a Pipeline.
+
+1. Log in to [the Mezmo Web App](https://app.mezmo.com/).
+2. Click **Pipelines**.
+3. Select the Pipeline to roll back.
+4. Click **Edit Pipeline**.
+5. At the top of the Edit window, select the previously deployed version to roll back to.
+
+![The menu for previous deployed versions of a Pipeline](/images/telemetry-pipelines/2mdy2i3zlgsn5nrmb0svjh7x5oun1svm5jfabb4th55bbfovm3cgr5zoj66ptyd5.png)
+
+## Delete a Pipeline
+
+1. Log in to [the Mezmo Web App](https://app.mezmo.com/).
+2. Click **Pipelines**.
+3. Click the arrow next to the name of the Pipeline you want to delete,. and then click **Settings**.
+4. Click **Delete Pipeline**.

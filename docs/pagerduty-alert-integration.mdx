@@ -1,0 +1,54 @@
+---
+title: "PagerDuty Alert Integration"
+description: "Connect Mezmo alerts to PagerDuty so log-based alerts trigger incidents, including how to test, delete, and the 400 KB payload limit."
+---
+
+## About PagerDuty Alert Integration
+
+Mezmo’s alert integration with PagerDuty interfaces with  [PagerDuty Event API](https://developer.pagerduty.com/docs/events-api-v2/overview/) and allows alerts sent from Mezmo to trigger events in PagerDuty.
+
+## Integrating with PagerDuty
+
+On the alerts creation page, select the PagerDuty logo. 
+
+![](/images/docs/fscusmyp87hri934qjtuu3tj62d1uvlnbdw9czuk2l6of5fr2icet5n5s0snkbjk.png)
+
+You will be directed to PagerDuty to authorize the integration, using your email address and password for your PagerDuty account.
+
+![](/images/docs/fscusmyp87hri934qjtuu3tj62d1uvlnbdw9czuk2l6of5fr2icet5n5s0snkbjk.png)
+
+![](/images/docs/5vwrmljpi1d1ycrohbnfozt48vtdhzqx9uzyawckj2p0oum425deh55x3xeogb4o.png)
+
+After authorization, you are prompted to select the PagerDuty service **logging alerts** and then click **Connect**.
+
+![](/images/docs/fscusmyp87hri934qjtuu3tj62d1uvlnbdw9czuk2l6of5fr2icet5n5s0snkbjk.png)
+
+![](/images/docs/5vwrmljpi1d1ycrohbnfozt48vtdhzqx9uzyawckj2p0oum425deh55x3xeogb4o.png)
+
+![](/images/docs/3il6eg0mlyolu0k8fgo6fsyqmtffncfptzigntp5zzxayili97o1urrx1n8tpjhg.png)
+
+After completing the connection, remember to save your Mezmo alert so that your alerts will trigger in PagerDuty and new alerts display in your PagerDuty incidents dashboard.
+
+![](/images/docs/fscusmyp87hri934qjtuu3tj62d1uvlnbdw9czuk2l6of5fr2icet5n5s0snkbjk.png)
+
+![](/images/docs/5vwrmljpi1d1ycrohbnfozt48vtdhzqx9uzyawckj2p0oum425deh55x3xeogb4o.png)
+
+![](/images/docs/3il6eg0mlyolu0k8fgo6fsyqmtffncfptzigntp5zzxayili97o1urrx1n8tpjhg.png)
+
+![](/images/docs/tdet6zfj15ko69694zrhlyd87vuxp0igimabjjtjjmr611hk520ffhj4r3naaoh7.jpg)
+
+## Testing Your PagerDuty Integration
+
+You can choose trigger a test alert with test data, even before saving your PagerDuty alert. As long as you have selected a connected source from PagerDuty, you will be able to create a test alert.
+
+## Deleting Your PagerDuty Integration
+
+1. Log in to the Mezmo Web App.
+2. Go to **Settings &gt; Integrations**.
+3. Select your PagerDuty integration to open its **Settings** page.
+4. Click the **X** next to the Service you want to delete.
+5. Click *_Yes, delete *_in the confirmation dialog to remove the service.
+
+## Limitations on PagerDuty data payload
+
+Because of [PagerDuty integration limitations](https://developer.pagerduty.com/docs/events-api-v2/overview/), we trim all requests to be at most 400 kilobytes.

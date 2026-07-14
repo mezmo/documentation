@@ -1,0 +1,816 @@
+---
+title: "Mezmo MCP"
+description: "Connect AI assistants and IDE chat agents to Mezmo's remote MCP server for root-cause analysis, log queries, and pipeline management."
+---
+
+## Mezmo MCP Server (Model Context Protocol)
+
+Mezmo MCP is a **remote Model Context Protocol (MCP) server** that lets AI assistants and IDE chat agents interact with the Mezmo observability platform via the [Model Context Protocol](https://modelcontextprotocol.info/). Use it for streamlined observability, log analysis, and root-cause analysis in your favorite tools.
+
+Add Mezmo MCP and you can:
+
+- 🕵️ Run advanced **Root-cause analysis** over recent logs
+- 📦 List and describe **Pipelines**
+- 📤 Export and filter **Logs** with powerful query syntax
+
+## Overview
+
+Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients.
+
+## Available Tools & Examples
+
+### 1. Log Analysis & Root Cause Detection
+
+#### `analyze_logs_for_root_cause_relative_time`
+
+Fetches, processes (deduplicates, clusters), and analyzes logs to determine potential root causes for incidents within a relative time range.
+
+**Use cases:**
+
+- Investigating recent incidents
+- Finding root causes of system failures
+- Analyzing error patterns
+
+**Example:**
+"Analyze the logs from the last 30 minutes to find the root cause of API service returning 500 errors"
+
+#### `analyze_logs_for_root_cause_time_range`
+
+Similar to the relative time version but uses absolute time ranges.
+
+**Example:**
+"What caused the database connection pool to be exhausted between 10 AM and 11 AM today in the backend app?"
+
+### 2. Log Deduplication
+
+#### `deduplicate_logs_relative_time`
+
+Removes duplicate log entries within a relative time range.
+
+**Example:**
+"Deduplicate the error logs from the payment service in the last 15 minutes"
+
+#### `deduplicate_logs_time_range`
+
+Deduplicates logs within an absolute time range.
+
+**Example:**
+"Remove duplicate exception logs from the web frontend between 2 PM and 3 PM yesterday"
+
+### 3. Log Grouping & Aggregation
+
+#### `group_logs_by_field`
+
+Groups logs by a specific field and returns distribution of values with optional metric aggregation.
+
+**Use cases:**
+
+- "Which apps generate the most errors?"
+- "What is the p95 latency per host?"
+- "Which pods are producing the most logs?"
+
+**Examples:**
+
+"Which apps are generating the most errors? Show me the top 10"
+
+"What's the p95 latency for each host between 9 AM and 10 AM today?"
+
+"Show me the average memory usage by pod in the production namespace"
+
+### 4. Log Visualization
+
+#### `get_log_histogram`
+
+Returns a time-series histogram of log volume over time.
+
+**Use cases:**
+
+- Visualizing log activity patterns
+- Identifying spikes or anomalies
+- Understanding when incidents occurred
+
+**Examples:**
+
+"Show me a histogram of error logs over the last hour"
+
+"Create a histogram of API 500 errors from 8 AM to 12 PM today with 5-minute buckets"
+
+"Visualize warning logs from the production namespace over the last hour with 30-second granularity"
+
+### 5. Field Discovery
+
+#### `list_log_fields`
+
+Lists available structured fields that can be used in log queries.
+
+**Use cases:**
+
+- Discovering available fields for queries
+- Finding field names like "app", "host", "level", "namespace", "pod", "node"
+
+**Examples:**
+
+"What log fields are available?"
+
+"Show me all fields that contain 'kubernetes'"
+
+"List all fields that start with 'http'"
+
+"Find all fields ending with '_ms' (timing metrics)"
+
+"Is there an 'app' field in the logs?"
+
+"Show me fields that start with 'request' and end with 'time'"
+
+### 6. Pipeline Management
+
+#### `list_pipelines`
+
+Lists available Mezmo v3 pipelines.
+
+**Example:**
+"Show me all the Mezmo pipelines"
+"What pipelines are configured?"
+
+#### `get_pipeline`
+
+Gets details for a specific Mezmo v3 pipeline.
+
+**Parameters:**
+
+- `pipeline_id` (required): UUID of the pipeline
+
+**Example:**
+"Show me the details for pipeline 123e4567-e89b-12d3-a456-426614174000"
+"What's the configuration of the production-logs pipeline?"
+
+### 7. Time Utilities
+
+#### `get_current_time`
+
+Returns the current server time in various formats.
+
+**Example:**
+"What time is it right now?"
+"Get the current timestamp"
+
+**Use cases:**
+
+- Determining time ranges for log analysis
+- Converting between time formats
+
+#### `relative_time_to_time_range`
+
+Converts relative time expressions to absolute time ranges in milliseconds.
+
+**Examples:**
+
+"Convert 'last 5 minutes' to an absolute time range"
+"What's the timestamp range for '2 hours ago'?"
+
+### 8. Trace Analysis
+
+#### `find_trace_analysis_component`
+
+Finds active OpenTelemetry trace source components across all pipelines. Returns the `component_id` used by trace analysis tools like `get_service_graph`, `get_spans`, `find_degraded_service_edges`, `list_service_latency_summaries`, `get_service_failure_rates`, and `get_service_failures`.
+
+**Use cases:**
+
+- Discovering which pipelines have trace analysis available
+- Getting the `component_id` before using other trace analysis tools
+- Checking which OpenTelemetry trace sources are active in your account
+
+**Examples:**
+
+"Find all trace analysis components in my pipelines"
+
+"Which pipelines have OpenTelemetry trace sources?"
+
+"Get the component ID for trace analysis"
+
+**Response:**
+
+Returns a list of targets, each containing:
+
+- `component_id`: The ID to pass to other trace analysis tools
+- `title`: The name of the trace source component
+- `pipeline_id`: The pipeline containing this component
+- `pipeline_title`: The name of the pipeline
+
+If your account has multiple trace source components, select the appropriate one before using other trace analysis tools.
+
+### 9. Correlated Timeline
+
+#### `get_correlated_timeline_relative_time`
+
+Builds a correlated timeline of logs across multiple sources within a relative time range. Groups logs by a source field (like app, host, or any custom field) to help with root cause investigation.
+
+**Use cases:**
+
+- Investigating incidents across multiple services or hosts
+- Understanding the sequence of events leading to a failure
+- Correlating errors across apps in a distributed system
+
+**Example:**
+"Show me a correlated timeline of error logs from all apps in the last 30 minutes"
+
+#### `get_correlated_timeline_time_range`
+
+Same as above, but uses absolute time ranges.
+
+**Example:**
+"Build a timeline of all warnings and errors between 10 AM and 11 AM today, grouped by host"
+
+#### Key options
+
+- **Grouping field**: Logs are grouped by `_app` by default. You can also group by `_host`, `level`, or any custom field
+- **Deduplication mode**: Use `template` mode (default) to show one example per unique log pattern, or `none` for raw chronological order
+- **Limits**: Control how many logs per source and total timeline events to return
+
+---
+
+## Query Syntax
+
+Many MCP tools accept a `query` parameter that filters logs. You can combine text search with fielded queries to find specific logs.
+
+### Text Search
+
+For basic searches, provide keywords. The query matches any logs containing those terms (case-insensitive, with automatic prefix-matching):
+
+```none
+connection timeout
+
+```
+
+Prefix-matching is automatic. For example, `timeout` matches `timeout`, `timeouts`, and `timeout_error` without needing a wildcard.
+
+### Fielded Search
+
+Use `field:value` syntax to search specific structured fields:
+
+```none
+app:payment-service
+level:error
+host:prod-api-01
+
+```
+
+#### Common Fields
+
+These fields are available in most log data:
+
+| Field | Description | 
+| ---- | ---- | 
+| `app` | Application or service name | 
+| `host` | Hostname or server identifier | 
+| `level` | Log level (error, warn, info, debug) | 
+| `env` | Environment (production, staging, dev) | 
+| `source` | Log source identifier | 
+| `tag` | Tags applied to the log | 
+| `namespace` | Kubernetes namespace | 
+| `pod` | Kubernetes pod name | 
+| `node` | Kubernetes node name | 
+
+#### Nested Fields
+
+For nested or JSON fields, use dotted paths:
+
+```none
+user.id:12345
+request.body.status:failed
+kubernetes.labels.app:frontend
+
+```
+
+### Numeric Comparisons
+
+Query numeric fields using comparison operators:
+
+```none
+status:>=400
+latency_ms:<100
+response_time:>500
+
+```
+
+### Field Existence
+
+Use `field:*` to match logs where a specific field is present:
+
+```none
+error_code:*
+user.id:*
+
+```
+
+This is useful for finding logs that have a particular field, regardless of its value.
+
+<Warning>
+The `*` character is only valid for field existence checks (`field:*`). Do not use wildcards in query terms or field values (for example, `pod:vector-*` or `host:prod-*`). Prefix-matching is automatic, so `pod:vector` already matches `vector-gen14-abc`, `vector-prod-01`, and similar values.
+</Warning>
+
+### Combining Queries
+
+Combine multiple conditions to narrow your search:
+
+```none
+level:error app:checkout-service status:>=500
+
+```
+
+---
+
+## Query Protection for Large Log Volumes
+
+Mezmo MCP protects against queries that would process too much data. This keeps performance fast and ensures queries finish quickly.
+
+### How It Works
+
+When you run a tool that processes logs, Mezmo MCP checks how many entries match your query:
+
+- **Confirmation prompt**: If your query matches a large number of logs, the server asks you to confirm before proceeding. You can narrow your query or confirm to continue.
+- **Query rejection**: If your query matches an extremely large number of logs, the request is rejected. Try narrowing your time range or adding more specific filters.
+
+### Affected Tools
+
+These tools have query protection:
+
+- `analyze_logs_for_root_cause_relative_time` / `analyze_logs_for_root_cause_time_range`
+- `deduplicate_logs_relative_time` / `deduplicate_logs_time_range`
+- `get_correlated_timeline_relative_time` / `get_correlated_timeline_time_range`
+- `get_log_histogram`
+- `group_logs_by_field`
+
+### Tips for Working with Large Datasets
+
+If you see a confirmation prompt or rejection:
+
+1. **Narrow your time range.** Try "last 1 hour" instead of "last 24 hours".
+2. **Add filters.** Use fielded search to target specific logs (for example, `app`, `host`, `level`, `namespace`, or `pod`). See [Query Syntax](#query-syntax) for the full list.
+3. **Confirm when appropriate.** If you've reviewed the log count and want to proceed, confirm the prompt.
+
+### Retention Window Limits
+
+Queries must fall within your account's retention window. If you query logs outside this window, you'll receive an error showing the valid time range. For example, querying logs from 6 months ago on a 7-day retention account will fail.
+
+<Tip>
+Use relative time ranges like `last 15 minutes` or `last 1 hour` to ensure your queries stay within retention.
+</Tip>
+
+---
+
+## Best Practices
+
+- Start broad for root-cause analysis
+- If the query is too narrow, our RCA can't do its thing. Cast a wide net, and if needed, specify app/service/level in subsequent queries.
+- Prefer analyze_logs_for_root_cause or deduplicate_log tools for insights
+- These tools deduplicate and groups similar logs for better summaries, allowing the results to fit into finite LLM context windows.
+- Use relative time ranges
+- Prefer values like `last_15_minutes`, `last_hour` when supported.
+- Keep prompts simple; add filters gradually
+- Add filters step by step. See [Query Syntax](#query-syntax) for available fields.
+- Use export_logs for raw data only
+- For dashboards or offline analysis, use `export_logs`; otherwise prefer RCA.
+
+---
+
+## Installation
+
+### Requirements
+
+- A Mezmo **Service Key** (generate one in your Mezmo dashboard under Settings &gt; API Keys; see [Mezmo docs](/docs/ingestion-key#ingestion-and-service-keys) for details)
+- Node.js ≥ 18 (only needed for clients that use the `mcp-remote` bridge)
+- One of the supported MCP clients below
+
+For every client we follow a simple rule:
+
+1. **Supports remote URL? →** configure it with a `url` that points to `https://mcp.mezmo.com/mcp` and include the `Authorization` header.
+2. **StdIO-only client? →** use the [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge:
+
+```bash
+AUTH_HEADER="Bearer <SERVICE KEY>" npx mcp-remote https://mcp.mezmo.com/mcp \
+  --header "Authorization:${AUTH_HEADER}"
+
+```
+
+---
+
+## Client Configurations
+
+#### Cursor
+
+Cursor **natively supports remote MCP servers**, so you only need a remote configuration.
+
+[Install Mezmo MCP Server in Cursor](https://cursor.com/en-US/install-mcp?name=mezmo&amp;config=eyJ1cmwiOiJodHRwczovL21jcC5tZXptby5jb20vbWNwIiwiaGVhZGVycyI6eyJBdXRob3JpemF0aW9uIjoiQmVhcmVyIDxTRVJWSUNFIEtFWT4ifX0=)
+
+_Clicking the_ _**Install MCP Server**_ _badge opens Cursor and automatically adds the_ _`mezmo`_ _entry to your_ _`~/.cursor/mcp.json`_ _with a placeholder for the Service Key. After it’s created, edit the file and replace_ _`<SERVICE KEY>`_ _with your actual Mezmo service key. Restart Cursor for changes to take effect. The final configuration should look like the example below._
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "url": "https://mcp.mezmo.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Windsurf
+
+Windsurf also supports remote servers via the `serverUrl` field.
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "serverUrl": "https://mcp.mezmo.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Trae
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "url": "https://mcp.mezmo.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### VS Code’s Copilot Chat or Visual Studio 2022
+
+```json
+"mcp": {
+  "servers": {
+    "mezmo": {
+      "type": "http",
+      "url": "https://mcp.mezmo.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Zed
+
+```json
+{
+  "context_servers": {
+    "mezmo": {
+      "url": "https://mcp.mezmo.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Gemini CLI
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.mezmo.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Claude Code
+
+```bash
+claude mcp add --transport http mezmo https://mcp.mezmo.com/mcp \
+  --header "Authorization: Bearer <SERVICE KEY>"
+
+```
+
+#### Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "Mezmo": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.mezmo.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### BoltAI
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.mezmo.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Windows (CMD)
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "mcp-remote",
+        "https://mcp.mezmo.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Augment Code
+
+Add a new MCP and enter:
+
+```bash
+AUTH_HEADER="Bearer <SERVICE KEY>" npx mcp-remote https://mcp.mezmo.com/mcp \
+  --header "Authorization:${AUTH_HEADER}"
+
+```
+
+#### Roo Code
+
+Roo Code supports remote URLs:
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "type": "streamable-http",
+      "url": "https://mcp.mezmo.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### ZenCoder
+
+```json
+{
+  "command": "npx",
+  "args": [
+    "mcp-remote",
+    "https://mcp.mezmo.com/mcp",
+    "--header",
+    "Authorization:${AUTH_HEADER}"
+  ],
+  "env": {
+    "AUTH_HEADER": "Bearer <SERVICE KEY>"
+  }
+}
+
+```
+
+#### Amazon Q Developer CLI
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.mezmo.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Qodo Gen
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "url": "https://mcp.mezmo.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### JetBrains AI Assistant
+
+```json
+{
+  "mcpServers": {
+    "mezmo": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.mezmo.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <SERVICE KEY>"
+      }
+    }
+  }
+}
+
+```
+
+#### Warp
+
+```json
+{
+  "Mezmo": {
+    "command": "npx",
+    "args": [
+      "mcp-remote",
+      "https://mcp.mezmo.com/mcp",
+      "--header",
+      "Authorization:${AUTH_HEADER}"
+    ],
+    "env": {
+      "AUTH_HEADER": "Bearer <SERVICE KEY>"
+    },
+    "working_directory": null,
+    "start_on_launch": true
+  }
+}
+
+```
+
+#### OpenCode
+
+```json
+"mcp": {
+  "mezmo": {
+    "type": "remote",
+    "url": "https://mcp.mezmo.com/mcp",
+    "headers": {
+      "Authorization": "Bearer <SERVICE KEY>"
+    },
+    "enabled": true
+  }
+}
+
+```
+
+#### Codex CLI
+
+Add to `~/.codex/config.toml`:
+
+```none
+[mcp_servers.mezmo]
+command = "npx"
+args = [
+  "mcp-remote",
+  "https://mcp.mezmo.com/mcp",
+  "--header",
+  "Authorization:${AUTH_HEADER}",
+]
+env = { AUTH_HEADER = "Bearer <SERVICE KEY>" }
+
+```
+
+Codex [defaults to being sandboxed](https://github.com/openai/codex/blob/main/docs/sandbox.md), so you'll also need to give it network access. If you want to run in a sandbox mode of `workspace-write` for example, add this:
+
+```none
+[sandbox_workspace_write]
+network_access = true
+
+```
+
+You can either start with a flag like `codex --sandbox workspace-write` or set a default mode with:
+
+```none
+sandbox_mode = "workspace-write"
+
+```
+
+---
+
+## Troubleshooting
+
+### 1. `npx` argument-escaping bug
+
+Some clients pass command-line arguments to `npx` without quoting spaces. This can split the `Authorization` header (e.g. `Bearer` and the token become separate arguments) and cause authentication failures.
+
+**Work-around:** store the header in an environment variable and pass it without spaces:
+
+```json
+{
+  "command": "npx",
+  "args": [
+    "mcp-remote",
+    "https://mcp.mezmo.com/mcp",
+    "--header",
+    "Authorization:${AUTH_HEADER}"
+  ],
+  "env": {
+    "AUTH_HEADER": "Bearer <SERVICE KEY>"
+  }
+}
+
+```
+
+### 2. Lost connection to the Mezmo MCP server
+
+If your client shows an error such as “server disconnected” or stops responding to MCP commands:
+
+1. Disable or remove the **Mezmo** MCP entry in your client settings.
+2. Re-enable (or re-add) the same entry, or simply restart the client.
+
+This forces the client to establish a fresh connection to the Mezmo MCP backend.
+
+### 3. 401/403 authentication errors
+
+- Verify the `Authorization` header is present and formatted as `Bearer <SERVICE KEY>`.
+- If using `npx mcp-remote`, prefer the environment variable approach to avoid splitting the header.
+- Regenerate your Service Key in Mezmo and try again if issues persist.
+
+---
+
+## Next Steps
+
+Once your client is configured you can immediately run natural-language commands such as
+
+- `analyze my logs from the last 30 minutes and determine root cause for any issues that you find`
+- `list all my pipelines`
+- `show me details for pipeline <pipeline title>`
+- `deduplicate error logs from the last 30 minutes for app "my-app-frontend"`
+
+Enjoy streamlined observability with Mezmo + AI! 🎉

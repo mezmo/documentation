@@ -1,0 +1,27 @@
+---
+title: "Mezmo Log Analysis Ingestion"
+description: "Redirect data sent to the logs.mezmo.com Log Analysis endpoint into a Pipeline Source, supporting agent, ingest, syslog, and Heroku endpoints."
+---
+
+## Description
+
+This Source takes your data sent to our Log Analysis endpoint `logs.mezmo.com` and redirects it into a Pipeline Source.  This re-routes the data flow from Mezmo Log Management to your Pipeline.
+
+There is no configuration for this source other than title and description.
+
+<Warning>
+If you don't include a  [Mezmo Log Analysis](/telemetry-pipelines/mezmo-destination) Destination in the same Pipeline with this Source, you will no longer be sending data to the Log Analysis system, which will stop populating data for the log viewer and views/boards.
+</Warning>
+
+<Note>
+This Source can be used in multiple Pipelines.  If you delete all of your Mezmo Log Analysis Ingestion Sources, your data sent to logs.mezmo.com will then take their traditional route in the Log Analysis system. Check out the topic [Shared Sources](/telemetry-pipelines/shared-sources) for more information.
+</Note>
+
+### Supported Endpoints
+
+At present, only four different ingestion endpoints at `logs.mezmo.com` are supported.
+
+- `/logs/agent` : The endpoint our Mezmo Agents send their collected data to
+- `/logs/ingest` : The endpoint many application plugins and custom apps send data to
+- `syslog` : All syslog ingestion is supported in this source
+- `heroku` : Heroku account log data is supported in this source

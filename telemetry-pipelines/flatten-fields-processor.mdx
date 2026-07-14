@@ -1,0 +1,58 @@
+---
+title: "Flatten Fields Processor"
+description: "Recursively collapse nested JSON objects into a single level, joining parent and child keys with a configurable delimiter."
+---
+
+## Description
+This processor recursively reduces the level of a set of objects and appends the prior level to the keys of each.
+
+## Use
+The flatten processor is useful when you need all nested fields of a JSON object to be moved to a single level. This can be beneficial when integrating with a system that can't handle complex or nested data.
+
+## Configuration
+There are two options for configuring this processor.
+
+| **Option** | **Description** | **Example** | 
+| ---- | ---- | ---- | 
+| **Fields** | The field or fields to flatten. | `.foo` | 
+| **Flatten Options** | Specify the delimiter to use for combining field names with the flattened data. | _ | 
+
+## Example
+### Before
+
+```json
+{
+  "foo": {
+    "bar": {
+      "baz": 1,
+      "qux": "quux"
+    },
+    "corge": [
+      1,
+      2,
+      3
+    ]
+  }
+}
+
+```
+
+### Flatten Options
+
+| Option | Value | 
+| ---- | ---- | 
+| **Field** | .`foo` | 
+| **Delimiter** | _ | 
+
+```json
+{
+  "foo_bar_baz": 1,
+  "foo_bar_qux": "quux",
+  "foo_corge": [
+    1,
+    2,
+    3
+  ]
+}
+
+```

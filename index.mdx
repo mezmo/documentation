@@ -1,0 +1,169 @@
+---
+mode: "custom"
+title: "Welcome"
+description: "Build, optimize, and act on telemetry data with Mezmo."
+---
+
+{/* Hero */}
+
+<section className="relative overflow-hidden bg-[#15111f] dark:bg-[#0c0c0e]">
+  <div className="absolute inset-0 bg-[#9383c2] dark:bg-[#9383c2] opacity-20 dark:opacity-20"></div>
+  <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#f4b811] dark:bg-[#f4b811] opacity-20 dark:opacity-20 blur-3xl"></div>
+  <div className="absolute -bottom-28 left-10 h-80 w-80 rounded-full bg-[#9383c2] dark:bg-[#9383c2] opacity-30 dark:opacity-30 blur-3xl"></div>
+
+  <div className="relative mx-auto flex max-w-7xl justify-center px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
+    <div className="mx-auto max-w-3xl">
+      <h1 className="text-4xl font-bold tracking-tight text-white dark:text-white sm:text-5xl lg:text-6xl">
+        Build, optimize, and act on telemetry data with Mezmo.
+      </h1>
+      <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#f3eefc] dark:text-[#f3eefc] sm:text-xl">
+        Start with log management, design Telemetry Pipelines, deploy Mezmo Edge, or jump into the API references for automation.
+      </p>
+      <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+        <a href="/docs/mezmo-quick-start-guide" className="inline-flex items-center justify-center rounded-lg bg-[#9383c2] dark:bg-[#9383c2] px-5 py-3 text-sm font-semibold text-white dark:text-white no-underline transition hover:bg-[#7f6bb3] dark:hover:bg-[#7f6bb3]">
+          Start with Log Management
+        </a>
+        <a href="/telemetry-pipelines/getting-started-with-mezmo-telemetry-pipeline" className="inline-flex items-center justify-center rounded-lg border border-[#ffffff] dark:border-[#ffffff] bg-[#ffffff] dark:bg-[#ffffff] px-5 py-3 text-sm font-semibold text-[#15111f] dark:text-[#15111f] no-underline transition hover:bg-[#f3eefc] dark:hover:bg-[#f3eefc]">
+          Explore Telemetry Pipelines
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{/* Quick Start */}
+
+<section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="max-w-3xl">
+    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">Quick Start</h2>
+    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
+      Follow the shortest path from account setup to your first logs or pipeline API request.
+    </p>
+  </div>
+
+  <div className="mt-8">
+    <Steps>
+      <Step title="Create your account">
+        Sign up for Mezmo, create an organization, and review the basics in the <a href="/docs/mezmo-quick-start-guide">Log Management quick start</a>.
+      </Step>
+      <Step title="Choose an ingestion path">
+        Use the <a href="/docs/ingestion">ingestion guide</a> to pick an agent, integration, API, or pipeline source for your data.
+      </Step>
+      <Step title="Authenticate API requests">
+        Create an access key and send it with the `Authorization` header.
+
+        ```bash
+        export MZM_ACCESS_KEY="sta_1a2b3c4d5e6f7890abcdef1234567890abcdef12"
+
+        curl -H "Authorization: Token $MZM_ACCESS_KEY" \
+          -H "Accept: application/json" \
+          https://api.mezmo.com/v3/pipeline
+        ```
+
+      </Step>
+      <Step title="Build from a guide">
+        Explore the <a href="/guide-to-pipeline-architecture/basic-data-optimization-pipeline">pipeline architecture guide</a> or the <a href="/OptTutorial/1-intro">optimization tutorial</a> when you are ready to optimize volume, route data, or deploy repeatable patterns.
+      </Step>
+    </Steps>
+
+  </div>
+</section>
+
+{/* Documentation */}
+
+<section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="max-w-3xl">
+    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">Documentation</h2>
+    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
+      Browse product guides by the work you are doing: collect, process, deploy locally, or optimize your telemetry data.
+    </p>
+  </div>
+
+  <div className="mt-8">
+    <CardGroup cols={2}>
+      <Card title="Log Management" icon="magnifying-glass-chart" href="/docs/about-mezmo-log-analysis" cta="Open guide">
+        Collect logs, parse fields, search events, create views, and alert your team when something changes.
+      </Card>
+      <Card title="Telemetry Pipelines" icon="diagram-project" href="/telemetry-pipelines/about-mezmo-telemetry-pipelines" cta="Open guide">
+        Build pipelines that receive, process, route, and deliver telemetry data to the destinations you choose.
+      </Card>
+      <Card title="Mezmo Edge" icon="server" href="/mezmo-edge/mezmo-edge-pipelines-for-local-data" cta="Deploy locally">
+        Run local data pipelines close to your sources for on-premises and edge collection patterns.
+      </Card>
+      <Card title="Optimization Tutorial" icon="sliders" href="/OptTutorial/1-intro" cta="Start tutorial">
+        Walk through source setup, profiling, and optimization for logs, metrics, and traces.
+      </Card>
+    </CardGroup>
+  </div>
+</section>
+
+{/* API Reference */}
+
+<section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="max-w-3xl">
+    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">API Reference</h2>
+    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
+      Authenticate once, then use the API references and quickstarts to script common Mezmo workflows.
+    </p>
+  </div>
+
+  <div className="mt-8">
+    <CardGroup cols={3}>
+      <Card title="Authentication" icon="key" href="/docs/authenticating-with-the-api" cta="Set up keys">
+        Learn token formats, delegated account context, and request headers.
+      </Card>
+      <Card title="Log Analysis API" icon="code" href="/docs/api-referencesk9h" cta="View API">
+        Query and manage Log Analysis resources through the API reference.
+      </Card>
+      <Card title="Pipeline API" icon="route" href="/telemetry-pipelines/api-references" cta="View API">
+        Create pipelines, add components, publish revisions, and automate pipeline operations.
+      </Card>
+    </CardGroup>
+  </div>
+</section>
+
+{/* Resources */}
+
+<section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="max-w-3xl">
+    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">Resources</h2>
+    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
+      Use these references when you are planning architectures or tuning pipelines.
+    </p>
+  </div>
+
+  <div className="mt-8">
+    <CardGroup cols={2}>
+      <Card title="Architecture Guide" icon="map" href="/guide-to-pipeline-architecture/types-of-telemetry-data-pipelines" cta="Explore patterns">
+        Compare common telemetry pipeline patterns for ingestion, optimization, routing, and rehydration.
+      </Card>
+      <Card title="Practitioner's Guide" icon="chart-line" href="/practioner-guide-data-optimization/data-optimization-introduction" cta="Optimize data">
+        Learn practical techniques for reducing telemetry volume while preserving useful signal.
+      </Card>
+    </CardGroup>
+  </div>
+</section>
+
+{/* Closing CTA */}
+
+<section className="mx-auto my-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="rounded-3xl border border-[#9383c2] dark:border-[#9383c2] bg-[#f3eefc] dark:bg-[#15111f] p-8 sm:p-10">
+    <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-[1fr_auto]">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">
+          Ready to send data to Mezmo?
+        </h2>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
+          Start with log ingestion, then add pipelines and APIs as your
+          telemetry workflows grow.
+        </p>
+      </div>
+      <a
+        href="/docs/ingestion"
+        className="inline-flex items-center justify-center rounded-lg bg-[#9383c2] dark:bg-[#9383c2] px-5 py-3 text-sm font-semibold text-white dark:text-white no-underline transition hover:bg-[#7f6bb3] dark:hover:bg-[#7f6bb3]"
+      >
+        View Ingestion Options
+      </a>
+    </div>
+  </div>
+</section>

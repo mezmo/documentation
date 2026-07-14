@@ -1,0 +1,27 @@
+---
+title: "Presence of Personally Identifying Information (PII)"
+description: "Example alert that triggers when the Redact Processor detects PII such as SSNs, email addresses, or custom patterns in telemetry data."
+---
+
+This alert is triggered when the [Redact Processor](/telemetry-pipelines/redact-processor) has the option `Mask PII Presence `set to `On` and a social security number, email address, or custom-defined pattern of PII is detected in the telemetry data. 
+
+## General Configuration
+
+| Field | Value | 
+| ---- | ---- | 
+| Name | PII Data Present | 
+| Description | Triggers when the metadata field `pii_presence` contains a `yes` value for any of the pre-set or custom PII types. | 
+
+## Evaluation and Condition Configuration
+
+| Field | Value | 
+| ---- | ---- | 
+| Operation |  | 
+| Window Type |  | 
+| Window Duration (minutes) |  | 
+| Group by Field Paths |  | 
+| Operation |  | 
+| Window Type |  | 
+| Window Duration |  | 
+| Conditional Statement |  | 
+| Event Timestamp |  | 

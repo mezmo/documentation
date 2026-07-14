@@ -1,0 +1,30 @@
+---
+title: "AWS S3 Storage"
+description: "Send pipeline data to an AWS S3 bucket for long-term storage, with options for encoding, compression, storage class, and required IAM permissions."
+---
+
+## Description
+Typically you would send data to an AWS S3 bucket for long-term storage, or to send a subset of the data to a database. By sending your data through a Mezmo Pipeline before sending it to S3, you can [encrypt](/telemetry-pipelines/encrypt-fields-processor) sensitive data, [remove fields](/telemetry-pipelines/drop-fields-processor) you don't need to store, and [compact](/telemetry-pipelines/compact-fields-processor) values to make sure the data you’re storing is complete for easy retrieval and rehydration in case you need it later.
+
+## Configuration Options
+<Warning>
+When setting up your Access Key in IAM, ensure you have the following permissions on your bucket: `s3:ListBucket`, `s3:PutObject`
+</Warning>
+
+| Option | Description | 
+| ---- | ---- | 
+| Batch Timeout | The maximum amount of time for buffering events before being flushed to the destination. | 
+| End-to-End Acknowledgement | Enable this option to receive verification that log data is being received by S3. | 
+| AWS Access Key ID | The access key ID for your Amazon S3 account. | 
+| AWS Secret Access Key | The access key secret for your Amazon S3 account | 
+| S3 Bucket | The Amazon S3 bucket to use as your storage destination. | 
+| Prefix | A prefix to apply to all object key names. | 
+| Tags | Any tags to apply to your log data. | 
+| Encoding | The type of encoding to use for your log data. | 
+| Compression | The type of compression to apply to your log data as it is sent to the S3 bucket. | 
+| Storage Class | The storage class to use for objects in your S3 bucket, which determines the storage tier and retrieval characteristics. The default is Standard. For rehydration using the S3 Source, use Standard, Express One Zone, Intelligent Tiering or Glacier Instant Retrieval. Other storage classes may not be accessible. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html | 
+| Region | The AWS region for your S3 bucket. | 
+
+<Note>
+Please note that only the `message` portion of the [event envelope](/telemetry-pipelines/pipeline-event-data-model) will be stored.
+</Note>
