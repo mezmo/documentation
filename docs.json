@@ -483,7 +483,13 @@
       "type": "button",
       "label": "Get a Demo",
       "href": "https://www.mezmo.com/demo-request"
-    }
+    },
+    "links": [
+      {
+        "href": "https://github.com/mezmo/aura",
+        "label": "AURA"
+      }
+    ]
   },
   "contextual": {
     "options": [
