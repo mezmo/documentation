@@ -13,19 +13,25 @@ The Data Profiler currently works with log data. It categorizes this data by app
 
 The Data Profiler consumes 1 million events at a time and builds the report in real time as those events are being consumed. To consume additional events, use the Rerun Analysis button. This will add an additional 1 million lines into the profile. A single profile can contain up to 3 days worth of events before it needs to be reset. In addition, fields from an event can be mapped into Data Profiler fields to customize the report results (see Step 3). 
 
-![OpenTelemetry Log Profile](/images/OptTutorial/wtj1v7kawoqzbbjpvbd077ynilo0m7e5h67w2ijssxcivwclg8j2xll468yf8ful.png)
+<Frame caption="OpenTelemetry Log Profile">
+  ![Image](/images/OptTutorial/wtj1v7kawoqzbbjpvbd077ynilo0m7e5h67w2ijssxcivwclg8j2xll468yf8ful.png)
+</Frame>
 
 ## Step 1: Create an "Exploration" Pipeline
 
 Create a new Mezmo Pipeline by clicking [New Pipeline](https://app.mezmo.com/pipelines/pipeline/new) in the platform.  Give this a name like `Log Explorer` and select `Create a blank pipeline`.
 
-![Create Pipeline](/images/OptTutorial/wo08xv2g4u3dhpz2vm3sidblwttg4lk1apcbzcnuze59mk9eyfxat6i9hllyznay.png)
+<Frame caption="Create Pipeline">
+  ![Image](/images/OptTutorial/wo08xv2g4u3dhpz2vm3sidblwttg4lk1apcbzcnuze59mk9eyfxat6i9hllyznay.png)
+</Frame>
 
 ## Step 2: Add OpenTelemetry Log Source
 
 Click `Add Source` and select your OpenTelemetry Log source from the `Shared Sources` list.
 
-![OpenTelemetry Log Source](/images/OptTutorial/evtgrgupy5nhm8cval5x4xzchzth4yp60ij9a4gbefr6q7k4zhbyqbotchkv82uz.png)
+<Frame caption="OpenTelemetry Log Source">
+  ![Image](/images/OptTutorial/evtgrgupy5nhm8cval5x4xzchzth4yp60ij9a4gbefr6q7k4zhbyqbotchkv82uz.png)
+</Frame>
 
 ## Step 3: Insert Otel to Profile mapping Script
 
@@ -93,7 +99,9 @@ The above script simply maps Otel data to the defaults of Mezmo's profiling node
 
 Add a `Data Profiler` node connected after the Script processor from Step 3.  Give it a name like `Otel Demo Log Exploration` and leave the default configuration. To complete the pipeline, add a Blackhole Destination and name it Log Data Dump. 
 
-![Add Log Profiler](/images/OptTutorial/csx2wwjiri1ewd3vfbfkphim56ztt7l7535xmb9usu8utnc4tgl9xkpngvzlsk4u.png)
+<Frame caption="Add Log Profiler">
+  ![Image](/images/OptTutorial/csx2wwjiri1ewd3vfbfkphim56ztt7l7535xmb9usu8utnc4tgl9xkpngvzlsk4u.png)
+</Frame>
 
 ## Step 5: Deploy
 
@@ -101,22 +109,30 @@ Finally, you must deploy your pipeline in order to start exploring your log data
 
 *
 
-![Final Pipeline: Log Exploration](/images/OptTutorial/cq2t0ad3pb491b5fsum8dklbvlzy9zm19cyotvdwxkvjw183rs85jwkqvkyo1g0w.png)
+<Frame caption="Final Pipeline: Log Exploration">
+  ![Image](/images/OptTutorial/cq2t0ad3pb491b5fsum8dklbvlzy9zm19cyotvdwxkvjw183rs85jwkqvkyo1g0w.png)
+</Frame>
 
 ## Step 6: Analyze Log Patterns
 
 Once your data profiling pipeline has been built and deployed,  the profiler report will build real time in a few seconds.  Within minutes, you will see something similar to the following
 
-![OpenTelemetry Log Profile](/images/OptTutorial/4ywqmbthu6cnorzufhrkslvdok5tc6l3y0in1wo7r9hdsifx5il04v9prj9ixj96.png)
+<Frame caption="OpenTelemetry Log Profile">
+  ![Image](/images/OptTutorial/4ywqmbthu6cnorzufhrkslvdok5tc6l3y0in1wo7r9hdsifx5il04v9prj9ixj96.png)
+</Frame>
 
 Immediately there are two insights of note:
 
 1. There is an inordinate amount of **logs simply stating a Product has been found** coming from the `product-catalog` service.  This is standard type of message that contains metadata on which product was found, but it can be quite costly to retain each and every one of these.
 
-![Product Found Log Profile](/images/OptTutorial/jsgkhg0scwu127ptifrk102zauwooyhovf0f8aa7mzos4u10ha3ri0v9327y61vg.png)
+<Frame caption="Product Found Log Profile">
+  ![Image](/images/OptTutorial/jsgkhg0scwu127ptifrk102zauwooyhovf0f8aa7mzos4u10ha3ri0v9327y61vg.png)
+</Frame>
 
 2. Unparsed events that appear to be custom Apache logs from the `frontend-proxy` service.  While these are [defined in the demo code here](https://github.com/braxtonj/opentelemetry-demo/blob/main/src/frontend-proxy/envoy.tmpl.yaml#L80), we can ensure this data is structured and parsed properly to be fully searchable in any downstream Observability system.
 
-![Custom Apache Profile](/images/OptTutorial/v1yha62twgmkyizbg9kaoandabzc4kwoyg5xcast5zmqlad35cmykfvk6s6wrtps.png)
+<Frame caption="Custom Apache Profile">
+  ![Image](/images/OptTutorial/v1yha62twgmkyizbg9kaoandabzc4kwoyg5xcast5zmqlad35cmykfvk6s6wrtps.png)
+</Frame>
 
 In the next section, we will build out a log data optimization pipeline to address both these concerns.

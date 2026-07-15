@@ -21,7 +21,9 @@ Click `Add Source` and select your OpenTelemetry Log source from the `Shared Sou
 
 In order to take advantage of [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines), we need to enrich each event with the current pipelines operational state.  The easiest way to do this is by adding an enrichment script right off the bat.  Click the `three dots` on your Otel Log Source and select `Add Node->Add Processor->Script Execution`.
 
-![Add Log Node](/images/OptTutorial/8agjzupl9d72esdux7udd2v8aur47nyybn7wh9hqv0vyzs7m23qof5yd9x2bcsmn.png)
+<Frame caption="Add Log Node">
+  ![Image](/images/OptTutorial/8agjzupl9d72esdux7udd2v8aur47nyybn7wh9hqv0vyzs7m23qof5yd9x2bcsmn.png)
+</Frame>
 
 Paste in the following JavaScript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable, we are also normalizing some of this Otel data to be easier to use in Mezmo Log Analysis.
 
@@ -92,7 +94,9 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 As noted in the prior section, the raw Apache data coming in from `frontend-proxy` is an unparsed, custom [format defined by the OpenTelemetry demo](https://github.com/braxtonj/opentelemetry-demo/blob/main/src/frontend-proxy/envoy.tmpl.yaml#L80).  To ensure teams can take full advantage, we will parse this data with a Grok parser so that it is structured and easily searchable.
 
-![Custom Apache Profile](/images/OptTutorial/wc9njdkxho2qmdvr4mzqxkbdkvxyavq5eilnopsrz0chcqwvf6h40mvenhel240i.png)
+<Frame caption="Custom Apache Profile">
+  ![Image](/images/OptTutorial/wc9njdkxho2qmdvr4mzqxkbdkvxyavq5eilnopsrz0chcqwvf6h40mvenhel240i.png)
+</Frame>
 
 To do this, we will add another `Route` Processor by App along with a Parse Sequentially processor on that slice of data.
 
@@ -107,7 +111,9 @@ Connect a Route processor through the `three dots` or `Add Processor` at the bot
 
 Hit save.
 
-![Log App Router](/images/OptTutorial/yhi8iu1ug65ex8c6suo2coy6wgy5v5w066uuhca67xov368mucar873k0eezukg6.png)
+<Frame caption="Log App Router">
+  ![Image](/images/OptTutorial/yhi8iu1ug65ex8c6suo2coy6wgy5v5w066uuhca67xov368mucar873k0eezukg6.png)
+</Frame>
 
 ### Step 4.b: Parse Sequentially Processor
 
@@ -121,7 +127,9 @@ Now let's wire a `Parse Sequentially` processor to the `Frontend Proxy` output. 
 - Pattern:
 `%{SQUARE_BRACKET}%{TIMESTAMP_ISO8601:dt}%{SQUARE_BRACKET} %{DOUBLE_QUOTE}%{DATA:method} %{DATA:path} %{DATA:http_protocol}%{DOUBLE_QUOTE} %{DATA:rsp_code} %{DATA:rsp_flags} %{DATA:rsp_code_details} %{DATA:conn_term_details} %{DOUBLE_QUOTE}%{DATA:upstream_transport_failure_reason}%{DOUBLE_QUOTE} %{DATA:bytes_received} %{DATA:bytes_sent} %{DATA:duration} %{DATA:rsp_upstream_service_time} %{DOUBLE_QUOTE}%{DATA:req_forward_for}%{DOUBLE_QUOTE} %{DOUBLE_QUOTE}%{DATA:req_user_agent}%{DOUBLE_QUOTE} %{DOUBLE_QUOTE}%{DATA:req_id}%{DOUBLE_QUOTE} %{DOUBLE_QUOTE}%{DATA:req_authority}%{DOUBLE_QUOTE} %{DOUBLE_QUOTE}%{DATA:upstream_host}%{DOUBLE_QUOTE} %{DATA:upstream_cluster} %{DATA:upstream_local_addr} %{DATA:downstream_local_addr} %{DATA:downstream_remote_addr} %{DATA:requested_server_name} %{GREEDYDATA:route_name}`
 
-![Apache Parser](/images/OptTutorial/vhq1qq4sk9kh8n98gdzd37ymnbipe5hn3bt1wouejsenx51jphe0342gaodvzeb4.png)
+<Frame caption="Apache Parser">
+  ![Image](/images/OptTutorial/vhq1qq4sk9kh8n98gdzd37ymnbipe5hn3bt1wouejsenx51jphe0342gaodvzeb4.png)
+</Frame>
 
 Finally, let's keep the original line with a quick Script, add a `Script Execution` processor connected to the `Parse Sequentially: Apache` output containing the following script:
 
@@ -138,7 +146,9 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 Your pipeline should look like this at this point.
 
-![Cleanup script](/images/OptTutorial/g57uth87aq4qlgaismle6bye58fgocm65dyjxo8j2j5ju6ugvliueworttg3wv9d.png)
+<Frame caption="Cleanup script">
+  ![Image](/images/OptTutorial/g57uth87aq4qlgaismle6bye58fgocm65dyjxo8j2j5ju6ugvliueworttg3wv9d.png)
+</Frame>
 
 ## Step 5: Route Based on State
 
@@ -157,11 +167,15 @@ After the initial Enrichment processor and Apache Parser, let's now route the da
     - Title: `Deploy`
     - Criteria: `message.op_state` `contains` `deploy`
 
-![Log State Router](/images/OptTutorial/ijj7dlb5ddukz6wwpussd69kgj2mjhupy0tcf5j5cunvc2qg4vkux200lw40pcky.png)
+<Frame caption="Log State Router">
+  ![Image](/images/OptTutorial/ijj7dlb5ddukz6wwpussd69kgj2mjhupy0tcf5j5cunvc2qg4vkux200lw40pcky.png)
+</Frame>
 
 You will end up with a pipeline that looks like the following
 
-![Log Handler Interim Pipeline](/images/OptTutorial/hondsz12xpz6x5lbmaxyps40mwffiim78sbrqy1w6b9mbokghsvx4cspvoc1q60n.png)
+<Frame caption="Log Handler Interim Pipeline">
+  ![Image](/images/OptTutorial/hondsz12xpz6x5lbmaxyps40mwffiim78sbrqy1w6b9mbokghsvx4cspvoc1q60n.png)
+</Frame>
 
 ## Step 6: Aggregate Normal State Logs
 
@@ -174,7 +188,9 @@ To accomplish this, create a new Route processor connected to `State Router`'s `
     - Title: `Product Found`
     - Criteria: `(message.app equal product-catalog) AND (message.line contains Product Found)`
 
-![Template Router Config](/images/OptTutorial/2g5wc95xnyvsesqp277fpoz9qyj8pff2pov7a9d4bqnyrdiqx7of6ixnfprbdta3.png)
+<Frame caption="Template Router Config">
+  ![Image](/images/OptTutorial/2g5wc95xnyvsesqp277fpoz9qyj8pff2pov7a9d4bqnyrdiqx7of6ixnfprbdta3.png)
+</Frame>
 
 We will then add a `Reduce` processor to roll these logs up over 5 minutes.  Connect the processor with the following configuration
 
@@ -184,7 +200,9 @@ We will then add a `Reduce` processor to roll these logs up over 5 minutes.  Con
 - Merge Strategy per Field:
 - Field Path: `message._cnt` `sum`
 
-![Template Reduce Config](/images/OptTutorial/xkixaw4rqixu637d7a08m4rq4wxyr5yuziy0mjr7dgribw3j6oji3xl6r2jf3ovt.png)
+<Frame caption="Template Reduce Config">
+  ![Image](/images/OptTutorial/xkixaw4rqixu637d7a08m4rq4wxyr5yuziy0mjr7dgribw3j6oji3xl6r2jf3ovt.png)
+</Frame>
 
 Finally, we will convert the output into a summary message using the following configuration
 
@@ -201,7 +219,9 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 At this point, your pipeline should look like the following
 
-![Log Handler Interim Pipeline](/images/OptTutorial/6xq0z2w88cqa7g8j7hj4bvmdyu3fs9kr2zjmtxs98rr6xybt1qql3my1t137syh7.png)
+<Frame caption="Log Handler Interim Pipeline">
+  ![Image](/images/OptTutorial/6xq0z2w88cqa7g8j7hj4bvmdyu3fs9kr2zjmtxs98rr6xybt1qql3my1t137syh7.png)
+</Frame>
 
 ## Step 7: Sample Normal State Logs
 
@@ -220,7 +240,9 @@ Finally, we will send all of this data into Mezmo Log Analysis.  Because of our 
 - Log Construction Scheme:
 - Scheme: `Message pass-through`
 
-![Mezmo Log Analysis Destination Configuration](/images/OptTutorial/se2ig98x17jwfpp75o1w9foou23u1g1l9ct9s7su9gpmx5hrz20p84372k3ea4un.png)
+<Frame caption="Mezmo Log Analysis Destination Configuration">
+  ![Image](/images/OptTutorial/se2ig98x17jwfpp75o1w9foou23u1g1l9ct9s7su9gpmx5hrz20p84372k3ea4un.png)
+</Frame>
 
 ## Step 9: Deploy
 
@@ -228,13 +250,17 @@ Next, we must deploy your pipeline in order to start optimizing that log data.
 
 To do this, select `Deploy` in the top right of the UX
 
-![Deploy Pipeline](/images/OptTutorial/i25o4nwtp1gc3fmticthx91mspescv9wm7ajf1woqvh994dv858kmattnble7dtn.png)
+<Frame caption="Deploy Pipeline">
+  ![Image](/images/OptTutorial/i25o4nwtp1gc3fmticthx91mspescv9wm7ajf1woqvh994dv858kmattnble7dtn.png)
+</Frame>
 
 ## Step 10: Initiate State and Grab State ID
 
 Our final step is to initiate and grab the state ID for the pipeline for automation and control later on.  To do this, first we will enact a state by toggling the Normal mode to Incident mode and back.
 
-![Log Handler State Flip](/images/OptTutorial/f5kz54rav83hfls80h6wpuwivsi69tom0k3jhuaqv8np0t2es1zyoj8sk3wmhfij.png)
+<Frame caption="Log Handler State Flip">
+  ![Image](/images/OptTutorial/f5kz54rav83hfls80h6wpuwivsi69tom0k3jhuaqv8np0t2es1zyoj8sk3wmhfij.png)
+</Frame>
 
 Now that has been initiated, you will need to grab the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here.  Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
 
@@ -316,7 +342,9 @@ First, look for the aggregated data by searching for `tag:otel-demo "products fo
 
 Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`.  While logs are displayed nicely in the Log Viewer, one can expand a line and see all the nested structure that is easily searchable.  For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy resp_code:(>=200 AND <300)`
 
-![Log Analysis Custom Apache Log View](/images/OptTutorial/1f8pr2ysulb0lsp4edcc58kmgudhro03wxirh68i3ae7m8xkm4670xgpza0fsw1s.png)
+<Frame caption="Log Analysis Custom Apache Log View">
+  ![Image](/images/OptTutorial/1f8pr2ysulb0lsp4edcc58kmgudhro03wxirh68i3ae7m8xkm4670xgpza0fsw1s.png)
+</Frame>
 
 <Note>
   **Learn About Log Analysis**

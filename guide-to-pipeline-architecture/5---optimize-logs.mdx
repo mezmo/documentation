@@ -302,10 +302,14 @@ Navigate to Log Analysis and view the incoming data.  In particular, if you used
 
 First, look for the aggregated data by searching for `tag:otel-demo "flooded homepage"`.  Notice that instead of raw lines like we saw in the Profile, we now have an aggregated message to watch saving tens of thousands of log lines.
 
-![Log Analysis Flooded Log View](/images/guide-to-pipeline-architecture/40hkp95u1y2avyptoper7m0xo2b438dbcogw4ctstuj3fd6bfggphzv2tr7hkwyx.png)
+<Frame caption="Log Analysis Flooded Log View">
+  ![Image](/images/guide-to-pipeline-architecture/40hkp95u1y2avyptoper7m0xo2b438dbcogw4ctstuj3fd6bfggphzv2tr7hkwyx.png)
+</Frame>
 
 Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`.  While logs are displayed nicely in the Log Viewer, you can expand a line and see all the nested structure that is easily searchable.  For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy resp_code:(>=200 AND <300)`
 
-![Log Analysis Custom Apache Log View](/images/guide-to-pipeline-architecture/s21m4d88t3w8zk49ylrw45ba9b7btmq2ulj83a2b5py6me7jlm3vdws43uh078qe.png)
+<Frame caption="Log Analysis Custom Apache Log View">
+  ![Image](/images/guide-to-pipeline-architecture/s21m4d88t3w8zk49ylrw45ba9b7btmq2ulj83a2b5py6me7jlm3vdws43uh078qe.png)
+</Frame>
 
 If you want to learn more about Log Analysis and creating things like saved Views, Alerts and more check out our [docs here](/docs) or reaching out to [support@mezmo.com](mailto:support@mezmo.com)

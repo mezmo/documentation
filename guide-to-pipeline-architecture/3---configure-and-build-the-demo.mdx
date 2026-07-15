@@ -105,10 +105,14 @@ Two things you will immediately notice:
 
 1. The `load-generator` service is sending a huge volume of logs simply stating a homepage is being flooded.  This is standard behavior of the OpenTelemetry Demo using the [Feature Flag: loadgeneratorFloodHomepage](https://opentelemetry.io/docs/demo/feature-flags/) , but this data is noisy and costly to retain.
 
-![Homepage Flood Log Profile](/images/guide-to-pipeline-architecture/ggqxj4t80n3sn9lfmvasqseplp0svpsbxb1br1rohbnlj4q6g6cs618tioie5khe.png)
+<Frame caption="Homepage Flood Log Profile">
+  ![Image](/images/guide-to-pipeline-architecture/ggqxj4t80n3sn9lfmvasqseplp0svpsbxb1br1rohbnlj4q6g6cs618tioie5khe.png)
+</Frame>
 
 2. There are unparsed events that appear to be custom Apache logs being sent from the `frontend-proxy` service.  While these are [defined in the demo code here](https://github.com/mezmo/opentelemetry-demo/blob/main/src/frontend-proxy/envoy.tmpl.yaml#L80), we can take steps to make sure this data is structured and parsed properly to be searchable in any downstream Observability system.
 
-![Custom Apache Profile](/images/guide-to-pipeline-architecture/7ga7n2i9tanqe0vqkvlsed6lds45f32cmg361dzou83473vm82rebvxxz2ix3039.png)
+<Frame caption="Custom Apache Profile">
+  ![Image](/images/guide-to-pipeline-architecture/7ga7n2i9tanqe0vqkvlsed6lds45f32cmg361dzou83473vm82rebvxxz2ix3039.png)
+</Frame>
 
 In the next step, you will build out a log telemetry pipeline to address both of these potential issues.
