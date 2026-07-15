@@ -7,7 +7,9 @@ As Mezmo [ingests your logs](/docs/ingestion), it automatically parses informati
 
 You can identify parsed lines in Views by selecting a line and viewing the data.
 
-![Example of parsed logline in Views](/images/docs/da1u4sc1hd25zaztfxpt3gvam1r2mlc2glk9m74b27ym3zg3t98aabam8evzpes1.png)
+<Frame caption="Example of parsed logline in Views">
+  ![Image](/images/docs/da1u4sc1hd25zaztfxpt3gvam1r2mlc2glk9m74b27ym3zg3t98aabam8evzpes1.png)
+</Frame>
 
 <Warning>
 If your parsed fields contain inconsistent value types, field parsing may fail, but the line will be preserved if possible. For example, if a line is passed with a `meta` object, such as `meta.myfield` of type `String`, any subsequent lines with `meta.myfield` must have `String` as the value type. This applies to all parsed fields, including JSON.

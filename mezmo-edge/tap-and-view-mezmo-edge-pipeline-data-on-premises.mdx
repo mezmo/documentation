@@ -61,23 +61,31 @@ vector tap <component id>
 
 If tapping remotely is explicitly disabled by your administrator, the **Tap** button in the UI will prompt you with the exact `vector`  command to tap that node:
 
-![Prompt for the vector command to tap the selected node](/images/mezmo-edge/qtv4nklxsqmfuyqk2bjq822dkl0iyp03akr2ctbldy3aozuo5ycz6tv0wk4i6h8n.png)
+<Frame caption="Prompt for the vector command to tap the selected node">
+  ![Image](/images/mezmo-edge/qtv4nklxsqmfuyqk2bjq822dkl0iyp03akr2ctbldy3aozuo5ycz6tv0wk4i6h8n.png)
+</Frame>
 
 Click the copy/clipboard button to copy the command, which can be executed on the container or locally (with port forwarding active as described above).
 
 Alternatively, if port forwarding is active, you can click the **Vector GraphQL playground** link. This will open a new window that is connected to the GraphQL instance. The subscription query will be pre-populated with the selected node query, as shown in this screenshot:
 
-![Using `outputEventsByComponentIdPatterns` to inspect data for the http source shown in the first example of this topic](/images/mezmo-edge/l2d72jt8qpyskdetca6s6o27qyrl4hjd0tpytx27kfprinq1dwr2z4ka6bdiizux.png)
+<Frame caption="Using `outputEventsByComponentIdPatterns` to inspect data for the http source shown in the first example of this topic">
+  ![Image](/images/mezmo-edge/l2d72jt8qpyskdetca6s6o27qyrl4hjd0tpytx27kfprinq1dwr2z4ka6bdiizux.png)
+</Frame>
 
 ### Manually Constructing a Custom Tap
 
 You can find the component id by viewing the Pipeline in the Mezmo Web App. Right-click on the component in the Pipeline Map, then click **inspect**.
 
-![Use **Inspect** to find the component ID](/images/mezmo-edge/cxnux4taxrj9j0sfrocnhfq5xoq36cphpzltq7d7m3iiwmcpmycs8ujdeiuj8s71.jpg)
+<Frame caption="Use **Inspect** to find the component ID">
+  ![Image](/images/mezmo-edge/cxnux4taxrj9j0sfrocnhfq5xoq36cphpzltq7d7m3iiwmcpmycs8ujdeiuj8s71.jpg)
+</Frame>
 
 This will open the **Dev Tools** window, which will display a sub div of the component. Find `data-nodeid`, which will the UUID of the component.
 
-![The `data-nodeid`for the component highlighted in blue](/images/mezmo-edge/ntlehgsyzt3pf5r6h3xyul6o57952ka20z4is310fi21ktkuaufpovcs2q8hn2tv.png)
+<Frame caption="The `data-nodeid`for the component highlighted in blue">
+  ![Image](/images/mezmo-edge/ntlehgsyzt3pf5r6h3xyul6o57952ka20z4is310fi21ktkuaufpovcs2q8hn2tv.png)
+</Frame>
 
 Enter the UUID of the component with wildcard characters and quotes:
 
@@ -133,7 +141,9 @@ This will display the data for each output of the component:
 
 To view the data for only one of the components outputs, you will need to use the child node ID. As with the node id, you can find the child ID node by using the Dev Tools to inspect the child node ID.
 
-![The child nodes of a parent multi-output component](/images/mezmo-edge/fokn3su7qfkk3s3ocie1433wla4cya6u5rsjh0koynl1atxrk5m8xa1epa8amzic.png)
+<Frame caption="The child nodes of a parent multi-output component">
+  ![Image](/images/mezmo-edge/fokn3su7qfkk3s3ocie1433wla4cya6u5rsjh0koynl1atxrk5m8xa1epa8amzic.png)
+</Frame>
 
 Hover over the line containing the child node id, and the corresponding route in the Web App interface will be highlighted. You can use this to make sure you are selecting the correct child node id.
 
@@ -161,11 +171,15 @@ Follow the instructions for connecting Vector to your Edge instance described in
 
 [http://localhost:8686/playground](http://localhost:8686/playground)
 
-![The GraphQL Playground](/images/mezmo-edge/2psoy3ab00uquyqmyvkdd2g710sbgfb3dgt0px5t4z7xs9f7c24mt6lcsxelek0m.png)
+<Frame caption="The GraphQL Playground">
+  ![Image](/images/mezmo-edge/2psoy3ab00uquyqmyvkdd2g710sbgfb3dgt0px5t4z7xs9f7c24mt6lcsxelek0m.png)
+</Frame>
 
 Obtain the component IDs as described in the previous section, and then use the`outputEventsByComponentIdPatterns` to inspect the component.
 
-![Using `outputEventsByComponentIdPatterns` to inspect data for the http source shown in the first example of this topic](/images/mezmo-edge/l2d72jt8qpyskdetca6s6o27qyrl4hjd0tpytx27kfprinq1dwr2z4ka6bdiizux.png)
+<Frame caption="Using `outputEventsByComponentIdPatterns` to inspect data for the http source shown in the first example of this topic">
+  ![Image](/images/mezmo-edge/l2d72jt8qpyskdetca6s6o27qyrl4hjd0tpytx27kfprinq1dwr2z4ka6bdiizux.png)
+</Frame>
 
 This code sample shows the component ID within the `outputsPatterns` field:
 

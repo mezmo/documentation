@@ -17,7 +17,9 @@ Click `Add Source` and select your OpenTelemetry Metric source from the `Shared 
 
 As we did with the previous pipeline, we will prepare the data to take advantage of [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) in the future by enriching each metric with the current pipelines operational state.   Click the `three dots` on your Otel Metric Source and select `Add Node->Add Processor->Script Execution`.
 
-![Metric State Enrichment](/images/OptTutorial/76pknbpszl4xfabgzustgpnrf5hyvccmflxji3yow646vsg2cn206x8q0f4g0mwu.png)
+<Frame caption="Metric State Enrichment">
+  ![Image](/images/OptTutorial/76pknbpszl4xfabgzustgpnrf5hyvccmflxji3yow646vsg2cn206x8q0f4g0mwu.png)
+</Frame>
 
 Paste in the following JavaScript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable by tagging this data in-flight.
 
@@ -55,7 +57,9 @@ After the initial Enrichment processor, let's route the data flow based on that 
 
 You will end up with a pipeline that looks like the following
 
-![Metric State Router](/images/OptTutorial/1tepkafcbeyoi8jecv1pomsmeb9l9o76docnznro1tst7b7jry3m7wc5rh88nb60.png)
+<Frame caption="Metric State Router">
+  ![Image](/images/OptTutorial/1tepkafcbeyoi8jecv1pomsmeb9l9o76docnznro1tst7b7jry3m7wc5rh88nb60.png)
+</Frame>
 
 ## Step 5: Normalize and Aggregate in Normal State
 
@@ -97,7 +101,9 @@ Finally, let's aggregate on a 5 min window by adding an `Aggregate` processor.  
 
 - Interval (seconds): `300`
 
-![Metric Aggregator](/images/OptTutorial/ufxns1xbvjyar2lg56uif0uwvnbawg0hxyqyhmulcs55vieqlu5z022p7oky7jvz.png)
+<Frame caption="Metric Aggregator">
+  ![Image](/images/OptTutorial/ufxns1xbvjyar2lg56uif0uwvnbawg0hxyqyhmulcs55vieqlu5z022p7oky7jvz.png)
+</Frame>
 
 ## Step 6: Sending Data Downstream Systems
 
@@ -105,7 +111,9 @@ Now, connect all outputs to a Blackhole destination.  This is simply a placehold
 
 You should have a pipeline that looks like the following.
 
-![Metric Blackhole Connected](/images/OptTutorial/k31cpo7io0io53p1rxttjfpio8ppg5lvqrna3iodlemohlk1v66qt5tot4c7inn2.png)
+<Frame caption="Metric Blackhole Connected">
+  ![Image](/images/OptTutorial/k31cpo7io0io53p1rxttjfpio8ppg5lvqrna3iodlemohlk1v66qt5tot4c7inn2.png)
+</Frame>
 
 ## Step 7: Deploy
 

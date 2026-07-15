@@ -53,7 +53,9 @@ After the initial Enrichment processor, let's route the data flow based on that 
 
 You will end up with a pipeline that looks like the following
 
-![Trace State Router](/images/OptTutorial/lx9fdbx9vhpy1qh6lqlsbzo5iqq1g8pbjy0caz2j5ksrjq0jwnc1f5f6yypv39y9.png)
+<Frame caption="Trace State Router">
+  ![Image](/images/OptTutorial/lx9fdbx9vhpy1qh6lqlsbzo5iqq1g8pbjy0caz2j5ksrjq0jwnc1f5f6yypv39y9.png)
+</Frame>
 
 ## Step 5: Sample Traces in Normal State
 
@@ -61,7 +63,9 @@ Add a 1/10 Trace Sample processor connected to the Normal and Unmatched routes w
 
 - Rate: `10`
 
-![Trace Sample Config](/images/OptTutorial/o8tdpa5tircyo0wh3ppm74faktkkiiri82zdhbfzimgj2p5gyfs8zrtobd176gie.png)
+<Frame caption="Trace Sample Config">
+  ![Image](/images/OptTutorial/o8tdpa5tircyo0wh3ppm74faktkkiiri82zdhbfzimgj2p5gyfs8zrtobd176gie.png)
+</Frame>
 
 <Note>
   Note that Tail-based sampling is also available in Beta.
@@ -71,7 +75,9 @@ Add a 1/10 Trace Sample processor connected to the Normal and Unmatched routes w
 
 Now, connect all outputs to a Blackhole destination.  This is simply a placeholder for any Observability system you'd like.  Explore our destinations in-app or in our [docs](/telemetry-pipelines/supported-telemetry-data-destinations) to easily send telemetry data downstream into tools, data lakes and more.
 
-![Trace Blackhole Connected](/images/OptTutorial/3pbtrljw9y9inu9g9qrilxttnsitnq2mp0ejwa31uatfzqlgnkc2uxjx8q3obqlf.png)
+<Frame caption="Trace Blackhole Connected">
+  ![Image](/images/OptTutorial/3pbtrljw9y9inu9g9qrilxttnsitnq2mp0ejwa31uatfzqlgnkc2uxjx8q3obqlf.png)
+</Frame>
 
 ## Step 7: Deploy
 

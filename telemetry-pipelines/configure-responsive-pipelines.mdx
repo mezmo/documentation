@@ -23,7 +23,9 @@ You can change  the operational state of a Pipeline manually through the Mezmo W
 
 You can change the operational state of a Pipeline in the Mezmo Web App by selecting the state in the upper-left corner of the Pipeline Map. The state of the Pipeline is also shown in the Pipeline name, with an orange flag indicating the **Incident** state.
 
-![Changing the operational state of a Pipeline in the Mezmo Web App](/images/telemetry-pipelines/pt5iwjtqwchdc01qpcxnbq117svndul3xe9yk91voub7983l9p0zz7zegmikmbm1.png)
+<Frame caption="Changing the operational state of a Pipeline in the Mezmo Web App">
+  ![Image](/images/telemetry-pipelines/pt5iwjtqwchdc01qpcxnbq117svndul3xe9yk91voub7983l9p0zz7zegmikmbm1.png)
+</Frame>
 
 <Note>
 You should change the state of a Pipeline in the Mezmo App at least once to initialize the Pipeline's state table so it can be used  with the API.
@@ -61,7 +63,9 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 ```
 
-![This screenshot shows the configuration of the Script Execution Processor to get the operational state and add it to the message](/images/telemetry-pipelines/40gfiueor5pb549yep90zvsk3w7o91nmljiy6luqfkphydprkqscm18h4vkztzn5.png)
+<Frame caption="This screenshot shows the configuration of the Script Execution Processor to get the operational state and add it to the message">
+  ![Image](/images/telemetry-pipelines/40gfiueor5pb549yep90zvsk3w7o91nmljiy6luqfkphydprkqscm18h4vkztzn5.png)
+</Frame>
 
 You can then use the value of `op_state` in other processors:
 
@@ -76,7 +80,9 @@ if (metadata._op_state equal 'incident')
 
 ```
 
-![This screenshot shows the configuration of the conditions in the Route Processor for both Monitoring and Incident Modes](/images/telemetry-pipelines/whbmfgiai2ok2ahywhgjgf733i7odvhbu2alv8wil8px9k1dzvlcr6eybqtdd8my.png)
+<Frame caption="This screenshot shows the configuration of the conditions in the Route Processor for both Monitoring and Incident Modes">
+  ![Image](/images/telemetry-pipelines/whbmfgiai2ok2ahywhgjgf733i7odvhbu2alv8wil8px9k1dzvlcr6eybqtdd8my.png)
+</Frame>
 
 ### API
 
