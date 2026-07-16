@@ -1,11 +1,11 @@
 ---
 title: "New Relic"
-description: "Send logs and metrics to a New Relic instance, configuring the account ID, logs or metrics endpoint, US or EU region, and license key."
+description: "Send logs, metrics, and traces to a New Relic instance, configuring the account ID, API endpoint, US or EU region, and license key."
 ---
 
 ## Description
 
-This destination lets you send logs and metrics to your New Relic instance. The destination is based off the [Vector sink](https://vector.dev/docs/reference/configuration/sinks/new_relic/) for New Relic.
+This destination lets you send logs, metrics, and traces to your New Relic instance. The destination is based off the [Vector sink](https://vector.dev/docs/reference/configuration/sinks/new_relic/) for New Relic.
 
 ## Configuration
 
@@ -16,6 +16,6 @@ The destination can be configured according to these options.
 | Option | Description | 
 | ---- | ---- | 
 | New Relic Account ID | Your New Relic Account ID | 
-| API Endpoint | Select either **Logs** or **Metrics** | 
+| API Endpoint | Select **Logs**, **Metrics**, or **Traces**. The default is **Logs**. Select **Traces** to route data to the New Relic Trace API. | 
 | Region | The New Relic region to send data to. Select **US** or **EU**. The default is **US**. | 
 | New Relic License Key | Your New Relic Account License Key | 
