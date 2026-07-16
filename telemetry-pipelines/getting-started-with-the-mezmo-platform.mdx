@@ -40,7 +40,9 @@ With [Mezmo Flow](/telemetry-pipelines/about-mezmo-flow) guiding the way, you ca
 The first step is to set up the Source of your telemetry data. Your options include using the [Mezmo Agent](/telemetry-pipelines/mezmo-agent-source), an [OpenTelemetry Collector](/telemetry-pipelines/otel-collector), or [Demo Logs](/telemetry-pipelines/demo-logs-source) You can find a complete list of  [Supported Telemetry Pipeline Sources](/telemetry-pipelines/supported-telemetry-pipeline-sources) in our product documentation. 
 
 <Note>
-As part of the Mezmo Platform onboarding flow, you can choose to set up a Pipeline specifically to reduce the log volume, and cost, associated with a DataDog Agent. During the onboarding flow process, set up your [Datadog Agent](/telemetry-pipelines/mezmo-datadog-source-source), and [Datadog Metrics](/telemetry-pipelines/datadog-metrics-destination) and [Datadog Logs](/telemetry-pipelines/datadog-logs-destination) Destinations, then follow the instructions to finish setting up your Pipeline.
+As part of the Mezmo Platform onboarding flow, you can choose to set up a Pipeline specifically to reduce the log volume, and cost, associated with a DataDog Agent. During the onboarding flow process, set up your [Datadog Agent](/telemetry-pipelines/mezmo-datadog-source-source) source, a combined source that accepts logs, metrics, and traces), and [Datadog Metrics](/telemetry-pipelines/datadog-metrics-destination) and [Datadog Logs](/telemetry-pipelines/datadog-logs-destination) Destinations, then follow the instructions to finish setting up your Pipeline.
+
+Alternatively, the [Datadog Agent V2](/telemetry-pipelines/mezmo-datadog-source-v2-source) source accepts logs, metrics, and traces as a single source with distinct output routes for each type.
 </Note>
 
 #### Create a Profile
