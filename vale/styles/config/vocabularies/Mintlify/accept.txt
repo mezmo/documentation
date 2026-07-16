@@ -84,6 +84,7 @@ Logfmt
 logline(s?)
 Logspout
 Logstash
+loopback
 Mezmo
 middleware
 msg
