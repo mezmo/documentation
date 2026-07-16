@@ -1,0 +1,35 @@
+---
+title: "HTTP Client"
+description: "A pull source that polls an HTTP endpoint on a schedule and ingests the responses into your pipeline, with configurable method, interval, headers, decoding, and authentication."
+---
+
+<Note>
+The HTTP Client source is experimental. Its configuration and behavior can change in a future release.
+</Note>
+
+## Description
+
+This is a pull source. The HTTP Client source polls an HTTP endpoint that you specify on a schedule and ingests the responses into your pipeline. Use it when the data you want lives behind an HTTP endpoint that you want Mezmo to fetch on a regular interval, such as a status or metrics API. This is different from the [HTTP source](/telemetry-pipelines/http-source), which is a push source that receives data sent to your pipeline by an external system.
+
+You can use the HTTP Client source with both SaaS pipelines and Mezmo Edge deployments. On Mezmo Edge, the source does not check whether the endpoint is reachable from outside your network, so an Edge pipeline can poll endpoints inside your own network.
+
+## Configuration
+
+Add an HTTP Client source to your pipeline, then configure it using the options in the table below.
+
+### Configuration Options
+
+| Option | Description | 
+| ---- | ---- | 
+| **Title** | A name for your source. | 
+| **Description** | A short description of the source. | 
+| **Endpoint** | The URL to poll for data. Must be a valid URI. | 
+| **Method** | The HTTP method to use for each request. Choose from **GET**, **POST**, **PUT**, **PATCH**, **DELETE**, or **HEAD**. The default is **GET**. | 
+| **Scrape Interval (seconds)** | How often, in seconds, to poll the endpoint. The default is **30**. The minimum is 15 and the maximum is 86400. | 
+| **Scrape Timeout (seconds)** | How long, in seconds, to wait for a response before the request times out. The default is **10**. The minimum is 5 and the maximum is 60. | 
+| **HTTP Headers** | An array of key and value pairs for the headers to send with each request. | 
+| **Decoding** | How to decode each response into events. Choose from **bytes** or **JSON**. The default is **bytes**. | 
+| **Authentication Strategy** | The authentication method to use for each request. Choose from **None**, **Basic**, or **Bearer**. The default is **None**. | 
+| **Username** | The user name for **Basic** authentication. Required when the strategy is **Basic**. | 
+| **Password** | The password for **Basic** authentication. Required when the strategy is **Basic**. | 
+| **Token** | The token for **Bearer** authentication. Required when the strategy is **Bearer**. | 
