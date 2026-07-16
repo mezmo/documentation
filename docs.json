@@ -237,6 +237,7 @@
               "telemetry-pipelines/kafka-source",
               "telemetry-pipelines/azure-event-hub-source",
               "telemetry-pipelines/mezmo-datadog-source-source",
+              "telemetry-pipelines/open-telemetry-source",
               "telemetry-pipelines/open-telemetry-metrics-source",
               "telemetry-pipelines/log-analysis-source",
               "telemetry-pipelines/open-telemetry-logs-source",
