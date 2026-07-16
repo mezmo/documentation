@@ -228,6 +228,7 @@
               "telemetry-pipelines/s3-source",
               "telemetry-pipelines/fluent-source",
               "telemetry-pipelines/http-source",
+              "telemetry-pipelines/http-client-source",
               "telemetry-pipelines/logstash-source",
               "telemetry-pipelines/syslog-over-http-pipeline-source",
               "telemetry-pipelines/splunk-hec-source",
