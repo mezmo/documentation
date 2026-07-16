@@ -244,7 +244,7 @@
               "telemetry-pipelines/pipeline-data-restoration-source",
               "telemetry-pipelines/log-analysis-ingestion-source",
               "telemetry-pipelines/sqs-source",
-              "telemetry-pipelines/datadog-agent-v2-source"
+              "telemetry-pipelines/mezmo-datadog-source-v2-source"
             ]
           },
           {
