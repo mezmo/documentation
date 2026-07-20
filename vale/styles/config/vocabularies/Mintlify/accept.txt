@@ -8,6 +8,8 @@ _ms
 _or_equal
 _spans
 _timestamp
+_trace_spans
+_type
 [Cc]ron
 [Dd]edupe
 [Dd]eduplicat(e|es|ion|ing)
@@ -130,6 +132,7 @@ Uncheck
 Uncomment
 unencrypted
 uninstallations
+[Uu]npause
 unparsed
 url
 Vercel
