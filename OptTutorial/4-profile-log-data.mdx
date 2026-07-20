@@ -61,7 +61,7 @@ function processEvent(message, metadata, timestamp, annotations) {
   }
 
   if( host == null || host == '' ){
-    host = metadata.headers["x-kafka-partition-key"]
+    host = metadata.headers["x-bus-partition-key"] ?? metadata.headers["x-kafka-partition-key"]
   }
   if( host == null || host == '' ){
     host = metadata.attributes["log.file.path"]
