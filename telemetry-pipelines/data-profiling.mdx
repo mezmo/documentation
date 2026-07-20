@@ -6,10 +6,12 @@ description: "Use the Data Profiler to get a granular view of your log data thro
 Before you can optimize your data, you need to understand what it contains, and separate the useful data from the noise. Mezmo's Data Profiler feature enables you to get a detailed, granular view of the most common messages in your log data, and add processor components to handle specific message types.
 
 <Note>
-Data profiles are available for 60 days, then automatically removed. To get updated analysis for an older data source, run the Data Profiler again.
+  Data profiles are available for 60 days, then automatically removed. To get updated analysis for an older data source, run the Data Profiler again.
 </Note>
 
 ## Create a Data Profile
+
+and another
 
 There are two ways to generate a data profile:
 
@@ -48,34 +50,34 @@ You can see examples for each matching log sample by clicking the arrow next for
 ### Field Summaries
 
 <Note>
-This is an experimental feature that is still in development. For access to this feature, reach out to your Customer Support Manager or support@mezmo.com.
+  This is an experimental feature that is still in development. For access to this feature, reach out to your Customer Support Manager or [support@mezmo.com](mailto:support@mezmo.com).
 </Note>
 
 Field summaries provide the analysis of telemetry data from the perspective of field values.  The Field Summaries section provides a tabular view of all the Fields discovered from the events that are streaming through the pipeline during a profiler run. Click the arrow next to the field name to see the unique values  associated with the field. You can also apply Processors to those unique values.
 
 Within the Field Summaries report, you will see:
 
-| Report Column | Description | 
-| ---- | ---- | 
-| **Field Name** | The name of the field. | 
-| **Unique Values** | Represents the count of the unique values found in all the logs during the profiling run. This indicates the cardinality of the field. Some fields can have a large number of unique values, however, the report will only display the first 500 unique values. The value displayed depends on the type of field, as described in the next table. | 
-| **Total Lines** | Similar to the message templates, this column shows:<br /><br />The number of log events that contain this field.<br /><br />The percentage of logs that contain this field. The Percentage is calculated based on the total volume of data processed by the profiler during that specific run. | 
-| **Total Size** | Similar to the message templates, this column shows:<br /><br />**S**ize of all the events containing this field.<br /><br />The number of events containing this field. | 
-| **Field Size** | This represents the volume contributed by the **field itself** as Bytes and % of the total volume. It includes the field name and value.  Using this information, you can decide to drop a field if it contains a large amount of data that is not important. | 
+| Report Column | Description |
+| --- | --- |
+| **Field Name** | The name of the field. |
+| **Unique Values** | Represents the count of the unique values found in all the logs during the profiling run. This indicates the cardinality of the field. Some fields can have a large number of unique values, however, the report will only display the first 500 unique values. The value displayed depends on the type of field, as described in the next table. |
+| **Total Lines** | Similar to the message templates, this column shows:<br /><br />The number of log events that contain this field.<br /><br />The percentage of logs that contain this field. The Percentage is calculated based on the total volume of data processed by the profiler during that specific run. |
+| **Total Size** | Similar to the message templates, this column shows:<br /><br />**S**ize of all the events containing this field.<br /><br />The number of events containing this field. |
+| **Field Size** | This represents the volume contributed by the **field itself** as Bytes and % of the total volume. It includes the field name and value.  Using this information, you can decide to drop a field if it contains a large amount of data that is not important. |
 
 You can also apply Processors based on **Field** or **Field Value**. At the **Field** level, you can only select Remove Field. At the **Field Value** level, you can apply Processors such as [Filter](/telemetry-pipelines/filter-processor), [Sample Processor](/telemetry-pipelines/sample-processor),  [Dedupe Processor](/telemetry-pipelines/dedupe-processor), and [Throttle Processor](/telemetry-pipelines/throttle-processor). If you remove a field at the Field level,  the Field Value processors are disabled because they are mutually exclusive.
 
 This table describes the value displayed based on the value type:
 
-| Value Type | Displayed Value | 
-| ---- | ---- | 
-| **Boolean** | The value itself. | 
-| **String** | The value itself, up to the first 50 characters. | 
-| **Array** | The length of the arrays found. For example, `[a, b, c]` is displayed as **3**. | 
-| **Object** | Each unique value is the set of names of the keys. For example,`{a:1, b:2}` is displayed as **a, b**. | 
-| **Float** | Displays the min/max/average, no unique values. | 
-| **Timestamp** | Displays the min/max (no average), no unique values | 
-| **Integer** | If cardinality is &gt; the threshold (for example, 65), displays min/max/average. If cardinality is &lt; threshold, displays the unique values. | 
+| Value Type | Displayed Value |
+| --- | --- |
+| **Boolean** | The value itself. |
+| **String** | The value itself, up to the first 50 characters. |
+| **Array** | The length of the arrays found. For example, `[a, b, c]` is displayed as **3**. |
+| **Object** | Each unique value is the set of names of the keys. For example,`{a:1, b:2}` is displayed as **a, b**. |
+| **Float** | Displays the min/max/average, no unique values. |
+| **Timestamp** | Displays the min/max (no average), no unique values |
+| **Integer** | If cardinality is \> the threshold (for example, 65), displays min/max/average. If cardinality is \< threshold, displays the unique values. |
 
 <Frame caption="Field Summaries generated by the Data Profiler, showing the Unique Values associated with the `app` field.">
   ![Image](/images/shared/yw4nzl6ibf4zl1lxgee5m4p319he3lqzf7y7zr8uve9g71c6ypfu8kexknyh6wdb.png)
@@ -88,5 +90,3 @@ The **Log Metrics** section provides a report of the profiled logs categorized b
 <Frame caption="The Log Metrics analysis for an HTTP Shared Source">
   ![Image](/images/shared/ij9u9fei9i0mg47vnm7ze269kmmbc4u3d1ptu9zhoygmaoree1wh643zql7r2cm8.png)
 </Frame>
-
-###
