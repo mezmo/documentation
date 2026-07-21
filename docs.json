@@ -457,6 +457,10 @@
           {
             "group": "Telemetry Pipelines API",
             "openapi": "pipeline.yaml"
+          },
+          {
+            "group": "Enterprise API",
+            "openapi": "enterprise-api.json"
           }
         ]
       }
