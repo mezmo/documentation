@@ -452,15 +452,24 @@
           },
           {
             "group": "Log Analysis API",
-            "openapi": "log-analysis.json"
+            "openapi": {
+              "source": "log-analysis.json",
+              "directory": "log-analysis"
+            }
           },
           {
             "group": "Telemetry Pipelines API",
-            "openapi": "pipeline.yaml"
+            "openapi": {
+              "source": "pipeline.yaml",
+              "directory": "pipeline"
+            }
           },
           {
             "group": "Auth API",
-            "openapi": "auth-api-spec.yaml"
+            "openapi": {
+              "source": "auth-api-spec.yaml",
+              "directory": "auth"
+            }
           }
         ]
       }
