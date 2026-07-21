@@ -459,7 +459,7 @@
             "openapi": "api-specs/pipeline.yaml"
           },
           {
-            "group": "Telemetry Pipelines API",
+            "group": "Auth API",
             "openapi": "api-specs/auth_api_spec.yaml"
           }
         ]
