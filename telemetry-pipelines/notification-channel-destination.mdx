@@ -1,0 +1,61 @@
+---
+title: "Notification Channel"
+description: "Send a Pipeline-triggered notification to Slack, PagerDuty, a Webhook, or Mezmo Log Analysis based on event thresholds over a configurable time window."
+---
+
+## Description
+
+You can use this Destination to send a notification to a selected service, such as Slack, PagerDuty, a Webhook, or Mezmo Log Analysis. This is helpful if there are particular events or metrics that process through your Pipeline that should trigger further action for you or your team.
+
+Fields marked below as supporting templating let you reference event data. To use a template, surround field names with double curly braces, e.g., `{{.my_field}}` or `{{."my-object".thing}}`. See [Syntax for Editing Pipeline Component Configuration Values](/telemetry-pipelines/syntax-for-editing-pipeline-component-configuration-values#data-fields) for more examples.
+
+## Configuration
+
+### Configuration Options
+
+| Option | Description |
+| ---- | ---- |
+| Service | The service to send the notification to. Options include Slack, PagerDuty, Webhook, and Mezmo Log Analysis. There are additional configuration parameters depending on the Service chosen (see below). |
+| Window Seconds | The time frame during which the number of notifications (set by the **Threshold**) is permitted (default: 60). |
+| Threshold | The maximum number of notifications allowed over the given time window set by **Window Seconds** (default: 1). |
+
+## When Service is Set to Slack
+
+**Prerequisite**: Set up an [incoming webhook](https://api.slack.com/messaging/webhooks) within your Slack organization and use the webhook URL as the **URI** below.
+
+| Option | Description |
+| ---- | ---- |
+| URI | The full URI of the Slack incoming webhook to send the notification to. This should include the protocol and host, but can also include the port, path, and any other valid part of a URI. |
+| Message | The text to send as the Slack message. Supports templating. |
+
+## When Service is Set to PagerDuty
+
+| Option | Description |
+| ---- | ---- |
+| URI | The full URI of the PagerDuty Events API endpoint to send the notification to. |
+| Summary | A brief text summary of the event, used to generate the summaries/titles of any associated alerts. Supports templating. |
+| Severity | The perceived severity of the status the event is describing with respect to the affected system. One of `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+| Source | The unique location of the affected system, preferably a hostname or FQDN. Supports templating. |
+| Routing Key | The 32 character Integration Key for an integration on a service or on a global ruleset. |
+| Event Action | The event action associated with the alert. One of `trigger`, `acknowledge`, `resolve`. |
+
+See PagerDuty's [Send an Alert Event](https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgx-send-an-alert-event) documentation for more details.
+
+## When Service is Set to Webhook
+
+| Option | Description |
+| ---- | ---- |
+| URI | The full URI of the service that you want to send the notification to. This should include the protocol and host, but can also include the port, path, and any other valid part of a URI. **Note:** The URI can't point to a private IP address or a hostname that resolves to a private IP address, and it can't return a redirect response. |
+| Method | The HTTP method to use for the request. One of `post`, `put`, `patch`, `delete`, `get`, `head`, `options`, `trace` (default: `post`). |
+| Message | The Webhook payload to send. This can be a text string or stringified JSON. If the message can be parsed as JSON, it is sent as such. Supports templating. |
+| HTTP Headers | An optional list of up to 20 key/value pairs to include in the HTTP request. |
+| Authentication Options | An optional authentication strategy for the HTTP request: none, basic (user and password), or bearer (token). |
+
+## When Service is Set to Mezmo Log Analysis
+
+| Option | Description |
+| ---- | ---- |
+| Severity | The severity level of the alert. One of `INFO`, `WARNING`, `ERROR`, `CRITICAL` (default: `INFO`). |
+| Subject | A string to be used as the subject of the alert. Supports templating. Maximum 200 characters. |
+| Body | A string to be used as the alert message body. Supports templating. Maximum 1024 characters. |
+| Ingestion Key | The key required to communicate with Log Analysis for sending the alert. |
