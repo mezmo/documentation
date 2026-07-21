@@ -41,6 +41,7 @@ To configure an OTel collector to export to Mezmo, you can add the following to 
 exporters:
   otlphttp/mezmo:
     endpoint: "https://logs.mezmo.com/otel"
+    compression: gzip
     headers:
       apikey: "<YOUR_INGESTION_KEY>"
       
@@ -61,6 +62,10 @@ exporters:
         processors: [memory_limiter, batch]
         exporters:  [otlphttp/mezmo]
 ```
+
+<info>
+The endpoint accepts gzip-compressed OTLP payloads in both protobuf and JSON format. You can reduce network bandwidth by setting `compression: gzip` on your `otlphttp` exporter, as shown above. The endpoint also accepts uncompressed payloads.
+</info>
 
 <warning>
 The endpoint in the exporters configuration must exactly match the URL above. You don't need to specify the `/v1/[type]` path, this is done automatically by the collector

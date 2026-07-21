@@ -210,8 +210,7 @@ config:
     otlphttp/mezmo:
       endpoint: http://logs.mezmo.com/otel
       encoding: proto        # change to "json" to send JSON instead
-      # compression: gzip
-      compression: none
+      compression: gzip      # gzip is supported for protobuf and JSON payloads
       headers:
         # Authorization: "Token ${env:MEZMO_INGESTION_KEY}"
         apikey: "${env:MEZMO_INGESTION_KEY}"
