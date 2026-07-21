@@ -10,6 +10,8 @@ You can configure any source to send data via a RESTful POST to the Mezmo Pipeli
 When using the HTTP source, your content must be both encoded appropriately and packaged in way that enables it to be parsed after ingestion. You must also use a [Parse Processor](/telemetry-pipelines/parse-processor) explicitly after ingestion in order to make use of any structured data. Structured formats, such as JSON, do not require additional parsing unless you want to further parse a specific value within the JSON.
 </Note>
 
+Another paragraph.
+
 You would typically use an HTTP request as a source when the specific source type you wish to send from is not supported.  For example, you may have a not well known open source application that you wish to process. As long as you're able to use a RESTful POST transport to send the data to an endpoint, you can send the data into the pipeline.
 
 **All data sent to an HTTP endpoint must be parsed within the pipeline to extract the fields and act on it.** Once the data is parsed, you can use it for any subsequent desired use case, such as [remove](/telemetry-pipelines/drop-fields-processor) or [encrypt](/telemetry-pipelines/encrypt-fields-processor) any sensitive data before sending them to other tools for application performance monitoring, log analysis, or security information and event monitoring. 
