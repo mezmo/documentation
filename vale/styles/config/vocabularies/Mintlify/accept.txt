@@ -23,6 +23,7 @@ _type
 [Rr]ehydration
 [Tt]imeframe
 [Ww]ebsocket(s?)
+agentic
 Akamai
 allowlist(s|ing)?
 anonymized
