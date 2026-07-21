@@ -460,7 +460,7 @@
           },
           {
             "group": "Auth API",
-            "openapi": "auth_api_spec.yaml"
+            "openapi": "auth-api-spec.yaml"
           }
         ]
       }
