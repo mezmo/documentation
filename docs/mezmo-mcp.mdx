@@ -16,7 +16,7 @@ Add Mezmo MCP and you can:
 
 ## Overview
 
-Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients — including [AURA](https://github.com/mezmo/aura), Mezmo's own open-source agentic SRE harness, which connects to Mezmo MCP natively.
+Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients, including [AURA](https://github.com/mezmo/aura), Mezmo's own agentic SRE harness.
 
 ## Available Tools & Examples
 
@@ -494,7 +494,7 @@ AUTH_HEADER="Bearer <SERVICE KEY>" npx mcp-remote https://mcp.mezmo.com/mcp \
 
 #### AURA
 
-[AURA](https://github.com/mezmo/aura) is Mezmo's open-source agentic SRE harness. It's MCP-native, so you can point an AURA agent at the Mezmo MCP server and its tools become available to the agent at runtime for root-cause analysis, log queries, and pipeline management.
+[AURA](https://github.com/mezmo/aura) is Mezmo's open-source agentic SRE harness. It's MCP-native, so you can point an AURA agent at the Mezmo MCP server and its tools become available at runtime for root-cause analysis, log queries, and pipeline management.
 
 Add a `[mcp.servers.mezmo]` block to your AURA config (`config.toml` or a file in your `configs/` directory):
 
