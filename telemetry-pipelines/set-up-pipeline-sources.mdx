@@ -10,8 +10,20 @@ Mezmo Telemetry Pipelines provides support for ingesting pipeline log data from 
 3. In the left-hand navigation, click **+ New Pipeline**.
 4. Enter a name for the Pipeline, then click **Save**.
 5. In the **Sources** column of the pipeline schematic, click **Add**.
-6. Select the Pipeline Source you want to use, and enter the configuration information.
+6. Select the Pipeline Source you want to use, and enter the configuration information. When the source picker opens, some sources may appear in a **Recommended Sources** section above the regular **Sources** tabs. See [Recommended Sources](#recommended-sources) below for details.
 
 The topic [Supported Telemetry Pipeline Sources](/telemetry-pipelines/supported-telemetry-pipeline-sources) provides a full list of available sources and their configuration instructions. 
+
+## Recommended Sources
+
+The pipeline editor groups account-wide shared streams into a **Recommended Sources** section shown above the regular **Sources** tabs in the source picker. The section describes this behavior: "Account-wide sources: every pipeline that adds one receives the same ingest stream."
+
+The [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) is listed first because Mezmo recommends OpenTelemetry as the primary way to send data into a pipeline. Other recommended sources, such as [Mezmo Log Analysis Ingestion](/telemetry-pipelines/log-analysis-ingestion-source), follow it.
+
+<Note>
+Each recommended source can be added only once within a given pipeline because it reads a shared account-wide stream. If a recommended source is already in the pipeline, its card is disabled and shows this hint: "Already added to this pipeline. Only one is allowed because it reads a shared account-wide stream." You can still add the same recommended source to other, separate pipelines.
+</Note>
+
+Related: [Shared Sources](/telemetry-pipelines/shared-sources).
 
 ## Video Overview
