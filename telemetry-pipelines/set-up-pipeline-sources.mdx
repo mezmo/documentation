@@ -21,7 +21,11 @@ The pipeline editor groups account-wide shared streams into a **Recommended Sour
 The [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) is listed first because Mezmo recommends OpenTelemetry as the primary way to send data into a pipeline. Other recommended sources, such as [Mezmo Log Analysis Ingestion](/telemetry-pipelines/log-analysis-ingestion-source), follow it.
 
 <Note>
-Each recommended source can be added only once within a given pipeline because it reads a shared account-wide stream. If a recommended source is already in the pipeline, its card is disabled and shows this hint: "Already added to this pipeline. Only one is allowed because it reads a shared account-wide stream." You can still add the same recommended source to other, separate pipelines.
+A pipeline can include at most one source of a given account-wide shared-stream type. Today the account-wide shared-stream types are the **OpenTelemetry Source** and **Mezmo Log Analysis Ingestion**, so a pipeline can include one of each but not more than one of either. You can still add the same shared-stream source to other pipelines.
+
+Mezmo enforces this limit for account-wide shared-stream sources however you add the source: the Mezmo Web App, the Pipeline API, Terraform, cloning a pipeline, and importing a pipeline manifest. It is not merely a disabled button in the source picker.
+
+In the source picker, if a shared-stream source is already in the pipeline, its card is disabled and shows this hint: "Already added to this pipeline. Only one is allowed because it reads a shared account-wide stream." If you try to add a second source of the same shared-stream type to a pipeline through the Pipeline API or a manifest import, Mezmo rejects the request instead of silently succeeding.
 </Note>
 
 Related: [Shared Sources](/telemetry-pipelines/shared-sources).
