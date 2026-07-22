@@ -253,6 +253,7 @@ Export strips only secrets and internal system fields. Non-secret but account-sp
 | The same secret name is supplied more than once | `400` | Send each secret only once. |
 | The manifest text is malformed or fails validation | `400` | Fix the manifest structure and try again. |
 | The manifest references an unknown or non-public component type | `400` | Use only supported, public components in the manifest. |
+| A component references an internal or private URI, for example a link-local or loopback address | `400` | Update the component to use a publicly reachable URI, and then import again. |
 | The manifest is well formed but not supported, for example a non-SaaS `deploy_type` or a `transform_groups` block | `422` | Remove the unsupported content. |
 | The `manifest_version` is not `1` | `400` | Export the Pipeline again to get a current manifest. |
 
