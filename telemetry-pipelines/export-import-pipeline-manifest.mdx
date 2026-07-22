@@ -6,7 +6,7 @@ description: "Export a SaaS Telemetry Pipeline to a portable YAML or JSON manife
 A Pipeline manifest is a portable YAML or JSON document that captures a SaaS Telemetry Pipeline's structure. Use it to copy, version, or share a Pipeline, and to re-create it in another account. A manifest is a newer, more portable way to export a Pipeline than the older Terraform export.
 
 <Note>
-This capability is delivered through the Mezmo v3 API export, inspect, and import routes. The Mezmo Web App can surface export and import controls built on these routes.
+You can export and import a manifest either in the Mezmo Web App with no code, or through the Mezmo v3 API. Both use the same manifest format.
 </Note>
 
 ## What a Pipeline Manifest Contains
@@ -67,7 +67,48 @@ secrets:
     display_type: mezmo-ingestion-key
 ```
 
-## Before You Begin
+## Export or Import in the Web App
+
+The Web App gives you a no-code way to export and import a manifest.
+
+For the Web App path you only need access to the Mezmo Web App with permission to view and create Pipelines. No API key is required.
+
+### Export a Pipeline in the Web App
+
+1. Log in to the Mezmo Web App.
+2. Open the Pipeline you want to export.
+3. Go to the Pipeline's **Configure** page (its settings page).
+4. In the **Export Pipeline** card, click **Export as JSON** or **Export as YAML**.
+
+Mezmo downloads the manifest as a file named after the pipeline title, with a `.json` or `.yaml` extension (for example, `My Pipeline.yaml`). The card exports the current draft version of the Pipeline's manifest. If the export fails, an error message appears in the card. The most common cause is a non-public component in the Pipeline, for example an internal, experimental, deprecated, or hidden component. The error names each such component so you can remove or replace it, then export again.
+
+### Import a Pipeline in the Web App
+
+Importing a manifest creates a new draft Pipeline. Start the import from the new-pipeline screen.
+
+1. Log in to the Mezmo Web App.
+2. Start creating a **New Pipeline**.
+3. On the new-pipeline screen, click the **Import Pipeline** link.
+
+The **Import Pipeline** link opens a two-step wizard:
+
+1. Drag a manifest file onto the upload area, or click **Import file** to browse for one. Accepted file types are JSON, YAML, and YML. You can upload only one file at a time, up to 2 MB. This 2 MB client-side upload cap is separate from the 1 MiB manifest-size limit enforced on import (see [Limits and Constraints](#limits-and-constraints)), so a file under 2 MB can still be rejected if the manifest itself exceeds 1 MiB.
+2. Click **Continue**.
+3. For each secret the manifest requires, enter its value. The wizard lists every secret the manifest references, because a manifest never contains secret values (see [Secret Placeholders](#secret-placeholders)). You can see which secrets a manifest requires ahead of time by checking the manifest's `secrets` block, so you can gather values before starting the wizard. Every listed secret is required. Each field matches the secret's type. A standard secret is a masked password field. A secret file is a file upload. A Mezmo ingestion key field lets you select an existing ingestion key from your account, generate a new one, or enter a key manually. If the manifest references no secrets, the wizard tells you none are required and lets you finish the import.
+
+After you import, Mezmo creates a new, unpublished draft Pipeline and opens it in edit mode.
+
+<Warning>
+The import creates an unpublished draft that you must review and deploy before data flows. See [Edit or Delete a Pipeline](/telemetry-pipelines/edit-a-pipeline) and [Build and Deploy a Pipeline](/telemetry-pipelines/build-deploy-mezmo-pipeline).
+
+The import does not create access keys or ingestion keys. Push Sources are imported without a key, so you must add your own before sending data. See [HTTP Source](/telemetry-pipelines/http-source).
+
+Non-secret, account-specific values, such as bucket names, cloud account and resource identifiers, regions, and hostnames, are carried over literally. Review and update them for the target account.
+</Warning>
+
+## Before You Begin With the API
+
+The Web App path needs no API key, only Web App access.
 
 Make sure you have the following:
 
@@ -79,7 +120,7 @@ Export works only on SaaS Pipelines, not Mezmo Edge Pipelines.
 
 For more detail on authentication, see [Authenticating with the API](/docs/authenticating-with-the-api) and the [Mezmo Pipeline API quickstart](/pipeline-api-quickstart/getting-started-with-the-mezmo-pipeline-api).
 
-## Export a Pipeline to a Manifest
+## Export a Pipeline to a Manifest With the API
 
 Use `GET /v3/pipeline/to-manifest/{pipeline_id}` to export a Pipeline. This route requires `pipeline:read` permission. The optional `format` query parameter returns the manifest as YAML by default, or as JSON when you set `format=json`. The response body is the raw manifest text, not a JSON-wrapped envelope.
 
@@ -111,7 +152,7 @@ Export refuses any Pipeline that contains a non-public component, for example an
 
 ## Inspect a Manifest's Required Secrets
 
-Use `POST /v3/pipeline/from-manifest/prepare` to inspect a manifest before you import it. This route requires `pipeline:write` permission. It creates nothing and simply reports which secrets you must supply when you import, which lets a UI build a secret-entry form.
+Use `POST /v3/pipeline/from-manifest/prepare` to inspect a manifest before you import it. This route requires `pipeline:write` permission. It creates nothing and simply reports which secrets you must supply when you import, which lets a UI build a secret-entry form. The Web App import wizard performs this inspection for you.
 
 Send the manifest text in the request body:
 
@@ -146,7 +187,7 @@ The response lists each required secret in a `required_secrets` array, returned 
 }
 ```
 
-## Import a Manifest as a New Pipeline
+## Import a Manifest as a New Pipeline With the API
 
 Use `POST /v3/pipeline/from-manifest` to import a manifest. This route requires `pipeline:write` permission. Send the manifest text and a `required_secrets` array that supplies a value for each placeholder:
 
