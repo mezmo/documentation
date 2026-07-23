@@ -54,8 +54,8 @@ Flush conditions define the logical parameters to determine the start or stop of
 
 | Option | Description | 
 | ---- | ---- | 
-| starts_when | Define the logical conditions on when to start reducing. Reduce will not start summarizing events until the conditions are achieved, and thereafter reduce based on the defined grouping conditions until the time window has been achieved. | 
-| ends_when | Define the logical conditions on when to stop reducing and flush the buffer, egressing the summarized event so far. Reduce will stop summarizing the events for a specific group when the latest event matches the defined conditions. The reduce operation will stop before the maximum window time is reached. | 
+| `starts_when` | Define the logical conditions on when to start reducing. Reduce will not start summarizing events until the conditions are achieved, and thereafter reduce based on the defined grouping conditions until the time window has been achieved. | 
+| `ends_when` | Define the logical conditions on when to stop reducing and flush the buffer, egressing the summarized event so far. Reduce will stop summarizing the events for a specific group when the latest event matches the defined conditions. The reduce operation will stop before the maximum window time is reached. | 
 
 ## Examples
 
