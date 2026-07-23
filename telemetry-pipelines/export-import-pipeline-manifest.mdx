@@ -22,13 +22,14 @@ A manifest describes the Pipeline's identity and its components. It uses these t
 - `sinks`: The array of Destinations in the Pipeline.
 - `secrets`: An informational block that lists every secret placeholder in the manifest.
 
-The Mezmo Web App refers to these components as Processors and Destinations.
+The Mezmo Web App refers to `transforms` as Processors and `sinks` as Destinations.
 
 To make a manifest portable across accounts, the export applies these transforms:
 
 - The export removes every database UUID and gives each node a short, unique `alias` (up to 64 characters) that becomes its identity in the manifest. The export rewrites the links between nodes to reference those aliases.
-- The export flattens transform groups into ordinary transforms. A manifest has no `transform_groups` block.
+- The export flattens processor groups into ordinary transform nodes. A manifest has no `transform_groups` block.
 - The export does not include system or operational fields. These include internal IDs, account and pipeline IDs, gateway routes, timestamps, revision and internal engine IDs, operational state, and the durability profile.
+- The export does not include Responsive Pipeline configuration, Pipeline alerts, or node alerts.
 
 ### Secret Placeholders
 
@@ -80,7 +81,7 @@ For the Web App path you only need access to the Mezmo Web App with permission t
 3. Go to the Pipeline's **Configure** page (its settings page).
 4. In the **Export Pipeline** card, click **Export as JSON** or **Export as YAML**.
 
-Mezmo downloads the manifest as a file named after the pipeline title, with a `.json` or `.yaml` extension (for example, `My Pipeline.yaml`). The card exports the current draft version of the Pipeline's manifest. If the export fails, an error message appears in the card. The most common cause is a non-public component in the Pipeline, for example an internal, experimental, deprecated, or hidden component. The error names each such component so you can remove or replace it, then export again.
+Mezmo downloads the manifest as a file named after the pipeline title, with a `.json` or `.yaml` extension (for example, `My Pipeline.yaml`). The card exports the current draft version of the Pipeline's manifest. The export does not include Responsive Pipeline configuration, Pipeline alerts, or node alerts. If the export fails, an error message appears in the card. The most common cause is a non-public component in the Pipeline, for example an internal, experimental, deprecated, or hidden component. The error names each such component so you can remove or replace it, then export again.
 
 ### Import a Pipeline in the Web App
 
@@ -94,7 +95,7 @@ The **Import Pipeline** link opens a two-step wizard:
 
 1. Drag a manifest file onto the upload area, or click **Import file** to browse for one. Accepted file types are JSON, YAML, and YML. You can upload only one file at a time, up to 2 MB. This 2 MB client-side upload cap is separate from the 1 MiB manifest-size limit enforced on import (see [Limits and Constraints](#limits-and-constraints)), so a file under 2 MB can still be rejected if the manifest itself exceeds 1 MiB.
 2. Click **Continue**.
-3. For each secret the manifest requires, enter its value. The wizard lists every secret the manifest references, because a manifest never contains secret values (see [Secret Placeholders](#secret-placeholders)). You can see which secrets a manifest requires ahead of time by checking the manifest's `secrets` block, so you can gather values before starting the wizard. Every listed secret is required. Each field matches the secret's type. A standard secret is a masked password field. A secret file is a file upload. A Mezmo ingestion key field lets you select an existing ingestion key from your account, generate a new one, or enter a key manually. If the manifest references no secrets, the wizard tells you none are required and lets you finish the import.
+3. Enter the value for each secret the manifest requires. The wizard lists every secret the manifest references, because a manifest never contains secret values (see [Secret Placeholders](#secret-placeholders)). You can see which secrets a manifest requires ahead of time by checking the manifest's `secrets` block, so you can gather values before starting the wizard. Every listed secret is required. Each field matches the secret's type. A standard secret is a masked password field. A secret file is a file upload. A Mezmo ingestion key field lets you select an existing ingestion key from your account, generate a new one, or enter a key manually. If the manifest references no secrets, the wizard tells you none are required and lets you finish the import.
 
 After you import, Mezmo creates a new, unpublished draft Pipeline and opens it in edit mode.
 
