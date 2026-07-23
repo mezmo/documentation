@@ -117,7 +117,7 @@ Lists available structured fields that can be used in log queries.
 
 "List all fields that start with 'http'"
 
-"Find all fields ending with '_ms' (timing metrics)"
+"Find all fields ending with `_ms` (timing metrics)"
 
 "Is there an 'app' field in the logs?"
 
@@ -458,13 +458,13 @@ Use relative time ranges like `last 15 minutes` or `last 1 hour` to ensure your 
 
 - Start broad for root-cause analysis
 - If the query is too narrow, our RCA can't do its thing. Cast a wide net, and if needed, specify app/service/level in subsequent queries.
-- Prefer analyze_logs_for_root_cause or deduplicate_log tools for insights
+- Prefer `analyze_logs_for_root_cause` or `deduplicate_log` tools for insights
 - These tools deduplicate and groups similar logs for better summaries, allowing the results to fit into finite LLM context windows.
 - Use relative time ranges
 - Prefer values like `last_15_minutes`, `last_hour` when supported.
 - Keep prompts simple; add filters gradually
 - Add filters step by step. See [Query Syntax](#query-syntax) for available fields.
-- Use export_logs for raw data only
+- Use `export_logs` for raw data only
 - For dashboards or offline analysis, use `export_logs`; otherwise prefer RCA.
 
 ---
@@ -498,7 +498,7 @@ Cursor **natively supports remote MCP servers**, so you only need a remote confi
 
 [Install Mezmo MCP Server in Cursor](https://cursor.com/en-US/install-mcp?name=mezmo&amp;config=eyJ1cmwiOiJodHRwczovL21jcC5tZXptby5jb20vbWNwIiwiaGVhZGVycyI6eyJBdXRob3JpemF0aW9uIjoiQmVhcmVyIDxTRVJWSUNFIEtFWT4ifX0=)
 
-Clicking the **Install MCP Server** badge opens Cursor and automatically adds the `mezmo` entry to your `~/.cursor/mcp.json`_ _with a placeholder for the Service Key. After it’s created, edit the file and replace `<SERVICE KEY>` with your actual Mezmo service key. Restart Cursor for changes to take effect. The final configuration should look like the example below.
+Clicking the **Install MCP Server** badge opens Cursor and automatically adds the `mezmo` entry to your `~/.cursor/mcp.json` with a placeholder for the Service Key. After it’s created, edit the file and replace `<SERVICE KEY>` with your actual Mezmo service key. Restart Cursor for changes to take effect. The final configuration should look like the example below.
 
 ```json
 {
