@@ -33,7 +33,7 @@ This Processor supports sampling of [OTel traces only](https://opentelemetry.io/
 
 Examples of OTEL traces that can be sampled using the Processor.
 
-#### The head of a trace indicated by a null parent_id field
+#### The head of a trace indicated by a null `parent_id` field
 
 ```json
 {
@@ -61,7 +61,7 @@ Examples of OTEL traces that can be sampled using the Processor.
 
 ```
 
-#### A related span under the same trace, indicated by the parent_id matching the span_id of the head
+#### A related span under the same trace, indicated by the `parent_id` matching the `span_id` of the head
 
 ```json
 {

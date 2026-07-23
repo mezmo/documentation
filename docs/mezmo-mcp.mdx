@@ -10,12 +10,13 @@ Mezmo MCP is a **remote Model Context Protocol (MCP) server** that lets AI assis
 Add Mezmo MCP and you can:
 
 - 🕵️ Run advanced **Root-cause analysis** over recent logs
-- 📦 List and describe **Pipelines**
+- 📦 List, describe, **create, and edit Pipelines**
+- 🔌 Tap **live pipeline traffic** for inspection
 - 📤 Export and filter **Logs** with powerful query syntax
 
 ## Overview
 
-Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients.
+Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients.
 
 ## Available Tools & Examples
 
@@ -116,7 +117,7 @@ Lists available structured fields that can be used in log queries.
 
 "List all fields that start with 'http'"
 
-"Find all fields ending with '_ms' (timing metrics)"
+"Find all fields ending with `_ms` (timing metrics)"
 
 "Is there an 'app' field in the logs?"
 
@@ -134,7 +135,7 @@ Lists available Mezmo v3 pipelines.
 
 #### `get_pipeline`
 
-Gets details for a specific Mezmo v3 pipeline.
+Gets details for a specific Mezmo v3 pipeline, including root-level DAG/configuration fields such as `sources`, `transforms`, and `sinks` when returned by the Pipeline API.
 
 **Parameters:**
 
@@ -143,6 +144,100 @@ Gets details for a specific Mezmo v3 pipeline.
 **Example:**
 "Show me the details for pipeline 123e4567-e89b-12d3-a456-426614174000"
 "What's the configuration of the production-logs pipeline?"
+
+#### `create_pipeline`
+
+Creates an empty draft Mezmo pipeline. Sources, transforms, and destinations are added separately, and this tool does not publish the pipeline.
+
+**Parameters:**
+
+- `title` (required): Pipeline title
+- `deploy_type` (optional): Pipeline deploy type. Defaults to `saas`
+- `deployment_groups` (optional): Deployment groups for the pipeline
+
+**Example:**
+"Create a new pipeline called 'checkout-service-logs'"
+
+#### Pipeline node discovery
+
+Use these tools to discover and inspect the source, transform/processor, and destination/sink schemas available from the Pipeline API before building a pipeline:
+
+- `get_node_catalog`: Returns the raw `GET /pipeline/node` catalog.
+- `search_pipeline_node_schemas`: Searches source, transform/processor, and destination/sink node schemas by `kind` and/or a free-text `query`, without surfacing nested JSON Schema fragments as selectable nodes.
+- `get_pipeline_node_schema`: Inspects a single node schema (`node_type`, optional `kind`) before constructing a Pipeline API body.
+
+**Example:**
+"What source node types are available for HTTP ingestion?"
+"Show me the schema for the datadog-agent destination"
+
+#### Building and editing pipelines
+
+- `add_pipeline_source`: Adds a source node to an existing pipeline from catalog/schema-backed payload fields (`pipeline_id`, `node_type`, optional `title`, `description`, `user_config`, `extra_fields`).
+- `add_pipeline_transform`: Adds a transform/processor node, wired to upstream nodes via raw UUIDs or aliases (`pipeline_id`, `node_type`, `inputs`, optional `title`, `description`, `user_config`, `extra_fields`).
+- `add_pipeline_destination`: Adds a destination node, mapped to the Pipeline API sink endpoint (same parameters as `add_pipeline_transform`).
+- `create_pipeline_access_key`: Creates a source gateway access key (`gateway_route_id`, `title`, optional `key_type`, `extra_fields`). Generated secret values are redacted from the MCP response.
+- `update_pipeline_component`: Updates an existing source, transform/processor, or destination/sink with a raw `PUT` payload (`pipeline_id`, `component_id`, `kind`, `payload`). Inspect `get_pipeline` and the relevant node schema first.
+- `delete_pipeline_component`: Deletes an existing source, transform/processor, or destination/sink (`pipeline_id`, `component_id`, `kind`). Use explicit confirmation before calling this, since it's destructive.
+
+**Example:**
+"Add an HTTP source to pipeline 123e4567-e89b-12d3-a456-426614174000"
+"Delete the old-syslog-source component from that pipeline"
+
+#### `create_pipeline_from_manifest`
+
+Creates a pipeline end to end from a manifest: creates the pipeline, adds sources, optionally creates generated access keys, adds transforms/processors, adds destinations/sinks, and publishes only when `publish` is explicitly `true`.
+
+**Parameters:**
+
+- `title` (required): Pipeline title
+- `deploy_type`, `deployment_groups`, `config` (optional): Same as `create_pipeline`
+- `sources`, `transforms`, `destinations` (optional): Arrays of node specs, each with an `alias`, `type`, optional `title`, `description`, `user_config`, `inputs`, and `access_key`
+- `publish` (optional): Publish the pipeline once created. Defaults to `false`
+
+Node `inputs` can reference other nodes by alias (for example `alias.Default` or `alias.outputs[0]`) or by raw UUID, letting the agent wire the whole DAG in one call.
+
+**Example:**
+"Create a pipeline named 'payments-pipeline' with an HTTP source feeding a JSON parser transform and a Datadog destination, and publish it"
+
+#### `tap_pipeline_component`
+
+Taps live events from a deployed pipeline component via `/pipeline/{pipeline_id}/tap/{component_id}`.
+
+**Parameters:**
+
+- `pipeline_id` (required): UUID of the pipeline
+- `component_id` (required): UUID of the source or processor component to tap
+- `timeout` (optional): Seconds to wait for events. Defaults to `2`
+- `limit` (optional): Maximum events to return, capped at `100` to keep agent context bounded. Defaults to `100`
+
+Use `get_pipeline` first to identify a source or processor component ID, and treat returned event data as potentially sensitive.
+
+**Example:**
+"Tap the http-source component on pipeline 123e4567-e89b-12d3-a456-426614174000 and show me a sample of live events"
+
+#### `pause_pipeline` / `unpause_pipeline`
+
+Sets a pipeline's `processing_status` to `disabled` or `enabled` respectively. Neither tool publishes or edits the pipeline DAG.
+
+**Parameters:**
+
+- `pipeline_id` (required): UUID of the pipeline
+
+**Example:**
+"Pause pipeline 123e4567-e89b-12d3-a456-426614174000"
+"Unpause the checkout-service-logs pipeline"
+
+#### `publish_pipeline`
+
+Publishes a pipeline's current draft configuration.
+
+**Parameters:**
+
+- `pipeline_id` (required): UUID of the pipeline
+
+<Note>
+`publish_pipeline` is never called automatically by `create_pipeline_from_manifest` unless `publish` is explicitly set to `true`, so draft pipelines stay unpublished until you confirm.
+</Note>
 
 ### 7. Time Utilities
 
@@ -172,7 +267,7 @@ Converts relative time expressions to absolute time ranges in milliseconds.
 
 #### `find_trace_analysis_component`
 
-Finds active OpenTelemetry trace source components across all pipelines. Returns the `component_id` used by trace analysis tools like `get_service_graph`, `get_spans`, `find_degraded_service_edges`, `list_service_latency_summaries`, `get_service_failure_rates`, and `get_service_failures`.
+Finds active OpenTelemetry trace source components across all pipelines. Returns the `component_id` used by trace analysis tools like `get_service_graph`, `get_trace_spans`, `find_degraded_service_edges`, `list_service_latency_summaries`, `get_service_failure_rates`, and `get_service_failures`.
 
 **Use cases:**
 
@@ -363,13 +458,13 @@ Use relative time ranges like `last 15 minutes` or `last 1 hour` to ensure your 
 
 - Start broad for root-cause analysis
 - If the query is too narrow, our RCA can't do its thing. Cast a wide net, and if needed, specify app/service/level in subsequent queries.
-- Prefer analyze_logs_for_root_cause or deduplicate_log tools for insights
+- Prefer `analyze_logs_for_root_cause` or `deduplicate_log` tools for insights
 - These tools deduplicate and groups similar logs for better summaries, allowing the results to fit into finite LLM context windows.
 - Use relative time ranges
 - Prefer values like `last_15_minutes`, `last_hour` when supported.
 - Keep prompts simple; add filters gradually
 - Add filters step by step. See [Query Syntax](#query-syntax) for available fields.
-- Use export_logs for raw data only
+- Use `export_logs` for raw data only
 - For dashboards or offline analysis, use `export_logs`; otherwise prefer RCA.
 
 ---
@@ -403,7 +498,7 @@ Cursor **natively supports remote MCP servers**, so you only need a remote confi
 
 [Install Mezmo MCP Server in Cursor](https://cursor.com/en-US/install-mcp?name=mezmo&amp;config=eyJ1cmwiOiJodHRwczovL21jcC5tZXptby5jb20vbWNwIiwiaGVhZGVycyI6eyJBdXRob3JpemF0aW9uIjoiQmVhcmVyIDxTRVJWSUNFIEtFWT4ifX0=)
 
-Clicking the **Install MCP Server** badge opens Cursor and automatically adds the `mezmo` entry to your `~/.cursor/mcp.json`_ _with a placeholder for the Service Key. After it’s created, edit the file and replace `<SERVICE KEY>` with your actual Mezmo service key. Restart Cursor for changes to take effect. The final configuration should look like the example below.
+Clicking the **Install MCP Server** badge opens Cursor and automatically adds the `mezmo` entry to your `~/.cursor/mcp.json` with a placeholder for the Service Key. After it’s created, edit the file and replace `<SERVICE KEY>` with your actual Mezmo service key. Restart Cursor for changes to take effect. The final configuration should look like the example below.
 
 ```json
 {
@@ -812,5 +907,7 @@ Once your client is configured you can immediately run natural-language commands
 - `list all my pipelines`
 - `show me details for pipeline <pipeline title>`
 - `deduplicate error logs from the last 30 minutes for app "my-app-frontend"`
+- `create a pipeline that ingests from HTTP, drops unnecessary data, and stores the rest in Log Analysis`
+- `tap the source component on <pipeline title> and show me a sample of live events`
 
 Enjoy streamlined observability with Mezmo + AI! 🎉
