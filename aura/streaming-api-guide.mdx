@@ -22,7 +22,7 @@ The server supports three streaming modes, configured via CLI or environment var
 | Mode | Tool Call Args | Tool Results | Use Case |
 |------|----------------|--------------|----------|
 | `none` (default) | Actual JSON | Not streamed | Spec-compliant API clients |
-| `open-web-ui` | Empty `""` | Streamed via tool_calls | OpenWebUI "View Results" support |
+| `open-web-ui` | Empty `""` | Streamed via `tool_calls` | OpenWebUI "View Results" support |
 | `aura` | Actual JSON | Via `aura.tool_complete` events | Custom clients with AURA events |
 
 ```bash
@@ -127,8 +127,8 @@ AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server
 | Event | Description | Status |
 |-------|-------------|--------|
 | `aura.tool_requested` | LLM decided to call a tool (immediate UI feedback, has arguments) | ✅ Implemented |
-| `aura.tool_start` | MCP execution actually begins (has progress_token for correlation) | ✅ Implemented |
-| `aura.tool_complete` | Tool execution finished (with duration_ms, result/error) | ✅ Implemented |
+| `aura.tool_start` | MCP execution actually begins (has `progress_token` for correlation) | ✅ Implemented |
+| `aura.tool_complete` | Tool execution finished (with `duration_ms`, result/error) | ✅ Implemented |
 | `aura.reasoning` | LLM reasoning content (requires `AURA_EMIT_REASONING=true`) | ✅ Implemented |
 | `aura.progress` | MCP progress notifications during long-running tools | ✅ Implemented |
 | `aura.session_info` | Session metadata (model, context window) emitted at stream start | ✅ Implemented |
@@ -458,6 +458,7 @@ for the conversational route and is not emitted by the webhook route.
 
 Standard OpenAI clients will ignore these events (they only process `data:` lines without `event:` prefix). Custom clients can filter by event type:
 
+<!-- vale off -->
 ```javascript
 for (const line of chunk.split('\n')) {
   if (line.startsWith('event: ')) {
@@ -470,6 +471,7 @@ for (const line of chunk.split('\n')) {
   }
 }
 ```
+<!-- vale on -->
 
 ### Correlation Fields
 
@@ -769,6 +771,7 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 
 ### Orchestration Correlation
 
+<!-- vale off -->
 | Correlation | Events | Field |
 |-------------|--------|-------|
 | Task lifecycle | `task_started` → `worker_reasoning` → `tool_call_*` → `task_completed` | `task_id` |
@@ -776,6 +779,7 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 | Worker identity | `task_*`, `worker_reasoning`, `tool_call_started` | `worker_id` |
 | Agent hierarchy | All orchestration events | `agent_id` (`"coordinator"` or worker name) |
 | Replan cycle | `iteration_complete` → `replan_started` → `plan_created` | `iteration` |
+<!-- vale on -->
 
 ## SSE Event Reference
 
@@ -785,7 +789,7 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 |-------|-------------|:------:|:------------:|:------:|
 | **Text chunk** | Token-by-token content | ✅ | ✅ | ✅ |
 | **Tool call** | Tool name + arguments | ✅ (with args) | ✅ (empty args) | ✅ (with args) |
-| **Tool result** | Tool execution output | - | ✅ (via tool_calls) | ✅ (via aura.tool_complete) |
+| **Tool result** | Tool execution output | - | ✅ (via `tool_calls`) | ✅ (via aura.tool_complete) |
 | **Final chunk** | `finish_reason` + usage | ✅ | ✅ | ✅ |
 | **[DONE]** | Stream termination | ✅ | ✅ | ✅ |
 
@@ -909,13 +913,13 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 data: [DONE]
 ```
 
-### finish_reason Values
+### `finish_reason` Values
 
 | Value | Meaning |
 |-------|---------|
 | `stop` | Normal completion |
 | `tool_calls` | Response included tool execution |
-| `length` | Response truncated due to max_tokens limit |
+| `length` | Response truncated due to `max_tokens` limit |
 
 ## Client Examples
 

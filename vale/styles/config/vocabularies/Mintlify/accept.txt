@@ -1,3 +1,4 @@
+Actix
 agentic
 Akamai
 allowlist(s|ing)?
@@ -11,18 +12,22 @@ Aptible
 arcsin
 arccos
 arctan
+arg(s?)
 async
 Atlassian
 attr
 AURA
+backfilled
+basename
 Blackhole(s?)
+backpressure
 bool
-boolean
+boolean(s?)
 Braxton
 callout
 Checkly
 clickhouse
-CLI's
+CLI(s|'s)
 Cloudwatch
 Codec
 config(s?)
@@ -39,6 +44,7 @@ deserialization
 dev
 discoverability
 displayName
+distro
 Dockerfile
 dyno(s?)
 egressing
@@ -55,8 +61,10 @@ failsafe
 Fastly
 firehose
 Fluentd
+fmt
 frontmatter
 GBs
+gemini
 Github
 Grafana
 Gzip
@@ -101,6 +109,8 @@ OAuth
 Okta
 Ollama
 onboarding
+openai
+openrouter
 Openshift
 org(s?)
 OTel
@@ -122,7 +132,7 @@ quickstart(s?)
 Qwen
 redis
 rehydration
-replan
+replan(ned|ning)?
 repo
 repos
 RSyslog
@@ -132,6 +142,7 @@ signup
 Splunk
 SRE(s?)
 SSN(s?)
+std(in|out|err)
 strftime
 streamable
 stringif(y|ied)
@@ -144,6 +155,7 @@ tcp
 Throughputs
 Tiering
 timeframe
+toggleable
 TOML
 toolset
 tokeniz(er|ation)
@@ -156,7 +168,9 @@ unencrypted
 uninstallations
 [Uu]npause
 unparsed
+ungated
 url
+userinfo
 uuid(s?)
 Vercel
 vrl
