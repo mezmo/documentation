@@ -460,6 +460,17 @@
             "openapi": "pipeline.yaml"
           }
         ]
+      },
+      {
+        "tab": "AURA",
+        "pages": [
+          "AURA/overview",
+          "AURA/quickstart",
+          "AURA/cli",
+          "AURA/configuration",
+          "AURA/providers",
+          "AURA/http-api"
+        ]
       }
     ],
     "global": {
