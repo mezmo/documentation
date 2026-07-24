@@ -16,7 +16,7 @@ Add Mezmo MCP and you can:
 
 ## Overview
 
-Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients, including [AURA](https://github.com/mezmo/aura), Mezmo's own agentic SRE harness.
+Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients, including [AURA](/aura/quickstart), Mezmo's own agentic SRE harness.
 
 ## Available Tools & Examples
 
@@ -512,7 +512,7 @@ Authorization = "Bearer <SERVICE KEY>"
 AURA renders header values as Liquid templates, so you can keep your Service Key out of the config file and read it from the environment instead: `Authorization = "Bearer {{ env.MEZMO_SERVICE_KEY | default: '' }}"`.
 </Tip>
 
-See the [AURA quickstart](https://github.com/mezmo/aura/blob/main/docs/quickstart.md) and the bundled [`incident-response-mezmo.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-mezmo.toml) example for a full agent that pairs Mezmo with other MCP servers.
+See the [AURA quickstart](/aura/quickstart) and the bundled [`incident-response-mezmo.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-mezmo.toml) example for a full agent that pairs Mezmo with other MCP servers.
 
 #### Cursor
 
