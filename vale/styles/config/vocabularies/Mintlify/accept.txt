@@ -118,7 +118,7 @@ pseudonymiz(ed|e|ation)?
 Qdrant
 Qodo
 querystring(s?)
-quickstarts
+quickstart(s?)
 Qwen
 redis
 rehydration
