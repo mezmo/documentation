@@ -324,6 +324,7 @@
             "group": "Pipeline Management",
             "pages": [
               "telemetry-pipelines/edit-a-pipeline",
+              "telemetry-pipelines/export-import-pipeline-manifest",
               "telemetry-pipelines/pipeline-event-data-model",
               "telemetry-pipelines/simulate-pipeline-data-flows",
               "telemetry-pipelines/set-pipeline-access",

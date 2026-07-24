@@ -1,0 +1,267 @@
+---
+title: "Export and Import a Pipeline Manifest"
+description: "Export a SaaS Telemetry Pipeline to a portable YAML or JSON manifest, inspect its required secrets, and import it as a new draft Pipeline through the API."
+---
+
+A Pipeline manifest is a portable YAML or JSON document that captures a SaaS Telemetry Pipeline's structure. Use it to copy, version, or share a Pipeline, and to re-create it in another account. A manifest is a newer, more portable way to export a Pipeline than the older Terraform export.
+
+<Note>
+You can export and import a manifest either in the Mezmo Web App with no code, or through the Mezmo v3 API. Both use the same manifest format.
+</Note>
+
+## What a Pipeline Manifest Contains
+
+A manifest describes the Pipeline's identity and its components. It uses these top-level fields:
+
+- `manifest_version`: The manifest schema version, currently `1`.
+- `title`: The Pipeline title.
+- `description`: An optional description of the Pipeline.
+- `deploy_type`: The deployment type. Only SaaS Pipelines are supported.
+- `sources`: The array of Sources in the Pipeline.
+- `transforms`: The array of Processors in the Pipeline.
+- `sinks`: The array of Destinations in the Pipeline.
+- `secrets`: An informational block that lists every secret placeholder in the manifest.
+
+The Mezmo Web App refers to these components as Processors and Destinations.
+
+To make a manifest portable across accounts, the export applies these transforms:
+
+- The export removes every database UUID and gives each node a short, unique `alias` (up to 64 characters) that becomes its identity in the manifest. The export rewrites the links between nodes to reference those aliases.
+- The export flattens transform groups into ordinary transforms. A manifest has no `transform_groups` block.
+- The export does not include system or operational fields. These include internal IDs, account and pipeline IDs, gateway routes, timestamps, revision and internal engine IDs, operational state, and the durability profile.
+- The export does not include Responsive Pipeline configuration, Pipeline alerts, or node alerts.
+
+### Secret Placeholders
+
+The export replaces every secret field with a `<SECRET:NAME>` placeholder so no secret values leave your account.
+
+Each placeholder's `secrets` entry includes its `name`, `node_alias`, `field`, and `display_type`.
+
+| Display type | Meaning |
+|---|---|
+| `secret` | A secret string value, such as an API token or password. |
+| `secret-file` | A secret provided as file contents, such as a certificate or key file. |
+| `mezmo-ingestion-key` | A Mezmo ingestion key used by a Source or Destination. |
+
+The following manifest snippet shows a Destination that references a placeholder in its `ingestion_key` field, along with the matching `secrets` entry that describes it:
+
+```yaml
+manifest_version: 1
+title: My HTTP to Mezmo Pipeline
+sources:
+  - alias: my-http-source
+    type: http
+    user_config:
+      decoding: json
+transforms: []
+sinks:
+  - alias: my-mezmo-destination
+    type: mezmo
+    inputs:
+      - my-http-source
+    user_config:
+      ingestion_key: <SECRET:MEZMO_INGESTION_KEY>
+secrets:
+  - name: MEZMO_INGESTION_KEY
+    node_alias: my-mezmo-destination
+    field: ingestion_key
+    display_type: mezmo-ingestion-key
+```
+
+## Export or Import in the Web App
+
+The Web App gives you a no-code way to export and import a manifest.
+
+For the Web App path you only need access to the Mezmo Web App with permission to view and create Pipelines. No API key is required.
+
+### Export a Pipeline in the Web App
+
+1. Log in to the Mezmo Web App.
+2. Open the Pipeline you want to export.
+3. Go to the Pipeline's **Configure** page (its settings page).
+4. In the **Export Pipeline** card, click **Export as JSON** or **Export as YAML**.
+
+Mezmo downloads the manifest as a file named after the pipeline title, with a `.json` or `.yaml` extension (for example, `My Pipeline.yaml`). The card exports the current draft version of the Pipeline's manifest. The export does not include Responsive Pipeline configuration, Pipeline alerts, or node alerts. If the export fails, an error message appears in the card. The most common cause is a non-public component in the Pipeline, for example an internal, experimental, deprecated, or hidden component. The error names each such component so you can remove or replace it, then export again.
+
+### Import a Pipeline in the Web App
+
+Importing a manifest creates a new draft Pipeline. Start the import from the new-pipeline screen.
+
+1. Log in to the Mezmo Web App.
+2. Start creating a **New Pipeline**.
+3. On the new-pipeline screen, click the **Import Pipeline** link.
+
+The **Import Pipeline** link opens a two-step wizard:
+
+1. Drag a manifest file onto the upload area, or click **Import file** to browse for one. Accepted file types are JSON, YAML, and YML. You can upload only one file at a time, up to 2 MB. This 2 MB client-side upload cap is separate from the 1 MiB manifest-size limit enforced on import (see [Limits and Constraints](#limits-and-constraints)), so a file under 2 MB can still be rejected if the manifest itself exceeds 1 MiB.
+2. Click **Continue**.
+3. For each secret the manifest requires, enter its value. The wizard lists every secret the manifest references, because a manifest never contains secret values (see [Secret Placeholders](#secret-placeholders)). You can see which secrets a manifest requires ahead of time by checking the manifest's `secrets` block, so you can gather values before starting the wizard. Every listed secret is required. Each field matches the secret's type. A standard secret is a masked password field. A secret file is a file upload. A Mezmo ingestion key field lets you select an existing ingestion key from your account, generate a new one, or enter a key manually. If the manifest references no secrets, the wizard tells you none are required and lets you finish the import.
+
+After you import, Mezmo creates a new, unpublished draft Pipeline and opens it in edit mode.
+
+<Warning>
+The import creates an unpublished draft that you must review and deploy before data flows. See [Edit or Delete a Pipeline](/telemetry-pipelines/edit-a-pipeline) and [Build and Deploy a Pipeline](/telemetry-pipelines/build-deploy-mezmo-pipeline).
+
+The import does not create access keys or ingestion keys. Push Sources are imported without a key, so you must add your own before sending data. See [HTTP Source](/telemetry-pipelines/http-source).
+
+Non-secret, account-specific values, such as bucket names, cloud account and resource identifiers, regions, and hostnames, are carried over literally. Review and update them for the target account.
+</Warning>
+
+## Before You Begin With the API
+
+The Web App path needs no API key, only Web App access.
+
+Make sure you have the following:
+
+- An access key (Pipeline Service Key) with `pipeline:read` permission to export a Pipeline, or `pipeline:write` permission to inspect and import a manifest.
+- The API base URL `https://api.mezmo.com/v3`.
+- The `Authorization: Token <your_pipeline_service_key>` header on each request.
+
+Export works only on SaaS Pipelines, not Mezmo Edge Pipelines.
+
+For more detail on authentication, see [Authenticating with the API](/docs/authenticating-with-the-api) and the [Mezmo Pipeline API quickstart](/pipeline-api-quickstart/getting-started-with-the-mezmo-pipeline-api).
+
+## Export a Pipeline to a Manifest With the API
+
+Use `GET /v3/pipeline/to-manifest/{pipeline_id}` to export a Pipeline. This route requires `pipeline:read` permission. The optional `format` query parameter returns the manifest as YAML by default, or as JSON when you set `format=json`. The response body is the raw manifest text, not a JSON-wrapped envelope.
+
+1. Find the `pipeline_id` of the SaaS Pipeline you want to export.
+2. Send a `GET` request to `/v3/pipeline/to-manifest/{pipeline_id}`, optionally setting the `format` query parameter.
+3. Save the response body to a file so you can inspect, version, or import it later.
+
+The following example exports a Pipeline as YAML and saves it to a file:
+
+```bash
+curl -X 'GET' \
+  'https://api.mezmo.com/v3/pipeline/to-manifest/<your_pipeline_id>' \
+  -H 'Authorization: Token <your_pipeline_service_key>' \
+  -o my-pipeline.yaml
+```
+
+The following example exports the same Pipeline as JSON:
+
+```bash
+curl -X 'GET' \
+  'https://api.mezmo.com/v3/pipeline/to-manifest/<your_pipeline_id>?format=json' \
+  -H 'Authorization: Token <your_pipeline_service_key>' \
+  -o my-pipeline.json
+```
+
+<Note>
+Export refuses any Pipeline that contains a non-public component, for example an internal, experimental, deprecated, or hidden component. The error names each such component so you can remove or replace them before exporting.
+</Note>
+
+## Inspect a Manifest's Required Secrets
+
+Use `POST /v3/pipeline/from-manifest/prepare` to inspect a manifest before you import it. This route requires `pipeline:write` permission. It creates nothing and simply reports which secrets you must supply when you import, which lets a UI build a secret-entry form. The Web App import wizard performs this inspection for you.
+
+Send the manifest text in the request body:
+
+```bash
+curl -X 'POST' \
+  'https://api.mezmo.com/v3/pipeline/from-manifest/prepare' \
+  -H 'Authorization: Token <your_pipeline_service_key>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "manifest": "<manifest text>"
+}'
+```
+
+The response lists each required secret in a `required_secrets` array, returned under `data` in the standard response envelope:
+
+```json
+{
+  "meta": {},
+  "data": {
+    "required_secrets": [
+      {
+        "name": "MEZMO_INGESTION_KEY",
+        "node_alias": "my-mezmo-destination",
+        "field": "ingestion_key",
+        "display_type": "mezmo-ingestion-key",
+        "title": "Mezmo ingestion key",
+        "description": "The ingestion key used to send data to Mezmo Log Analysis.",
+        "node_type": "mezmo"
+      }
+    ]
+  }
+}
+```
+
+## Import a Manifest as a New Pipeline With the API
+
+Use `POST /v3/pipeline/from-manifest` to import a manifest. This route requires `pipeline:write` permission. Send the manifest text and a `required_secrets` array that supplies a value for each placeholder:
+
+```bash
+curl -X 'POST' \
+  'https://api.mezmo.com/v3/pipeline/from-manifest' \
+  -H 'Authorization: Token <your_pipeline_service_key>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "manifest": "<manifest text>",
+  "required_secrets": [
+    {
+      "name": "MEZMO_INGESTION_KEY",
+      "value": "<your_secret_value>"
+    }
+  ]
+}'
+```
+
+A successful import returns `201`. The new Pipeline's `id` and `title` are returned under `data` in the standard response envelope.
+
+```json
+{
+  "meta": {},
+  "data": {
+    "id": "<new_pipeline_id>",
+    "title": "My HTTP to Mezmo Pipeline"
+  }
+}
+```
+
+Each successful call to `POST /v3/pipeline/from-manifest` creates a new, separate draft Pipeline, and the route does not deduplicate or update an existing Pipeline. Automated or repeated imports, such as a retried CI job, can create duplicate Pipelines, so scripts should check for an existing Pipeline before importing again.
+
+<Warning>
+The import creates a new, unpublished draft Pipeline. Review it and deploy it before data flows. See [Edit or Delete a Pipeline](/telemetry-pipelines/edit-a-pipeline) and [Build and Deploy a Pipeline](/telemetry-pipelines/build-deploy-mezmo-pipeline).
+
+The import does not create access keys or ingestion keys. Push Sources are imported without a key, so you must add your own before sending data. See [HTTP Source](/telemetry-pipelines/http-source).
+
+Export strips only secrets and internal system fields. Non-secret but account-specific configuration values, such as bucket names, cloud account and resource identifiers, regions, and hostnames, are carried into the manifest literally and re-created as-is on import. Review every Source and Destination's non-secret, account-specific fields and update them for the target account before deploying.
+</Warning>
+
+## Reference
+
+### Limits and Constraints
+
+| Limit | Value |
+|---|---|
+| Manifest size | 1 MiB max |
+| Secrets per manifest | 100 max |
+| Secret value size | 64 KiB max |
+| Components per manifest | 500 max |
+| Nesting depth | 12 max |
+| Alias length | 64 characters max |
+| Secret name format | Must match `^[A-Z0-9_]{1,128}$` |
+| Manifest version | Must be `1` on import |
+
+### Import Error Modes
+
+| Condition | HTTP status | How to resolve |
+|---|---|---|
+| A required secret is missing from your request | `400` | Supply every secret listed by the prepare route. |
+| A supplied secret name does not match any placeholder, for example a typo | `400` | Correct the name to match the manifest's placeholder. |
+| The same secret name is supplied more than once | `400` | Send each secret only once. |
+| The manifest text is malformed or fails validation | `400` | Fix the manifest structure and try again. |
+| The manifest references an unknown or non-public component type | `400` | Use only supported, public components in the manifest. |
+| A component references an internal or private URI, for example a link-local or loopback address | `400` | Update the component to use a publicly reachable URI, and then import again. |
+| The manifest declares more than one Source of the same account-wide shared-stream type in one Pipeline, for example two OpenTelemetry Sources | `409` | Keep at most one Source of each shared-stream type in the Pipeline, and then import again. |
+| The manifest is well formed but not supported, for example a non-SaaS `deploy_type` or a `transform_groups` block | `422` | Remove the unsupported content. |
+| The `manifest_version` is not `1` | `400` | Export the Pipeline again to get a current manifest. |
+
+## Related
+
+- [Build a Pipeline with Terraform](/telemetry-pipelines/build-pipelines-terraform): A separate infrastructure-as-code approach.
+- [Edit or Delete a Pipeline](/telemetry-pipelines/edit-a-pipeline): Review, change, and remove a Pipeline after import.
+- [Authenticating with the API](/docs/authenticating-with-the-api): Set up the access keys and headers each request needs.
+- [Mezmo Pipeline API quickstart](/pipeline-api-quickstart/getting-started-with-the-mezmo-pipeline-api): Get started with the Mezmo v3 Pipeline API.
