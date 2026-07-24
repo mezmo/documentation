@@ -265,34 +265,23 @@ Converts relative time expressions to absolute time ranges in milliseconds.
 
 ### 8. Trace Analysis
 
-#### `find_trace_analysis_component`
+These tools analyze OpenTelemetry trace data across your account. Trace analysis automatically covers your whole account, so you don't need to specify a source or component.
 
-Finds active OpenTelemetry trace source components across all pipelines. Returns the `component_id` used by trace analysis tools like `get_service_graph`, `get_trace_spans`, `find_degraded_service_edges`, `list_service_latency_summaries`, `get_service_failure_rates`, and `get_service_failures`.
-
-**Use cases:**
-
-- Discovering which pipelines have trace analysis available
-- Getting the `component_id` before using other trace analysis tools
-- Checking which OpenTelemetry trace sources are active in your account
+- `get_service_graph`: Gets the service graph showing service-to-service calls by operation. Takes no arguments.
+- `list_failed_traces`: Lists failed traces within a time range, optionally filtered by specific services.
+- `get_trace_spans`: Gets the spans for a given trace ID.
+- `find_degraded_service_edges`: Detects service call edges with degraded latency by comparing a current time period against a baseline period. Returns edges where the selected percentile metric has increased beyond the threshold you provide, so you can spot service-to-service calls that are changing behavior.
+- `list_service_latency_summaries`: Fetches bucketed latency summaries for specific operations between a service and its target service. Each result is a timestamped bucket with latency metrics like `p50`, `p95`, and `p99`.
+- `get_service_failure_rates`: Gets service failure rates as a histogram over the window you provide, optionally grouped by service, edge, or operation.
+- `get_service_failures`: Fetches individual service failure records, optionally filtered by service, edge, or operation.
 
 **Examples:**
 
-"Find all trace analysis components in my pipelines"
+"Show me the service graph for my account"
 
-"Which pipelines have OpenTelemetry trace sources?"
+"Which services have degraded latency compared to last week?"
 
-"Get the component ID for trace analysis"
-
-**Response:**
-
-Returns a list of targets, each containing:
-
-- `component_id`: The ID to pass to other trace analysis tools
-- `title`: The name of the trace source component
-- `pipeline_id`: The pipeline containing this component
-- `pipeline_title`: The name of the pipeline
-
-If your account has multiple trace source components, select the appropriate one before using other trace analysis tools.
+"List failed traces for the checkout-service in the last hour"
 
 ### 9. Correlated Timeline
 
