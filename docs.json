@@ -307,7 +307,6 @@
               "telemetry-pipelines/honeycomb-logs-destination",
               "telemetry-pipelines/notification-channel-destination",
               "telemetry-pipelines/mezmo-archive-destination",
-              "telemetry-pipelines/opentelemetry-destination",
               "telemetry-pipelines/cloudwatch-metrics-destination",
               "telemetry-pipelines/cloudwatch-logs-destination",
               "telemetry-pipelines/kinesis-firehose-destination",
@@ -372,6 +371,51 @@
           "mezmo-edge/syslog-source-for-mezmo-edge",
           "mezmo-edge/set-up-mezmo-edge-in-a-docker-container",
           "mezmo-edge/tap-and-view-mezmo-edge-pipeline-data-on-premises"
+        ]
+      },
+      {
+        "tab": "AURA",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "aura/quickstart",
+              "aura/example-configs",
+              "aura/quickstart-orchestration-math",
+              "aura/quickstart-k8s-sre"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "aura/configuration-reference",
+              "aura/breaking-changes-20260410-agent-llm-toml-configuration",
+              "aura/breaking-changes-20260421-llm-under-agent"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "aura/streaming-api-guide",
+              "aura/a2a-implementation",
+              "aura/hitl",
+              "aura/scratchpad",
+              "aura/skills",
+              "aura/client-side-tools",
+              "aura/ollama-guide",
+              "aura/telemetry",
+              "aura/request-lifecycle",
+              "aura/tracing-spans"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": ["aura/cli-reference"]
+          },
+          {
+            "group": "Web Server Reference",
+            "pages": ["aura/web-server-reference"]
+          }
         ]
       },
       {
@@ -486,13 +530,7 @@
       "type": "button",
       "label": "Get a Demo",
       "href": "https://www.mezmo.com/demo-request"
-    },
-    "links": [
-      {
-        "href": "https://github.com/mezmo/aura",
-        "label": "AURA"
-      }
-    ]
+    }
   },
   "contextual": {
     "options": [
