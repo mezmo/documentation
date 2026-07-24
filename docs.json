@@ -307,7 +307,6 @@
               "telemetry-pipelines/honeycomb-logs-destination",
               "telemetry-pipelines/notification-channel-destination",
               "telemetry-pipelines/mezmo-archive-destination",
-              "telemetry-pipelines/opentelemetry-destination",
               "telemetry-pipelines/cloudwatch-metrics-destination",
               "telemetry-pipelines/cloudwatch-logs-destination",
               "telemetry-pipelines/kinesis-firehose-destination",

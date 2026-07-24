@@ -45,9 +45,9 @@ It renders the coordinator's plan and worker activity as the response streams.
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| LibreChat | <http://localhost:3080> | Chat with your agent |
-| Phoenix | <http://localhost:6006> | Inspect LLM traces |
-| AURA API | <http://localhost:8080> | OpenAI-compatible API |
+| LibreChat | [http://localhost:3080](http://localhost:3080) | Chat with your agent |
+| Phoenix | [http://localhost:6006](http://localhost:6006) | Inspect LLM traces |
+| AURA API | [http://localhost:8080](http://localhost:8080) | OpenAI-compatible API |
 
 **LibreChat first-time setup:** Create your user account on the signup page. The agent model is pre-configured as "Aura Orchestrator".
 
@@ -225,7 +225,7 @@ turn_depth = 5
 
 Each worker inherits the agent's LLM by default. To run a worker on a different model, add a complete `[orchestration.worker.<name>.llm]` block — see the [orchestration config reference](/aura/configuration-reference#orchestration) for all fields.
 
-Restart with `docker compose restart aura` and try asking a multi-step question. Watch the coordinator plan and dispatch in the CLI's event panel, or in Phoenix at <http://localhost:6006>.
+Restart with `docker compose restart aura` and try asking a multi-step question. Watch the coordinator plan and dispatch in the CLI's event panel, or in Phoenix at [http://localhost:6006](http://localhost:6006).
 
 To run a single agent instead of orchestration, set `[orchestration].enabled = false` and configure a single `[agent]` — see [`examples/reference.toml`](https://github.com/mezmo/aura/blob/main/examples/reference.toml).
 
