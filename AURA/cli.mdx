@@ -1,0 +1,182 @@
+---
+title: "AURA CLI"
+description: "Use the aura CLI for interactive terminal chat, starter config generation, one-shot queries, and local tool execution against any OpenAI-compatible API."
+---
+
+New to AURA? Start with the [Overview](/AURA/overview).
+
+`aura` is a fast, interactive terminal client for chat completions with tool execution. It is built for AURA, and it works with any OpenAI-compatible API.
+
+## Install
+
+The `aura` CLI and `aura-web-server` binaries ship prebuilt for Linux and macOS (amd64 and arm64). Install both with the script from the AURA repo:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash
+```
+
+The script installs to `~/.local/bin` by default. Set `AURA_COMPONENT` to `all`, `server`, or `cli` to choose which binaries to install. To build from source, see [DEVELOPMENT.md](https://github.com/mezmo/aura/blob/main/DEVELOPMENT.md).
+
+## Generate a Starter Config (`aura init`)
+
+`aura init` walks you through creating a ready-to-run `config.toml`, with no hand-editing of TOML. It:
+
+- Senses your environment for a provider API key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and similar) and suggests that provider.
+- Picks a provider from a validated list: `openai`, `anthropic`, `bedrock`, `gemini`, `ollama`, or `openrouter`.
+- References the key by its native environment variable, such as `api_key = "{{ env.OPENAI_API_KEY }}"`, so secrets are never written into `config.toml`.
+- Verifies and lists the provider's live models so you can pick one.
+- Writes `config.toml`, plus a `.env` only when you enter a new key that is not already in your environment. Add that `.env` to your `.gitignore`.
+
+```bash
+aura init                                                         # interactive; writes ./config.toml
+aura init -o my.toml                                              # choose the output path
+aura init --provider openai --model gpt-4o --non-interactive     # scripted or CI use
+```
+
+Common flags:
+
+| Flag | Description |
+| --- | --- |
+| `-o, --output <PATH>` | Output config path (default `config.toml`). |
+| `--provider <P>` | Provider: `openai`, `anthropic`, `bedrock`, `gemini`, `ollama`, or `openrouter`. |
+| `--model <ID>` | Model id (skips the model picker). |
+| `--api-key-env <VAR>` | Environment variable to read the key from (default per provider). |
+| `--region <R>` | AWS region (bedrock only). |
+| `--base-url <URL>` | Base URL (ollama only; default `http://localhost:11434`). |
+| `--offline` | Skip live model-list verification. |
+| `--non-interactive` | Fail on missing values instead of prompting. |
+| `--force` | Overwrite an existing config without asking. |
+
+## Two Modes: Standalone and HTTP
+
+The CLI chooses its mode by the presence of `--api-url`.
+
+### Standalone Mode (default)
+
+Without `--api-url`, the CLI runs agents in-process directly from a TOML config. It uses the same code paths as the AURA HTTP server (`aura-web-server`), so no server is needed, and MCP tools from the config are available.
+
+```bash
+aura                                       # uses config.toml in the current directory
+aura --config path/to/agent.toml           # single config file
+aura --config configs/                      # directory of configs, /model switches between them
+aura --config configs/ --model "Math Agent" # select a specific agent
+```
+
+### HTTP Mode
+
+With `--api-url`, the CLI connects to a running `aura-web-server`.
+
+```bash
+aura --api-url http://localhost:8080
+```
+
+You can set the connection through environment variables instead:
+
+```bash
+export AURA_API_URL="https://api.example.com"
+export AURA_API_KEY="your-api-key"
+aura
+```
+
+<Note>
+Both modes produce identical SSE event streams, so every CLI feature works the same regardless of mode. See [Configuration](/AURA/configuration) for the TOML that standalone mode loads, and the [HTTP API](/AURA/http-api) for the server that HTTP mode connects to.
+</Note>
+
+## One-Shot Queries (`--query`)
+
+`--query` runs a single round of the conversation and exits. The output contract is strict: `stdout` contains only the raw assistant response, with no markers, no markdown rendering, and no tool-execution summaries. Everything else, including logs, permission prompts, and errors, goes to `stderr`. Exit code `0` means `stdout` is the complete response. A non-zero exit means `stderr` explains why and `stdout` is empty.
+
+```bash
+aura --config agent.toml --query "hello"
+aura --query "list three ideas as JSON" | jq .
+aura --query "summarize the README" > summary.md
+```
+
+## Interactive Commands (REPL)
+
+Inside the REPL, the following slash commands are available:
+
+| Command | Description |
+| --- | --- |
+| `/help` | Show available commands and keyboard shortcuts. |
+| `/clear` | Start a new conversation (saves the current one first). |
+| `/expand` | Toggle expanded or compact tool call view. |
+| `/stream` | Toggle the SSE event stream panel. |
+| `/conversations` | List saved conversations. |
+| `/resume <filter>` | Resume a saved conversation by ID prefix or name. |
+| `/rename <name>` | Rename the current conversation. |
+| `/model <filter>` | Browse and select a model. |
+| `/style [name]` | Switch visual style: `normal`, `high-contrast`, or `no-colors`. |
+| `/quit` or `/exit` | Exit the REPL. |
+
+Press `Ctrl+C` to cancel a streaming request or to exit when idle. Use `Tab` and `Shift+Tab` to cycle through matches in `/model` and `/resume`.
+
+## Model Selection
+
+Use `/model` to browse and select which model to use. In HTTP mode, the list comes from the server's `/v1/models` endpoint. In standalone mode, it comes from the loaded TOML configs, where each config's `alias` or `name` becomes a selectable model.
+
+## Key Flags and Environment Variables
+
+| Flag | Environment Variable | Description |
+| --- | --- | --- |
+| `--api-url <URL>` | `AURA_API_URL` | Base API URL (default `http://localhost:8080`). |
+| `--api-key <KEY>` | `AURA_API_KEY` | Bearer token for authentication. The CLI sends it as `Authorization: Bearer <token>`. See [HTTP API](/AURA/http-api) for the server side. |
+| `--model <MODEL>` | `AURA_MODEL` | Model name; in standalone mode, selects the agent by name or alias. |
+| `--config <PATH>` | None | Path to a TOML agent config file or directory (standalone mode). |
+| `--query <QUERY>` | None | Run a single query and exit. |
+| `--system-prompt <PROMPT>` | None | System prompt. |
+| `--resume <ID>` | None | Resume a previous conversation by ID or prefix. |
+| `--enable-client-tools` | `AURA_ENABLE_CLIENT_TOOLS` | Advertise CLI local tools to the model (default disabled). |
+| `--log-file <PATH>` | `AURA_LOG_FILE` | Append diagnostic tracing logs to this file. |
+| `--standalone` | None | Force standalone mode. |
+| `--force` | None | Bypass warnings and non-critical errors. |
+
+Precedence, highest first:
+
+1. CLI flags
+2. Environment variables
+3. Project `cli.toml`
+4. Global `cli.toml`
+5. Defaults
+
+Two different TOML files are involved, so keep them straight. The agent config (`--config` or `CONFIG_PATH`) defines the agent itself: its model, prompt, and tools. The CLI preferences files (`~/.aura/cli.toml` for global defaults and `<project>/.aura/cli.toml` for a project override) set client defaults such as the API URL and model. The agent config describes what runs. The preferences describe how the client connects.
+
+## Client-Side Tools
+
+<Warning>
+USE AT YOUR OWN RISK
+
+Enabling client-side tools gives an LLM the ability to run commands on your machine, including shell commands, reading and modifying files, and filesystem search. These run with the same privileges as the user running `aura`. Treat this as functionally equivalent to handing the model a shell prompt.
+
+The risks are real:
+
+- Prompt injection. Anything the model reads, such as a file, a tool output, or an MCP response, can contain instructions that hijack the model into running destructive commands.
+- Hallucination. The model can confidently call the wrong tool with the wrong arguments. There is no undo for a `Shell("rm ...")` call.
+- No sandbox. Tools run directly on the host. There is no container and no syscall filter.
+- The permission system reduces blast radius but is not a security boundary. Filters control which tools the model can ask for, not what they do once invoked.
+
+Only enable client-side tools when you trust the model, the provider, and every input the model can read, and when worst-case loss such as deleted files, leaked credentials, or modified source is acceptable or recoverable. Client-side tools are disabled by default.
+</Warning>
+
+Client-side tools are dual-gated. They fire only when both sides opt in: the CLI opts in with `--enable-client-tools` (or `AURA_ENABLE_CLIENT_TOOLS=true`), and the agent TOML sets `[agent].enable_client_tools = true` (with an optional `client_tool_filter` glob list). There is no server-wide flag, and this applies in both standalone and HTTP mode.
+
+Client-side tools work in single-agent configurations only. Orchestrated configs drop the tools with a warning.
+
+Under the hood, the server registers the advertised tools as passthrough tools. When the model calls one, the stream ends with `finish_reason: "tool_calls"`. The CLI then runs the tool locally after permission checks and submits the result back as a `role: "tool"` follow-up. See the [HTTP API](/AURA/http-api) for the request and response shape.
+
+The local tools are `Read`, `ListFiles`, `SearchFiles`, `FindFiles`, `FileInfo`, `Shell`, `Update`, and `CompactContext` (compacts conversation history).
+
+A project-scoped permission system controls which local tools run. Create a `.aura/permissions.json` file in your project directory with allow and deny globs. Allowed tools run without prompting, denied tools are blocked, and any tool with no matching rule prompts you for approval:
+
+```json
+{
+  "permissions": {
+    "allow": ["ListFiles(*)", "Read(*)", "FindFiles(*)", "SearchFiles(*)"],
+    "deny": ["Shell(*)"]
+  }
+}
+```
+
+## Learn More
+
+For the complete CLI reference, see [crates/aura-cli/README.md](https://github.com/mezmo/aura/blob/main/crates/aura-cli/README.md) in the AURA repo. To build the CLI from source, see [DEVELOPMENT.md](https://github.com/mezmo/aura/blob/main/DEVELOPMENT.md).

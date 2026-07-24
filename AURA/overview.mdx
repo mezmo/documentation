@@ -1,0 +1,41 @@
+---
+title: "AURA Overview"
+description: "AURA is Mezmo's open-source agentic harness that turns LLM models into a reliable, autonomous SRE service you run on your own infrastructure."
+---
+
+AURA is Mezmo's agentic harness that turns large language models (LLMs) into a reliable, autonomous service capable of executing real site reliability engineering (SRE) work. It provides the guardrails, API servers, state management, authentication, streaming, error handling, and tool integrations you need to run AI agents safely in production. AURA is infrastructure around an LLM, not a model itself. You run it on your own infrastructure, including air-gapped and highly regulated environments. AURA is open source under the Apache 2.0 license and compatible with the Model Context Protocol (MCP). See the [AURA repository](https://github.com/mezmo/aura) for the source.
+
+## Core Capabilities
+
+- Declarative TOML agents: define an agent's model, prompt, tools, and guardrails in one human-readable file.
+- Six LLM providers: OpenAI, Anthropic, AWS Bedrock, Google Gemini, Ollama, and OpenRouter. Switch providers with a one-section edit, or mix models per worker.
+- MCP tools: point a config at any MCP server over HTTP streamable, Server-Sent Events (SSE), or STDIO, and its tools are discovered and callable at runtime.
+- Orchestration: a coordinator plans a task DAG and runs independent tasks in parallel across specialist workers.
+- Scratchpad: oversized tool outputs are parked on disk so the agent pulls in only the slices it needs.
+- Grounding: answer from your own data with vector search (Qdrant, AWS Bedrock Knowledge Base) and teach agents procedures with on-demand skills.
+- Human-in-the-loop approval gates: require approval before sensitive tool calls execute.
+- OpenAI-compatible HTTP and SSE API: existing clients such as LibreChat and OpenWebUI work unchanged.
+- The `aura` CLI: chat from your terminal, standalone from a config or against any OpenAI-compatible API.
+- Observability: OpenTelemetry traces using the OpenInference convention, natively compatible with Phoenix.
+
+## When to Use AURA
+
+Use AURA when you want a production-ready agent harness instead of building agent lifecycle, streaming, authentication, and tool integration yourself. Reach for it when you need agents that reliably call external systems, and when you want to keep everything on your own infrastructure.
+
+## Who AURA Is For
+
+- SRE and DevOps teams: build an incident response agent wired to PagerDuty and your logging system.
+- Platform engineers: run an internal AI assistant platform on a harness you control.
+- AI application developers: ship a Kubernetes troubleshooting agent wired to cluster APIs and Prometheus.
+
+## Explore the Docs
+
+- [Quickstart](/AURA/quickstart): bring up the full agent stack with Docker Compose in about a minute.
+- [Configuration](/AURA/configuration): define agents in TOML, from a minimal agent to orchestration, scratchpad, and skills.
+- [LLM Providers](/AURA/providers): configure any of the six supported providers and mix models per worker.
+- [AURA CLI](/AURA/cli): chat from the terminal, generate a starter config, and run one-shot queries.
+- [HTTP API](/AURA/http-api): the OpenAI-compatible endpoints, health checks, and SSE streaming.
+
+## Build From Source
+
+These pages cover using AURA. To build the binaries yourself or contribute to the project, see AURA's [DEVELOPMENT.md](https://github.com/mezmo/aura/blob/main/DEVELOPMENT.md) and [CONTRIBUTING.md](https://github.com/mezmo/aura/blob/main/CONTRIBUTING.md).

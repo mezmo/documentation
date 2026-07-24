@@ -1,0 +1,130 @@
+---
+title: "LLM Providers"
+description: "Configure any of AURA's six built-in LLM providers, from OpenAI and Anthropic to Bedrock, Gemini, Ollama, and OpenRouter, and mix models per worker."
+---
+
+New to AURA? Start with the [Overview](/AURA/overview).
+
+AURA supports six LLM providers out of the box. You configure each one under `[agent.llm]`. Switch providers with a one-section edit, or mix models per worker via `[orchestration.worker.<name>.llm]`. See [Configuration](/AURA/configuration) for the surrounding TOML.
+
+## Supported Providers
+
+| Provider Key | Credential | Notes |
+| --- | --- | --- |
+| `openai` | `OPENAI_API_KEY` | Set a custom `base_url` for other OpenAI-compatible APIs. |
+| `anthropic` | `ANTHROPIC_API_KEY` | Claude models. |
+| `bedrock` | AWS credential chain | Set `region`, and an optional `profile`. No API key. |
+| `gemini` | `GOOGLE_API_KEY` | Google Gemini models. |
+| `ollama` | None | Local models. Set `base_url`. |
+| `openrouter` | `OPENROUTER_API_KEY` | 300+ models. Handles the OpenRouter reasoning wire format. |
+
+### OpenAI
+
+```toml
+[agent]
+name = "Assistant"
+system_prompt = "You are a helpful assistant."
+
+[agent.llm]
+provider = "openai"
+api_key = "{{ env.OPENAI_API_KEY }}"
+model = "gpt-4o"
+```
+
+Optional fields include `base_url`, `temperature`, `max_tokens`, and `context_window`. For other OpenAI-compatible APIs such as Fireworks, Together, or llama-server, keep `provider = "openai"` and set a `base_url` override.
+
+### Anthropic
+
+```toml
+[agent]
+name = "Claude Assistant"
+system_prompt = "You are a helpful assistant."
+
+[agent.llm]
+provider = "anthropic"
+api_key = "{{ env.ANTHROPIC_API_KEY }}"
+model = "claude-sonnet-4-20250514"
+```
+
+### AWS Bedrock
+
+Bedrock uses the standard AWS credential chain (environment variables, `~/.aws/credentials`, or IAM roles), so there is no `api_key`. Set the `region`, and an optional `profile`:
+
+```toml
+[agent]
+name = "Bedrock Assistant"
+system_prompt = "You are a helpful assistant."
+
+[agent.llm]
+provider = "bedrock"
+model = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+region = "{{ env.AWS_REGION }}"
+# profile = "default"  # optional AWS profile name
+```
+
+Enable model access in the AWS Bedrock console for your region before you run the agent.
+
+### Google Gemini
+
+```toml
+[agent]
+name = "Gemini Assistant"
+system_prompt = "You are a helpful assistant."
+
+[agent.llm]
+provider = "gemini"
+api_key = "{{ env.GOOGLE_API_KEY }}"
+model = "gemini-2.0-flash"
+```
+
+### Ollama
+
+Ollama runs models locally and needs no API key. Install [Ollama](https://ollama.com), pull a model, and point AURA at it. The default `base_url` is `http://localhost:11434`:
+
+```toml
+[agent]
+name = "Local Assistant"
+system_prompt = "You are a helpful assistant."
+turn_depth = 5
+
+[agent.llm]
+provider = "ollama"
+model = "qwen3:30b-a3b"
+# base_url = "http://localhost:11434"  # default; uncomment to override
+temperature = 0.7
+
+# Enable fallback parsing for models that emit tool calls as text
+# instead of structured function-calling format.
+fallback_tool_parsing = true
+
+[agent.llm.additional_params]
+num_ctx = 32000
+```
+
+<Warning>
+Ollama with orchestration (known issue [#193](https://github.com/mezmo/aura/issues/193)).
+
+In orchestration mode, `fallback_tool_parsing` is currently not applied to the coordinator or workers. A local model that relies on fallback parsing, meaning it emits tool calls as text rather than native tool calls, can stall in orchestration. As a workaround, run single-agent mode by setting `[orchestration].enabled = false`. Models with reliable native tool-calling work as-is. See the [Ollama guide](https://github.com/mezmo/aura/blob/main/docs/ollama-guide.md) for details.
+</Warning>
+
+### OpenRouter
+
+OpenRouter routes to 300+ models through a single API key and handles the OpenRouter reasoning wire format:
+
+```toml
+[agent]
+name = "OpenRouter Assistant"
+system_prompt = "You are a helpful assistant."
+
+[agent.llm]
+provider = "openrouter"
+api_key = "{{ env.OPENROUTER_API_KEY }}"
+model = "anthropic/claude-sonnet-4"
+# base_url = "https://custom-endpoint/v1"  # override for OpenRouter-compatible proxies
+```
+
+For other OpenAI-compatible proxies, use the OpenAI provider with a `base_url` override instead.
+
+## Per-Worker Model Overrides
+
+Each worker can run a different model. See [Configuration](/AURA/configuration) for the full-block requirement and an example.

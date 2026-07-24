@@ -1,0 +1,90 @@
+---
+title: "AURA Quickstart"
+description: "Bring up a full AURA agent stack with Docker Compose in about a minute, including a chat UI and a trace viewer."
+---
+
+Get a full agent stack running in about a minute. This quickstart starts AURA in orchestrator mode, a chat UI, and a trace viewer, all from the repo root.
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/).
+- An LLM API key for OpenAI or Anthropic, or a local [Ollama](https://ollama.com) instance.
+- A cloned AURA repo. Run `git clone https://github.com/mezmo/aura`, then run every command below from the repo root.
+
+## Step 1: Configure Your LLM Provider
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your provider, model, and API key:
+
+```bash
+LLM_PROVIDER=openai          # or: anthropic, ollama
+LLM_MODEL=gpt-5.2            # or: claude-sonnet-4-20250514, llama3.1
+LLM_API_KEY=sk-...           # use "unused" for Ollama
+# LLM_BASE_URL=http://host.docker.internal:11434  # required for Ollama and llama-server
+```
+
+<Note>
+For a local Ollama or llama-server backend, set `LLM_BASE_URL`. AURA runs inside the container, so `localhost` points at the container itself, not your host. Use `host.docker.internal` (for example, `LLM_BASE_URL=http://host.docker.internal:11434` for Ollama) or the container defaults to `localhost:11434` and fails with a connection refused error. The `openai` and `anthropic` defaults need no base URL.
+</Note>
+
+## Step 2: Start Everything
+
+```bash
+docker compose up -d
+```
+
+This starts AURA in orchestrator mode, along with LibreChat and Phoenix. In orchestrator mode a coordinator routes each request and delegates to worker agents, answering simple ones directly and decomposing complex ones across the `researcher` and `writer` workers defined in [`quickstart.toml`](https://github.com/mezmo/aura/blob/main/quickstart.toml) at the repo root. See [Configuration](/AURA/configuration) to learn how orchestration is defined.
+
+## Step 3: Chat With Your Agent
+
+Chat with the orchestrator from your terminal:
+
+```bash
+docker compose exec -it aura ./aura --api-url http://localhost:8080
+```
+
+The CLI renders the coordinator's plan and worker activity as the response streams.
+
+<Tip>
+Check startup progress with `docker compose logs -f aura`.
+</Tip>
+
+### Or Use a Browser
+
+| Service | URL | Description |
+| --- | --- | --- |
+| LibreChat | `http://localhost:3080` | Chat with your agent |
+| Phoenix | `http://localhost:6006` | Inspect LLM traces |
+| AURA API | `http://localhost:8080` | OpenAI-compatible API |
+
+<Note>
+Create your LibreChat account on the signup page the first time you open it. The agent model is pre-configured as **Aura Orchestrator**.
+</Note>
+
+## Reset
+
+Tear everything down, including volumes:
+
+```bash
+docker compose down -v
+```
+
+## Troubleshooting
+
+**LibreChat shows "no models available."** AURA may still be starting. Wait for the health check to pass, then refresh. Check progress with `docker compose logs aura --tail 5`.
+
+**"connection refused" in AURA logs.** When you reference services on your host machine, use `host.docker.internal` instead of `localhost`.
+
+## Next Steps
+
+- [Configuration](/AURA/configuration): customize routing, add MCP tools, and enable vector search.
+- [LLM Providers](/AURA/providers): switch providers or mix models per worker.
+- [AURA CLI](/AURA/cli): generate a starter config and run one-shot queries.
+- [HTTP API](/AURA/http-api): the OpenAI-compatible endpoints your clients call.
+
+For more advanced setups, try the [Orchestration Math MCP quickstart](https://github.com/mezmo/aura/blob/main/examples/quickstart-orchestration-math/README.md) and the [Kubernetes SRE quickstart](https://github.com/mezmo/aura/blob/main/examples/quickstart-k8s-sre/README.md) in the AURA repo.

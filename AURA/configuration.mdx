@@ -1,0 +1,211 @@
+---
+title: "AURA Configuration"
+description: "Define AURA agents declaratively in TOML, from a minimal agent to multi-agent serving, MCP tools, orchestration, scratchpad, and skills."
+---
+
+New to AURA? Start with the [Overview](/AURA/overview).
+
+You define AURA agents declaratively in TOML. Configuration supports environment variable substitution with `{{ env.VAR_NAME }}`, so secrets stay out of your config files. The complete starter file is [examples/reference.toml](https://github.com/mezmo/aura/blob/main/examples/reference.toml). Minimal per-provider configs live in [examples/minimal/](https://github.com/mezmo/aura/tree/main/examples/minimal), and complete agent compositions live in [examples/complete/](https://github.com/mezmo/aura/tree/main/examples/complete).
+
+## Minimal Agent
+
+An agent needs an `[agent]` block for its identity and behavior, and an `[agent.llm]` block for its model:
+
+```toml
+[agent]
+name = "Assistant"
+alias = "my-assistant"       # optional: stable client-facing identifier
+system_prompt = "You are a helpful assistant."
+turn_depth = 2
+
+[agent.llm]
+provider = "openai"
+api_key = "{{ env.OPENAI_API_KEY }}"
+model = "gpt-5.2"
+context_window = 128000
+```
+
+`turn_depth` controls how many tool-calling rounds can happen in a single turn. Higher values allow multi-step tool workflows. `turn_depth` also acts as a failsafe against unbounded tool-call loops. `context_window` sets the context window size in tokens, used for usage-percentage reporting in streaming events.
+
+See [LLM Providers](/AURA/providers) for every provider's `[agent.llm]` options.
+
+## Load a Config: File or Directory (`CONFIG_PATH`)
+
+`CONFIG_PATH` (or `--config`) can point to a single TOML file or a directory of `.toml` files. When it points to a directory, AURA loads every file and serves each one as a selectable agent.
+
+AURA validates the config at startup. The server or CLI exits with a clear error before binding to any port or entering the REPL if parsing fails.
+
+## Serve Multiple Agents
+
+To serve multiple agents, create a directory with one TOML file per agent:
+
+```text
+configs/
+├── research-assistant.toml
+├── devops-agent.toml
+└── code-reviewer.toml
+```
+
+Each agent is identified by its `alias` (if set) or `name`. Clients discover available agents via `GET /v1/models` and select one by passing its identifier as the `model` field. When no `model` is specified, the server resolves the agent via `DEFAULT_AGENT`, or automatically when only one config is loaded.
+
+The `alias` field provides a stable, client-facing identifier that is independent of the display name:
+
+```toml
+[agent]
+name = "DevOps Assistant"
+alias = "devops"             # clients send "model": "devops"
+system_prompt = "You are a DevOps expert."
+model_owner = "mezmo"        # overrides owned_by in /v1/models
+```
+
+Aliases must be unique across all loaded configs. Set `hidden = true` to exclude an agent from `GET /v1/models` and the CLI's `/model` list while keeping it callable by its exact name or alias:
+
+```toml
+[agent]
+name = "Internal Triage Agent"
+hidden = true         # hidden from listings; still callable by name
+system_prompt = "..."
+```
+
+See the [HTTP API](/AURA/http-api) for how clients discover and select agents.
+
+## MCP Tool Servers
+
+Configure MCP tool servers under `[mcp]`. Set `sanitize_schemas = true` to transform MCP tool schemas for OpenAI strict mode, which fixes issues like `anyOf` unions and missing types:
+
+```toml
+[mcp]
+sanitize_schemas = true
+```
+
+Each server goes under `[mcp.servers.<name>]`. Three transports are supported:
+
+- `http_streamable` (recommended for production): set a `url` and optional static `headers`.
+- `sse` (legacy).
+- `stdio`: launches a local child process per request.
+
+An `http_streamable` server with static auth headers looks like this:
+
+```toml
+[mcp.servers.my_server]
+transport = "http_streamable"
+url = "http://localhost:8081/mcp"
+headers = { "Authorization" = "Bearer {{ env.MCP_TOKEN }}" }
+```
+
+A `stdio` server configuration uses `cmd` and `args`, both lists. `cmd[0]` is the executable, and any additional elements in `cmd` are part of the command itself, such as a script path that needs an interpreter:
+
+```toml
+# Binary with package arguments
+[mcp.servers.my_stdio]
+transport = "stdio"
+cmd = ["npx"]
+args = ["-y", "@modelcontextprotocol/server-everything"]
+
+# Script that needs an interpreter
+[mcp.servers.my_script]
+transport = "stdio"
+cmd = ["python3", "/opt/mcp-servers/weather.py"]
+args = ["--verbose"]
+
+# Direct binary
+[mcp.servers.my_binary]
+transport = "stdio"
+cmd = ["/usr/local/bin/mcp-server"]
+args = ["--config", "/etc/mcp/config.json"]
+```
+
+Use `headers_from_request` to forward incoming request headers to MCP servers for per-request auth. As described under [Minimal Agent](#minimal-agent), the agent's `turn_depth` acts as a failsafe against unbounded tool-call loops.
+
+<Note>
+Tool names are not namespaced by server. If two servers register a tool with the same name, the first one loaded wins silently ([#186](https://github.com/mezmo/aura/issues/186)).
+</Note>
+
+## Orchestration (Coordinator and Workers)
+
+Orchestration mode adds a coordinator that plans and dispatches work to specialist workers. Enable it under `[orchestration]`, and define each worker in an `[orchestration.worker.<name>]` block:
+
+```toml
+# Top-level: shared by orchestration persistence and single-agent scratchpad
+memory_dir = "/tmp/orchestration-memory"
+
+[orchestration]
+enabled = true
+max_planning_cycles = 3
+tools_in_planning = "summary"
+allow_direct_answers = true
+allow_clarification = true
+
+[orchestration.worker.operations]
+description = "Operational analysis and diagnostics"
+preamble = "You are an operations specialist."
+mcp_filter = ["ops_*"]
+vector_stores = []
+
+[orchestration.worker.knowledge]
+description = "Documentation and procedures"
+preamble = "You are a knowledge specialist."
+mcp_filter = ["__none__"]
+vector_stores = ["docs"]
+```
+
+The execution loop runs in three phases. In the Plan phase, the coordinator decomposes the request into a task DAG. In the Execute phase, dependency-ready tasks run in parallel waves on worker agents. In the Continue phase, the coordinator consolidates worker outputs and routes to a final response, a replan, or a clarification.
+
+Workers inherit `[agent.llm]` by default. To run a worker on a different model, add a complete `[orchestration.worker.<name>.llm]` block. This must be a full LLM configuration, not a partial override of individual fields:
+
+```toml
+[orchestration.worker.formatting.llm]
+provider = "anthropic"
+api_key = "{{ env.ANTHROPIC_API_KEY }}"
+model = "claude-haiku-4-5-20251001"
+context_window = 200000
+```
+
+<Warning>
+Caution: an empty or omitted `mcp_filter` grants every MCP tool.
+
+A worker whose `mcp_filter` is omitted or empty (`[]`) is granted every MCP tool, not none. Once an MCP server is configured, set an explicit `mcp_filter` on every worker. To keep a worker tool-free, use a non-matching pattern such as `["__none__"]`.
+</Warning>
+
+## Scratchpad (Context Window Management)
+
+MCP tools can return responses far larger than an LLM's context window. Scratchpad intercepts large tool outputs, parks them on disk, and gives the agent read-only exploration tools (`head`, `slice`, `grep`, `schema`, `item_schema`, `get_in`, `iterate_over`, and `read`) to pull in only the data it needs.
+
+Scratchpad requires a top-level `memory_dir`. Configure it under `[agent.scratchpad]`:
+
+```toml
+# Top-level. Required when scratchpad is enabled.
+memory_dir = "/tmp/aura"
+
+[agent.scratchpad]
+enabled = true
+context_safety_margin = 0.20          # fraction of context reserved for reasoning and output
+max_extraction_tokens = 10_000        # cap per extraction tool call
+turn_depth_bonus = 6                  # extra tool-calling turns when scratchpad is active
+```
+
+Set per-tool interception thresholds under `[mcp.servers.<server>.scratchpad]`. Keys are glob patterns matched against tool names, and the longest, most specific pattern wins:
+
+```toml
+[mcp.servers.k8s-sre.scratchpad]
+"*_list_*"                  = { min_tokens = 512 }   # broad
+"k8s_list_service_monitors" = { min_tokens = 384 }   # specific override
+"*"                         = { min_tokens = 4096 }  # catch-all
+```
+
+Scratchpad works in both single-agent and orchestration modes.
+
+## Skills (On-Demand Instructions)
+
+Skills package task-specific instructions that the agent pulls in only when a task calls for them. Configure them under `[agent.skills]`:
+
+```toml
+[agent.skills]
+local = [{ source = "./skills" }]
+```
+
+Each `source` is a directory of skill subdirectories. Each subdirectory contains a `SKILL.md` file with YAML frontmatter (`name` and `description`), following the [Agent Skills specification](https://agentskills.io/specification). The agent gets a `load_skill` tool and fetches a skill's full instructions on demand. Relative sources resolve from the process current working directory.
+
+## Full Configuration Reference
+
+For every option, see [examples/reference.toml](https://github.com/mezmo/aura/blob/main/examples/reference.toml) in the AURA repo. Optional and advanced features exist beyond this page, including the A2A protocol (opt in with `--enable-a2a`), a Redis session store configured through environment variables, and [human-in-the-loop approval gates](https://github.com/mezmo/aura/blob/main/docs/hitl.md). See the [AURA repo docs](https://github.com/mezmo/aura/tree/main/docs) for these advanced topics.

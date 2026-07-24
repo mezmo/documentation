@@ -1,0 +1,101 @@
+---
+title: "HTTP API"
+description: "AURA's OpenAI-compatible HTTP and SSE API, including health checks, model discovery, chat completions, and opt-in custom streaming events."
+---
+
+AURA exposes an OpenAI-compatible HTTP and SSE API, so existing OpenAI clients and SDKs work unchanged. The base URL defaults to `http://localhost:8080`. See the [Quickstart](/AURA/quickstart) to bring up a server, and the [AURA CLI](/AURA/cli) for a terminal client.
+
+## Endpoints
+
+| Method and Path | Description |
+| --- | --- |
+| `GET /health` | Health status and session-store status. |
+| `GET /aura/info` | AURA-native introspection: the default agent and non-hidden agents. |
+| `GET /v1/models` | List agents as models. |
+| `POST /v1/chat/completions` | OpenAI-compatible chat completions; stream with `"stream": true`. |
+| `POST /v1/approvals/{decision_id}` | Resolve a conversational human-in-the-loop approval (advanced). See [docs/hitl.md](https://github.com/mezmo/aura/blob/main/docs/hitl.md) in the AURA repo. |
+
+There is no `/v1/completions` endpoint. AURA serves chat completions only.
+
+## Authentication
+
+The server can accept a bearer token. Clients send it in the `Authorization: Bearer <token>` header. This is the same credential the `aura` CLI sends through `--api-key` or `AURA_API_KEY` (see [AURA CLI](/AURA/cli)). The local Quickstart stack runs without a token. For how the server is configured to require and validate a token, and for TLS, see the [AURA repo README](https://github.com/mezmo/aura/blob/main/README.md) and [DEVELOPMENT.md](https://github.com/mezmo/aura/blob/main/DEVELOPMENT.md).
+
+<Note>
+A2A protocol endpoints exist but are disabled by default. Opt in with `--enable-a2a`. See [docs/a2a-implementation.md](https://github.com/mezmo/aura/blob/main/docs/a2a-implementation.md) in the AURA repo. This is an advanced topic.
+</Note>
+
+## Health Check (`GET /health`)
+
+```bash
+curl http://localhost:8080/health
+```
+
+The response reports overall status and the session-store backend:
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-07-24T12:00:00Z",
+  "aura_version": "0.0.8",
+  "a2a_server": { "version": "1.0" },
+  "session_store": {
+    "backend": "memory",
+    "ping": { "ok": true, "latency_ms": 1 }
+  }
+}
+```
+
+The `status` field is `healthy` or `degraded`. A failing session-store ping degrades the status, and the `ping` object comes back as `{ "ok": false, "error": "..." }`, but the endpoint still returns HTTP 200.
+
+## List Models (`GET /v1/models`)
+
+```bash
+curl http://localhost:8080/v1/models
+```
+
+Each `id` maps to an agent's `alias` (if set) or `name`. Hidden agents are excluded. Clients pass an `id` as the `model` field in chat requests. See [Configuration](/AURA/configuration) for how agents are identified.
+
+## Chat Completions (`POST /v1/chat/completions`)
+
+Without a `model` field, the server uses its default agent:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+Target a specific agent by its name or alias:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "my-agent", "messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+Stream the response by setting `"stream": true`:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [{"role": "user", "content": "Hello"}], "stream": true}'
+```
+
+## Server-Sent Events (SSE) Streaming
+
+With `"stream": true`, the response is an SSE stream of OpenAI-compatible `chat.completion.chunk` events, terminated by `data: [DONE]`.
+
+To enable AURA's custom events, start the server with `AURA_CUSTOM_EVENTS=true`. This adds `aura.*` events through the SSE `event:` field, including `aura.session_info`, `aura.tool_requested`, `aura.tool_start`, `aura.tool_complete`, `aura.reasoning`, `aura.progress`, and `aura.orchestrator.*` for orchestration. For the full event taxonomy, see [docs/streaming-api-guide.md](https://github.com/mezmo/aura/blob/main/docs/streaming-api-guide.md) in the AURA repo.
+
+## AURA Info (`GET /aura/info`)
+
+```bash
+curl http://localhost:8080/aura/info
+```
+
+This AURA-native endpoint returns the default agent and the non-hidden agents the server is serving. Use it for introspection when you want AURA-specific detail beyond the OpenAI-compatible `/v1/models` list.
+
+## Client Compatibility
+
+LibreChat, OpenWebUI, the `aura` CLI, and any OpenAI SDK work by pointing at the base URL. See the [Quickstart](/AURA/quickstart) for a browser-based example.
