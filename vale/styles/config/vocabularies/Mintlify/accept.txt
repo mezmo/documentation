@@ -133,6 +133,7 @@ Qwen
 redis
 rehydration
 replan(ned|ning)?
+replan_started
 repo
 repos
 RSyslog
@@ -158,6 +159,7 @@ timeframe
 toggleable
 TOML
 toolset
+tool_start
 tokeniz(er|ation)
 tokio
 Trae
@@ -177,3 +179,4 @@ vrl
 webhook's
 websocket(s?)
 whitepaper
+worker_reasoning

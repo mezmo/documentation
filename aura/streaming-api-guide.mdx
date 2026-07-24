@@ -458,11 +458,11 @@ for the conversational route and is not emitted by the webhook route.
 
 Standard OpenAI clients will ignore these events (they only process `data:` lines without `event:` prefix). Custom clients can filter by event type:
 
-<!-- vale off -->
 ```javascript
 for (const line of chunk.split('\n')) {
   if (line.startsWith('event: ')) {
     const eventType = line.slice(7);
+    // Handle aura.tool_start, aura.tool_complete, etc.
   }
   if (line.startsWith('data: ')) {
     const data = JSON.parse(line.slice(6));
@@ -470,7 +470,6 @@ for (const line of chunk.split('\n')) {
   }
 }
 ```
-<!-- vale on -->
 
 ### Correlation Fields
 
@@ -770,7 +769,6 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 
 ### Orchestration Correlation
 
-<!-- vale off -->
 | Correlation | Events | Field |
 |-------------|--------|-------|
 | Task lifecycle | `task_started` → `worker_reasoning` → `tool_call_*` → `task_completed` | `task_id` |
@@ -778,7 +776,6 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 | Worker identity | `task_*`, `worker_reasoning`, `tool_call_started` | `worker_id` |
 | Agent hierarchy | All orchestration events | `agent_id` (`"coordinator"` or worker name) |
 | Replan cycle | `iteration_complete` → `replan_started` → `plan_created` | `iteration` |
-<!-- vale on -->
 
 ## SSE Event Reference
 
