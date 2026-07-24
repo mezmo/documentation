@@ -18,6 +18,10 @@ You can send your logs, metrics and traces to a Mezmo Pipeline via any OTLP comp
 Mezmo currently requires that you use the HTTP transport for your payload, not the standard gRPC transport mechanism, to send in data via OTLP
 </info>
 
+<Note>
+A pipeline can include only one OpenTelemetry Source because it reads a shared account-wide data stream. You can still add an OpenTelemetry Source to other pipelines. Mezmo enforces this whether you add the source through the Mezmo Web App, the Pipeline API, Terraform, cloning a pipeline, or importing a pipeline manifest. If you try to add a second OpenTelemetry Source to the same pipeline, Mezmo rejects the request with an HTTP 409 error and the code `ERR_SHARED_SOURCE_DUPLICATE`. See [Set Up Pipeline Sources](/telemetry-pipelines/set-up-pipeline-sources) and the [Error Code Reference](/telemetry-pipelines/error-code-reference) for details.
+</Note>
+
 ## Configuration
 
 There is no specific configuration values needed when adding this source to your pipeline.  The OpenTelemetry source uses a shared endpoint to ingest data.  It will route data to your pipeline based on your [Ingestion key](/docs/ingestion-key#ingestion-keys) (`apikey`).
