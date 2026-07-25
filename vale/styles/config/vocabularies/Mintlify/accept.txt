@@ -167,10 +167,11 @@ ui(s?)
 Uncheck
 Uncomment
 unencrypted
+unexpressible
+ungated
 uninstallations
 [Uu]npause
 unparsed
-ungated
 url
 userinfo
 uuid(s?)
