@@ -390,7 +390,8 @@
             "pages": [
               "aura/configuration-reference",
               "aura/breaking-changes-20260410-agent-llm-toml-configuration",
-              "aura/breaking-changes-20260421-llm-under-agent"
+              "aura/breaking-changes-20260421-llm-under-agent",
+              "aura/breaking-changes-20260723-empty-mcp-filter"
             ]
           },
           {
