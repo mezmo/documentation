@@ -16,7 +16,7 @@ The topic [Supported Telemetry Pipeline Sources](/telemetry-pipelines/supported-
 
 ## Recommended Sources
 
-The pipeline editor groups account-wide shared streams into a **Recommended Sources** section shown above the regular **Sources** tabs in the source picker. The section describes this behavior: "Account-wide sources: every pipeline that adds one receives the same ingest stream."
+The pipeline editor groups account-wide shared streams into a **Recommended Sources** section shown above the regular **Sources** tabs in the source picker. The section describes this behavior: "These sources live at the account level. Every pipeline that adds one reads from the same ingest stream."
 
 The [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) is listed first because Mezmo recommends OpenTelemetry as the primary way to send data into a pipeline. Other recommended sources, such as [Mezmo Log Analysis Ingestion](/telemetry-pipelines/log-analysis-ingestion-source), follow it.
 
@@ -25,7 +25,7 @@ A pipeline can include at most one source of a given account-wide shared-stream 
 
 Mezmo enforces this limit for account-wide shared-stream sources however you add the source: the Mezmo Web App, the Pipeline API, Terraform, cloning a pipeline, and importing a pipeline manifest. It is not merely a disabled button in the source picker.
 
-In the source picker, if a shared-stream source is already in the pipeline, its card is disabled and shows this hint: "Already added to this pipeline. Only one is allowed because it reads a shared account-wide stream." If you try to add a second source of the same shared-stream type to a pipeline through the Pipeline API or a manifest import, Mezmo rejects the request instead of silently succeeding.
+In the source picker, if a shared-stream source is already in the pipeline, its card is disabled and shows this hint: "Only one of the these nodes is allowed per pipeline because it reads a shared account-wide stream." If you try to add a second source of the same shared-stream type to a pipeline through the Pipeline API or a manifest import, Mezmo rejects the request instead of silently succeeding.
 </Note>
 
 Related: [Shared Sources](/telemetry-pipelines/shared-sources).
