@@ -633,7 +633,7 @@ Defines a specialized worker. Worker names must be unique case-insensitively (to
 |---|---|---|---|
 | `description` | string | — | **Required.** One-line description shown to the coordinator during planning. |
 | `preamble` | string | — | **Required.** Complete system prompt for this worker (replaces the generic worker template). |
-| `mcp_filter` | list of strings | `[]` (all tools) | Glob patterns selecting which MCP tools this worker can access. |
+| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. |
 | `vector_stores` | list of strings | `[]` (none) | Names of vector stores this worker can access. Workers have no RAG access by default. |
 | `turn_depth` | integer | _(inherits `[agent].turn_depth`)_ | Max tool-call rounds for this worker. |
 

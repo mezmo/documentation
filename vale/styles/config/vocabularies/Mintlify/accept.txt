@@ -175,6 +175,7 @@ unparsed
 url
 userinfo
 uuid(s?)
+Valkey
 Vercel
 vrl
 webhook's

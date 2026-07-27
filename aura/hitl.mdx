@@ -272,8 +272,12 @@ Expected behavior:
 
 - The webhook route is synchronous. Aura waits for the webhook response during
   the tool call.
-- Conversational approvals are in-process only. The parked approval must be
-  resolved by the same server process that emitted `aura.approval_pending`.
-- Durable approval parking and cross-pod resume are not implemented yet.
+- With the default in-memory session store, conversational approvals are
+  single-instance, so only the server process that emitted
+  `aura.approval_pending` can resolve them.
+- You can resume a parked approval on a different pod by configuring the optional
+  Redis or Valkey session store. A `POST /v1/approvals/{id}` request that lands on
+  any instance then resolves an approval parked on another. See
+  [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
 - Webhook egress has no built-in authentication layer. Put auth, signing, or
   network controls in front of the webhook service.
