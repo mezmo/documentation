@@ -1,0 +1,71 @@
+---
+title: "Example Configs"
+description: "Example TOML configurations and advanced quickstarts for AURA agents."
+---
+
+Example TOML configurations and advanced quickstarts for AURA agents.
+
+<Note>**New to AURA?** Start with the [Quickstart](/aura/quickstart) — it gets a full stack running in under a minute. Come back here when you're ready to customize or try orchestration mode.</Note>
+
+## Reference Configuration
+
+[`reference.toml`](https://github.com/mezmo/aura/blob/main/examples/reference.toml) is the fully annotated config with every option documented. Use it as a starting point:
+
+```bash
+cp examples/reference.toml config.toml
+# Edit config.toml with your API key and settings
+cargo run --bin aura-web-server
+```
+
+If encountering issues and more verbose debugging output is necessary, add the --verbose flag for the running binary
+```bash
+export OPENAI_API_KEY="sk-..."
+CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura-web-server -- --verbose
+```
+
+## Minimal Configs
+
+Bare-minimum configs to get running with a single LLM provider. No MCP tools — just add an API key.
+
+```bash
+export OPENAI_API_KEY="sk-..."
+CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura-web-server
+```
+
+| File | Provider | API key needed? |
+|------|----------|-----------------|
+| [`openai.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/openai.toml) | OpenAI | Yes |
+| [`anthropic.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/anthropic.toml) | Anthropic | Yes |
+| [`bedrock.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/bedrock.toml) | AWS Bedrock | AWS credentials |
+| [`gemini.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/gemini.toml) | Google Gemini | Yes |
+| [`ollama.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/ollama.toml) | Ollama (local) | No |
+
+## Complete Agent Configs
+
+Full agent compositions that combine an LLM provider with real MCP tool servers and tailored system prompts. Each file documents its prerequisites and required environment variables.
+
+| File | Description |
+|------|-------------|
+| [`devops-assistant.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/devops-assistant.toml) | GitHub MCP |
+| [`incident-response-mezmo.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-mezmo.toml) | PagerDuty + Mezmo |
+| [`incident-response-datadog.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-datadog.toml) | PagerDuty + Datadog |
+| [`kubernetes-sre.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/kubernetes-sre.toml) | K8s MCP + Prometheus |
+
+### Serving Multiple Agents
+
+Point `CONFIG_PATH` at a directory to serve every `.toml` file as a selectable agent:
+
+```bash
+CONFIG_PATH=examples/complete/ cargo run --bin aura-web-server
+```
+
+Clients discover agents via `GET /v1/models` and select one with the `model` field in chat requests. Each agent is identified by its `alias` (if set) or `name`.
+
+## Advanced Quickstarts
+
+Self-contained Docker Compose setups for specific use cases. Each has its own guide with step-by-step instructions.
+
+| Quickstart | Description |
+|-----------|-------------|
+| [Orchestration — Math MCP](/aura/quickstart-orchestration-math) | Multi-agent orchestration with coordinator/worker architecture and a math tool server |
+| [Kubernetes SRE](/aura/quickstart-k8s-sre) | AI-powered SRE agent on KIND with Kubernetes and Prometheus MCP servers |
