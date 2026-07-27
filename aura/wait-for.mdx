@@ -1,0 +1,124 @@
+---
+title: "wait_for (Wait for a Condition)"
+description: "A native orchestration worker tool that polls an MCP tool until a condition holds, instead of sleeping for a blind fixed duration."
+---
+
+`wait_for` is a built-in tool that AURA attaches to every orchestration worker whenever a shared Model Context Protocol (MCP) manager is available. This holds across all six supported LLM providers. It is not user-configurable: there is no TOML setting to enable or disable it. It belongs to the same native worker toolset as `submit_result` and `read_artifact`. The worker (the model) calls it, not a human.
+
+A worker that needs to wait for something, such as a build, a rollout, or a job, has two costly options without `wait_for`: sleep for a blind fixed duration, or burn model turns on a manual check-and-sleep loop. Models tend to overestimate wait times, so blind sleeps dominate wall-clock time. `wait_for` lets the worker poll an MCP tool and stop as soon as a condition becomes true.
+
+## How It Works
+
+The worker supplies a `probe` (an MCP tool plus its arguments) and an `until` condition. AURA re-runs the probe every `poll_sec` seconds until the condition holds or the time bound elapses, then returns a structured result. The probe must be an MCP-provided tool. Native built-in tools cannot be probed.
+
+## Tool Call Arguments
+
+Pass these arguments in the `wait_for` tool call:
+
+| Argument | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `probe` | object | Yes | None | An MCP tool to sample on each poll, as `{ "tool": "<mcp-tool-name>", "args": { ... } }`. |
+| `until` | object | Yes | None | The stop condition. Supply exactly one of the keys in Wait Conditions below. |
+| `poll_sec` | integer (>= 1) | No | `2` | Seconds between samples. Must be less than `max_wait_sec`. |
+| `max_wait_sec` | integer (>= 1) | No | `120` | Total time bound in seconds. Clamped to a hard ceiling of 300. See Limits and Validation. |
+
+```json
+{
+  "probe": {
+    "tool": "kubectl_get",
+    "args": { "resource": "deployment/api", "namespace": "prod" }
+  },
+  "until": { "matches": "\"availableReplicas\":\\s*3" },
+  "poll_sec": 5,
+  "max_wait_sec": 180
+}
+```
+
+### Wait Conditions (`until`)
+
+Supply exactly one of these keys:
+
+| Key | Type | Stops When |
+| --- | --- | --- |
+| `matches` | string (regex) | The probe output matches the expression. |
+| `not_matches` | string (regex) | The probe output no longer matches the expression. |
+| `quiet_for_sec` | integer (>= 1) | The probe output is unchanged for that many consecutive seconds. |
+
+<Note>
+`quiet_for_sec` (quiescence) is a weaker signal than a predicate. A silent build reads as settled even when it is only idle. Prefer `matches` or `not_matches` when you can express the done state directly.
+</Note>
+
+## Return Value
+
+`wait_for` returns a structured result:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `reason` | string | Why the wait stopped. See Stop Reasons. |
+| `last_observation` | string | The most recent probe output. |
+| `elapsed_sec` | integer | Seconds elapsed before stopping. |
+| `samples` | integer | Number of probe samples taken. |
+| `effective_max_wait_sec` | integer | The time bound actually enforced, after clamping to the 300-second ceiling. |
+
+<Note>
+Although `last_observation` can carry up to 256 KiB in the tool result, streaming clients receive tool-call results truncated per `TOOL_RESULT_MAX_LENGTH` (see the [streaming API guide](/aura/streaming-api-guide)).
+</Note>
+
+```json
+{
+  "reason": "matched",
+  "last_observation": "{\"availableReplicas\": 3, \"readyReplicas\": 3}",
+  "elapsed_sec": 47,
+  "samples": 10,
+  "effective_max_wait_sec": 180
+}
+```
+
+### Stop Reasons (`reason`)
+
+| Reason | Meaning |
+| --- | --- |
+| `matched` | A `matches` or `not_matches` predicate held. |
+| `settled` | The `quiet_for_sec` window held. |
+| `timeout` | The time bound elapsed without the condition holding. |
+
+<Note>
+A `timeout` is a normal result, not an error. It returns `last_observation` so the worker can decide what to do next.
+</Note>
+
+## Limits and Validation
+
+### Limits
+
+These runtime bounds apply while a `wait_for` call is running:
+
+<Warning>
+AURA clamps `max_wait_sec` to a hard ceiling of 300 seconds and silently reduces larger values. The enforced value is reported as `effective_max_wait_sec` in the Return Value.
+</Warning>
+
+If a wait legitimately needs longer than the 300-second ceiling, the worker can issue another `wait_for` call after a `timeout` result.
+
+- AURA enforces the time bound independently of the probe, so the wait still ends on schedule even if a probe call hangs. The total wait cannot exceed the clamped `max_wait_sec`.
+- AURA rejects probe output larger than 256 KiB as an observation-too-large error. This is a runtime error raised mid-poll, not one of the pre-call validation errors below.
+
+### Validation
+
+Before the call runs, AURA returns the following pre-call validation problems as call errors:
+
+- An empty probe tool name.
+- `args` that is not an object.
+- An invalid regular expression.
+- A zero `poll_sec`, `quiet_for_sec`, or `max_wait_sec`.
+- `poll_sec` greater than or equal to `max_wait_sec`.
+- `quiet_for_sec` greater than `max_wait_sec`.
+
+## Observability
+
+The worker calls the outer tool by the name `wait_for`. This is the tool name that appears in tool-call events, and it is distinct from `probe.tool`, the MCP tool being polled (for example, `kubectl_get`). When you filter tool-call events for these waits, match on `wait_for`, not on the probed tool's name.
+
+AURA records the following attributes on each span: `wait_condition` (the stop condition), `probe_tool` (the polled MCP tool), `poll_count` (the number of samples taken), `stop_reason` (why the wait stopped), and `elapsed_ms` (the elapsed time in milliseconds). AURA emits OpenTelemetry spans, and the call also surfaces through the `aura.*` Server-Sent Events (SSE) tool-call events. See the [streaming API guide](/aura/streaming-api-guide) for the event reference.
+
+## See Also
+
+- [Configuration reference](/aura/configuration-reference#orchestration): how orchestration workers and their MCP tool access (`mcp_filter`) are configured.
+- [Streaming API guide](/aura/streaming-api-guide): the `aura.*` SSE tool-call events.
