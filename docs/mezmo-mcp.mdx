@@ -265,13 +265,13 @@ Converts relative time expressions to absolute time ranges in milliseconds.
 
 ### 8. Trace Analysis
 
-These tools analyze OpenTelemetry trace data across your account. Trace analysis automatically covers your whole account, so you don't need to specify a source or component.
+These tools analyze OpenTelemetry trace data across your entire account, so you don't need to specify a source or component.
 
 - `get_service_graph`: Gets the service graph showing service-to-service calls by operation. Takes no arguments.
 - `list_failed_traces`: Lists failed traces within a time range, optionally filtered by specific services.
-- `get_trace_spans`: Gets the spans for a given trace ID.
-- `find_degraded_service_edges`: Detects service call edges with degraded latency by comparing a current time period against a baseline period. Returns edges where the selected percentile metric has increased beyond the threshold you provide, so you can spot service-to-service calls that are changing behavior.
-- `list_service_latency_summaries`: Fetches bucketed latency summaries for specific operations between a service and its target service. Each result is a timestamped bucket with latency metrics like `p50`, `p95`, and `p99`.
+- `get_trace_spans`: Gets the spans for a given `trace_id`.
+- `find_degraded_service_edges`: Detects service call edges with degraded latency by comparing the current period to a baseline period. Returns edges where the selected percentile metric has increased beyond the threshold you provide. Use it to spot service-to-service calls that are changing behavior.
+- `list_service_latency_summaries`: Fetches bucketed latency summaries for specific operations between a service and its target. Each result is a timestamped bucket with latency metrics like `p50`, `p95`, and `p99`.
 - `get_service_failure_rates`: Gets service failure rates as a histogram over the window you provide, optionally grouped by service, edge, or operation.
 - `get_service_failures`: Fetches individual service failure records, optionally filtered by service, edge, or operation.
 
