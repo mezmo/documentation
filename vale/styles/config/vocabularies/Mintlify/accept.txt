@@ -125,6 +125,7 @@ Pino
 prepended
 profiler
 proto
+protobuf
 proxied
 pseudonymiz(ed|e|ation)?
 Qdrant
