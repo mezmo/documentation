@@ -463,6 +463,16 @@ region = "{{ env.AWS_REGION }}"
 context_prefix = "Company documentation"
 ```
 
+Extra fields:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `knowledge_base_id` | string | — | **Required.** Bedrock Knowledge Base ID. |
+| `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
+| `profile` | string | — | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
+
+When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment — for example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
+
 ### Embedding Models
 
 Used by `in_memory` and `qdrant` types.
