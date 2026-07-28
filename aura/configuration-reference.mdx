@@ -146,7 +146,7 @@ max_tokens = 8192
 context_window = 128000
 temperature = 0.7
 # base_url = "https://api.openai.com/v1"  # custom endpoint
-# reasoning_effort = "medium"             # minimal | low | medium | high
+# reasoning_effort = "medium"             # none, minimal, low, medium, high, xhigh (provider/model support varies)
 ```
 
 Extra fields:
@@ -155,7 +155,7 @@ Extra fields:
 |---|---|---|---|
 | `api_key` | string | — | **Required.** OpenAI API key. |
 | `base_url` | string | — | Override the API base URL (useful for compatible proxies). |
-| `reasoning_effort` | string | — | `minimal`, `low`, `medium`, or `high`. Controls reasoning depth on supported models. |
+| `reasoning_effort` | string | — | `none`, `minimal`, `low`, `medium`, `high`, or `xhigh`. Controls reasoning depth. Support varies by model and version. Aura passes the value straight to the OpenAI API, which returns a 400 error for combinations of `model` and `reasoning_effort` that it does not support. |
 
 ### `provider = "anthropic"`
 
