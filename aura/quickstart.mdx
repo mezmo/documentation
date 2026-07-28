@@ -27,7 +27,7 @@ LLM_API_KEY=sk-...            # your API key (use "unused" for Ollama/llama-serv
 docker compose up -d
 ```
 
-AURA boots in orchestrator mode: a coordinator routes each request — answering simple ones directly and decomposing complex ones across the `researcher` and `writer` workers defined in `quickstart.toml`.
+AURA boots in orchestrator mode. A coordinator routes each request, answering simple ones directly and decomposing operational tasks across the `incident-responder`, `metrics-analyst`, and `log-analyst` workers defined in `quickstart.toml`.
 
 ## 3. Chat with your agent
 
@@ -120,24 +120,22 @@ Also uncomment the `base_url` line in `quickstart.toml`. The `LLM_MODEL` value c
 
 ### Add MCP tool servers
 
-Uncomment the `[mcp]` section in `quickstart.toml` and point it at your MCP server:
+`quickstart.toml` already ships an active `[mcp]` block with an empty `[mcp.servers]` table. It also includes commented example servers for alerting, metrics, and logs. Uncomment one, or add your own under `[mcp.servers]`. The metrics example looks like this:
 
 ```toml
-[mcp]
-sanitize_schemas = true
-
-[mcp.servers.my_tools]
+[mcp.servers.my-metrics]
 transport = "http_streamable"
-url = "http://host.docker.internal:9000/mcp"
+url = "http://host.docker.internal:9090/mcp"
+description = "Prometheus metrics server"
 ```
 
 Use `host.docker.internal` to reach services running on your host machine.
 
-Then scope the tools per worker: set `mcp_filter` on each worker that should use them (see [Customize orchestration](#customize-orchestration)). A worker with no `mcp_filter` receives **all** MCP tools, so set it explicitly on every tool-using worker and keep tool-free workers (like the default `writer`) an explicit empty filter (`mcp_filter = []`).
+Then scope the tools per worker: set `mcp_filter` on each worker that should use them (see [Customize orchestration](#customize-orchestration)). A worker with no `mcp_filter` receives **all** MCP tools, so set it explicitly on every tool-using worker and give tool-free workers (like the default `log-analyst`) an explicit empty filter (`mcp_filter = []`).
 
 ### Add vector search
 
-Uncomment the `[[vector_stores]]` section in `quickstart.toml`. Options:
+Add a `[[vector_stores]]` section to `quickstart.toml`. Options:
 
 - **Qdrant** (self-hosted): add a Qdrant instance to the compose file or point at an external one. Embeddings can be generated via OpenAI or AWS Bedrock.
 - **AWS Bedrock Knowledge Base** (managed): set `type = "bedrock_kb"` with a `knowledge_base_id` and `region`. No embedding model needed — the KB manages embeddings internally.
@@ -187,7 +185,7 @@ The `hidden` field defaults to `false`. It accepts either a TOML boolean (`true`
 
 ### Customize orchestration
 
-`quickstart.toml` ships with orchestration enabled: a coordinator and two tool-free workers (`researcher` and `writer`) that reason with the LLM alone. The coordinator's routing is controlled by the `[orchestration]` block:
+`quickstart.toml` ships with orchestration enabled: a coordinator and three specialized workers (`incident-responder`, `metrics-analyst`, and `log-analyst`) that reason with the LLM alone until you connect an MCP server. The coordinator's routing is controlled by the `[orchestration]` block:
 
 ```toml
 [orchestration]
