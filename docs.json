@@ -499,11 +499,15 @@
           },
           {
             "group": "Log Analysis API",
-            "openapi": "log-analysis.json"
+            "openapi": "apis/log-analysis.json"
           },
           {
             "group": "Telemetry Pipelines API",
-            "openapi": "pipeline.yaml"
+            "openapi": "apis/pipeline.yaml"
+          },
+          {
+            "group": "Enterprise API",
+            "openapi": "apis/enterprise-api.json"
           }
         ]
       }
