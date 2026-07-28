@@ -3273,11 +3273,17 @@ paths:
                                       lag_event_count:
                                         anyOf:
                                           - type: number
-                                            description: The number of events lagging behind. If this value is `null`, then
+                                            description: A relative measure of how far this source is falling behind in
+                                              processing. A higher value indicates
+                                              the source is further behind, and a
+                                              value of `0` indicates it is caught
+                                              up. Use this as a directional signal,
+                                              not an exact count of individual
+                                              events. If this value is `null`, then
                                               it could mean the source has never
                                               had consumers, or that the lag
                                               metrics were unavailable (check
-                                              `lag_metrics_status`)
+                                              `lag_metrics_status`).
                                           - type: "null"
   /pipeline/{pipeline_id}/log-volume-reduction:
     post:
