@@ -97,6 +97,7 @@ logline(s?)
 Logspout
 Logstash
 loki
+loopback
 Mezmo
 middleware
 msg
