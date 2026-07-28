@@ -15,6 +15,8 @@ If you don't include a  [Mezmo Log Analysis](/telemetry-pipelines/mezmo-destinat
 
 <Note>
 This Source can be used in multiple Pipelines.  If you delete all of your Mezmo Log Analysis Ingestion Sources, your data sent to logs.mezmo.com will then take their traditional route in the Log Analysis system. Check out the topic [Shared Sources](/telemetry-pipelines/shared-sources) for more information.
+
+A single Pipeline can include only one Mezmo Log Analysis Ingestion Source because it reads a shared account-wide data stream. Mezmo enforces this whether you add the source through the Mezmo Web App, the Pipeline API, Terraform, cloning a pipeline, or importing a pipeline manifest. If you try to add a second Mezmo Log Analysis Ingestion Source to the same Pipeline, Mezmo rejects the request with an HTTP 409 error and the code `ERR_SHARED_SOURCE_DUPLICATE`. See [Set Up Pipeline Sources](/telemetry-pipelines/set-up-pipeline-sources) and the [Error Code Reference](/telemetry-pipelines/error-code-reference) for details.
 </Note>
 
 ### Supported Endpoints
