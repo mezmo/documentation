@@ -207,6 +207,7 @@
               "telemetry-pipelines/monitor-data-pipelines",
               "telemetry-pipelines/about-mezmo-trial",
               "telemetry-pipelines/configure-responsive-pipelines",
+              "telemetry-pipelines/replay-buffered-data",
               "telemetry-pipelines/shared-sources",
               "telemetry-pipelines/data-profiling",
               "telemetry-pipelines/about-mezmo-flow",
