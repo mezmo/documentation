@@ -2901,6 +2901,95 @@ paths:
       responses:
         "200":
           description: Default Response
+  /pipeline/to-manifest/{pipeline_id}:
+    get:
+      summary: Export pipeline to manifest
+      tags:
+        - Pipeline Export
+      description: Export a SaaS pipeline to a portable YAML or JSON manifest. Requires pipeline:read.
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: pipeline_id
+          required: true
+        - schema:
+            type: string
+            enum:
+              - yaml
+              - json
+            default: yaml
+          in: query
+          name: format
+          required: false
+          description: The manifest output format
+      responses:
+        "200":
+          description: Default Response
+  /pipeline/from-manifest/prepare:
+    post:
+      summary: Inspect a manifest's required secrets
+      tags:
+        - Pipeline Management
+      description: Inspect a manifest and report the secrets that must be supplied on import. Creates nothing. Requires pipeline:write.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                manifest:
+                  type: string
+                  minLength: 1
+                  maxLength: 1048576
+              required:
+                - manifest
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /pipeline/from-manifest:
+    post:
+      summary: Import a manifest as a new pipeline
+      tags:
+        - Pipeline Management
+      description: Import a manifest as a new unpublished draft pipeline. Requires pipeline:write.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                manifest:
+                  type: string
+                  minLength: 1
+                  maxLength: 1048576
+                required_secrets:
+                  type: array
+                  maxItems: 100
+                  items:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        pattern: ^[A-Z0-9_]{1,128}$
+                      value:
+                        type: string
+                        minLength: 1
+                        maxLength: 65536
+                    required:
+                      - name
+                      - value
+              required:
+                - manifest
+        required: true
+      responses:
+        "200":
+          description: Default Response
   /pipeline/gateway-route/{gateway_route_id}:
     delete:
       summary: Delete gateway route
