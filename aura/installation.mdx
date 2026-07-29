@@ -1,0 +1,95 @@
+---
+title: "Installation"
+description: "Install prebuilt AURA binaries with the install script or Homebrew, including platform support, the install environment variables, and checksum verification."
+---
+
+<Note>**Open Alpha** — AURA is under active development. APIs and configuration may change between releases. [Issues and feature requests](https://github.com/mezmo/aura/issues) are welcome — we'd love your feedback.</Note>
+
+Use this page to install the prebuilt `aura` CLI and `aura-web-server` binaries with the install script or **Homebrew**.
+
+## Requirements
+
+- `curl` or `wget` for downloads.
+- `sha256sum` or `shasum` for checksum verification (see [Verify Downloads](#verify-downloads)).
+- Supported platforms: Linux and macOS on `amd64` and `arm64`.
+
+## Run the Install Script
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash
+```
+
+The script takes no command-line arguments and is configured entirely through environment variables (see [Install Environment Variables](#install-environment-variables)). On Linux, the default installs both the `aura` CLI and `aura-web-server` from the latest release into `~/.local/bin`. On macOS, when **Homebrew** is available the default uses the tap, which installs the `aura` CLI only; set `AURA_NO_BREW=1` to get `aura-web-server` (see [Install on macOS With Homebrew](#install-on-macos-with-homebrew)).
+
+To tune the install, set variables before the command:
+
+```bash
+AURA_VERSION=0.1.6 AURA_COMPONENT=cli curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash
+```
+
+<Warning>Piping a remote script to `bash` runs whatever the URL returns. Review the script before you run it, and enforce checksums with `AURA_REQUIRE_CHECKSUM=1` so a missing or unverifiable checksum aborts the install.</Warning>
+
+To inspect the script before running it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh -o install.sh
+less install.sh
+bash install.sh
+```
+
+## Install Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `AURA_VERSION` | Release tag to install. A leading `v` is optional and is stripped. `latest` follows the GitHub releases/latest redirect to the newest release. | `latest` |
+| `AURA_INSTALL` | Install directory, created if it does not exist. Does not apply to the Homebrew path. | `~/.local/bin` |
+| `AURA_COMPONENT` | Which binaries to install: `all`, `server`, or `cli`. `all` or `cli` installs the `aura` CLI. `all` or `server` installs `aura-web-server`. Any other value is a fatal error. | `all` |
+| `AURA_REQUIRE_CHECKSUM` | When `1`, a missing checksums file, a missing entry for an asset, or no checksum tool available becomes a fatal error instead of a warning. | `0` |
+| `AURA_CHECKSUMS` | Path to a local `checksums.txt` file. When set, the script verifies against this file instead of downloading `checksums.txt` from the release. | (unset) |
+| `AURA_NO_BREW` | When set to `1`, macOS downloads release assets directly instead of using the Homebrew tap. | `0` |
+
+## Verify Downloads
+
+The script verifies downloaded assets against `checksums.txt`, preferring `sha256sum` and falling back to `shasum -a 256`.
+
+| Condition | Result |
+|---|---|
+| `sha256sum` or `shasum` is available and the checksum matches | Install proceeds. |
+| Checksum mismatch | Install aborts with exit status 1, always, regardless of `AURA_REQUIRE_CHECKSUM`. |
+| No checksum tool is available, or the checksums file or an asset entry is missing, with `AURA_REQUIRE_CHECKSUM=0` (default) | Verification is skipped with a warning and the install continues. |
+| No checksum tool is available, or the checksums file or an asset entry is missing, with `AURA_REQUIRE_CHECKSUM=1` | Install aborts with exit status 1. |
+
+Set `AURA_CHECKSUMS` to the path of a local `checksums.txt` file to verify against that file instead of downloading `checksums.txt` from the release.
+
+The `AURA_REQUIRE_CHECKSUM` and `AURA_CHECKSUMS` controls apply to the direct-download path only. They have no effect when the install uses the **Homebrew** tap, which manages its own package verification.
+
+<Tip>For supply-chain-sensitive installs, set `AURA_REQUIRE_CHECKSUM=1` so the conditions in the table above fail the install instead of continuing with a warning.</Tip>
+
+## Install on macOS With Homebrew
+
+On macOS the script installs from the **Homebrew** tap (`brew install mezmo/tap/aura`) only when all of these are true:
+
+- `AURA_NO_BREW` is not `1`.
+- `brew` is on your `PATH`.
+- `AURA_VERSION` is the default `latest`, because Homebrew cannot pin a specific version.
+- `AURA_COMPONENT` is the default `all`.
+
+If any of these is false, macOS downloads release assets directly.
+
+If you prefer **Homebrew** directly, run:
+
+```bash
+brew install mezmo/tap/aura
+```
+
+<Note>The **Homebrew** tap installs the `aura` CLI only. It does not install `aura-web-server`, and `AURA_INSTALL` has no effect on the Homebrew path. To get `aura-web-server` on macOS, set `AURA_NO_BREW=1` so the script downloads release assets directly.</Note>
+
+Linux always uses direct download.
+
+## Next Steps
+
+Binaries land in `AURA_INSTALL`, which defaults to `~/.local/bin`. Make sure that directory is on your `PATH`.
+
+- Configure and use the CLI at the [CLI Reference](/aura/cli-reference).
+- Run the server at the [Web Server Reference](/aura/web-server-reference).
+- Try the containerized stack at the [Quickstart](/aura/quickstart).
