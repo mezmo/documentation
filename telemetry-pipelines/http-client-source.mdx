@@ -13,6 +13,10 @@ This is a pull source. The HTTP Client source polls an HTTP endpoint that you sp
 
 You can use the HTTP Client source with both SaaS pipelines and Mezmo Edge deployments. On Mezmo Edge, the source does not check whether the endpoint is reachable from outside your network, so an Edge pipeline can poll endpoints inside your own network.
 
+<Note>
+For SaaS pipelines, the HTTP Client source can only poll endpoints that resolve to a public address. Each time it connects, Mezmo checks the address the endpoint resolves to and blocks any endpoint that resolves to an internal, private, loopback, link-local, or other reserved address. This includes cloud metadata services such as `169.254.169.254`. If a hostname resolves to a mix of public and restricted addresses, Mezmo drops the restricted ones and connects only to the public ones. If an endpoint resolves only to restricted addresses, the source ingests no data and logs an error on each poll.
+</Note>
+
 ## Configuration
 
 Add an HTTP Client source to your pipeline, then configure it using the options in the table below.

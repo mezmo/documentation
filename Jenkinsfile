@@ -10,6 +10,8 @@ def CREDS = [
         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
 ]
 
+def DEFAULT_BRANCH = 'main'
+
 // The whole repo is the knowledge base; qdrant-manager scans it from the
 // workspace mount, so no --kb-path is needed. Hidden pages are excluded via
 // `hidden: true` frontmatter.
@@ -39,6 +41,9 @@ pipeline {
         }
 
         stage('Sync Collection') {
+            when {
+                branch DEFAULT_BRANCH
+            }
             stages {
                 stage('Start Containers') {
                     steps {

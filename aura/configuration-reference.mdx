@@ -146,7 +146,7 @@ max_tokens = 8192
 context_window = 128000
 temperature = 0.7
 # base_url = "https://api.openai.com/v1"  # custom endpoint
-# reasoning_effort = "medium"             # minimal | low | medium | high
+# reasoning_effort = "medium"             # none, minimal, low, medium, high, xhigh (provider/model support varies)
 ```
 
 Extra fields:
@@ -155,7 +155,7 @@ Extra fields:
 |---|---|---|---|
 | `api_key` | string | — | **Required.** OpenAI API key. |
 | `base_url` | string | — | Override the API base URL (useful for compatible proxies). |
-| `reasoning_effort` | string | — | `minimal`, `low`, `medium`, or `high`. Controls reasoning depth on supported models. |
+| `reasoning_effort` | string | — | `none`, `minimal`, `low`, `medium`, `high`, or `xhigh`. Controls reasoning depth. Support varies by model and version. Aura passes the value straight to the OpenAI API, which returns a 400 error for combinations of `model` and `reasoning_effort` that it does not support. |
 
 ### `provider = "anthropic"`
 
@@ -463,6 +463,16 @@ region = "{{ env.AWS_REGION }}"
 context_prefix = "Company documentation"
 ```
 
+Extra fields:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `knowledge_base_id` | string | — | **Required.** Bedrock Knowledge Base ID. |
+| `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
+| `profile` | string | — | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
+
+When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment — for example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
+
 ### Embedding Models
 
 Used by `in_memory` and `qdrant` types.
@@ -633,7 +643,7 @@ Defines a specialized worker. Worker names must be unique case-insensitively (to
 |---|---|---|---|
 | `description` | string | — | **Required.** One-line description shown to the coordinator during planning. |
 | `preamble` | string | — | **Required.** Complete system prompt for this worker (replaces the generic worker template). |
-| `mcp_filter` | list of strings | `[]` (all tools) | Glob patterns selecting which MCP tools this worker can access. |
+| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. |
 | `vector_stores` | list of strings | `[]` (none) | Names of vector stores this worker can access. Workers have no RAG access by default. |
 | `turn_depth` | integer | _(inherits `[agent].turn_depth`)_ | Max tool-call rounds for this worker. |
 

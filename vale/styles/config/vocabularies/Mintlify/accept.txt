@@ -1,6 +1,7 @@
 Actix
 agentic
 Akamai
+Alertmanager
 allowlist(s|ing)?
 alphanumerics
 anonymized
@@ -78,6 +79,7 @@ impactful
 ingressing
 inlining
 IP(s?)
+is_greater_or_equal_to
 Jira
 jq
 json
@@ -85,6 +87,7 @@ kafka
 keepalive
 kinesis
 kube
+kubeconfig
 kubernetes
 lineviewer
 Liquid
@@ -96,6 +99,7 @@ logline(s?)
 Logspout
 Logstash
 loki
+loopback
 Mezmo
 middleware
 msg
@@ -123,6 +127,7 @@ Pino
 prepended
 profiler
 proto
+protobuf
 proxied
 pseudonymiz(ed|e|ation)?
 Qdrant
@@ -176,9 +181,11 @@ unparsed
 url
 userinfo
 uuid(s?)
+Valkey
 Vercel
 vrl
 wait_for
+walkthrough
 webhook's
 websocket(s?)
 whitepaper

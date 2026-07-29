@@ -241,9 +241,6 @@
               "telemetry-pipelines/log-analysis-source",
               "telemetry-pipelines/otel-collector",
               "telemetry-pipelines/open-telemetry-source",
-              "telemetry-pipelines/open-telemetry-metrics-source",
-              "telemetry-pipelines/open-telemetry-logs-source",
-              "telemetry-pipelines/open-telemetry-traces-source",
               "telemetry-pipelines/pipeline-data-restoration-source",
               "telemetry-pipelines/log-analysis-ingestion-source",
               "telemetry-pipelines/sqs-source",
@@ -323,6 +320,7 @@
             "group": "Pipeline Management",
             "pages": [
               "telemetry-pipelines/edit-a-pipeline",
+              "telemetry-pipelines/export-import-pipeline-manifest",
               "telemetry-pipelines/pipeline-event-data-model",
               "telemetry-pipelines/simulate-pipeline-data-flows",
               "telemetry-pipelines/set-pipeline-access",
@@ -380,6 +378,7 @@
             "group": "Getting Started",
             "pages": [
               "aura/quickstart",
+              "aura/quickstart-docker",
               "aura/example-configs",
               "aura/quickstart-orchestration-math",
               "aura/quickstart-k8s-sre"

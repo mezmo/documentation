@@ -24,10 +24,14 @@ This Processor supports sampling of [OTel traces only](https://opentelemetry.io/
 | Option | Description | Example | 
 | ---- | ---- | ---- | 
 | Sample Type | The type of sampling to invoke. | `head`  `tail` | 
-| Trace ID field | The field to use as the identifier of a trace. | `.context.traceid` | 
+| Trace ID field | The field to use as the identifier of a trace. Defaults to `.record.traceId`. | `.record.traceId` | 
 | Rate | The rate at which to sample traces. For example, `10` means 1 out of every 10 traces will be sampled. | `10` | 
-| Parent Span ID (Tail Only) | The field to use as the parent span identifier. | `.parent_spanid` | 
+| Parent Span ID (Tail Only) | The field to use as the parent span identifier. Defaults to `.record.parentSpanId`. | `.record.parentSpanId` | 
 | Conditional (Tail Only) | Used in conjunction with Rate, a conditional statement to define the field for sampling |  | 
+
+<Note>
+By default, the Trace ID and Parent Span ID fields point to `.record.traceId` and `.record.parentSpanId`. These paths match the structure produced by the combined [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source), which nests `traceId` and `parentSpanId` under a `.record` property, so the Processor works with that Source without extra setup. If your traces store these values elsewhere, set each field to the path where the value lives.
+</Note>
 
 ## Examples
 
