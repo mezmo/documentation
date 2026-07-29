@@ -15,46 +15,71 @@ You can export your telemetry data directly to Mezmo with the OpenTelemetry Expo
 
 ```yaml
 receivers:
-  filelog: #This will collect new lines from log files in /var/log
-    include: [/var/log/*.log] 
-  hostmetrics: #This will collect metrics about the host on which the collector is running.
+  # Collect new lines from log files in /var/log
+  filelog:
+    include: [/var/log/*.log]
+
+  # Collect metrics about the host on which the collector is running
+  hostmetrics:
     scrapers:
       cpu:
       disk:
       filesystem:
       load:
       memory:
-  jaeger: #This will expose an endpoint where you can send traces
+
+  # Native OTLP ingest for traces. Modern OpenTelemetry SDKs emit OTLP by default.
+  otlp:
     protocols:
       grpc:
-        endpoint: "0.0.0.0:14250"
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+
+processors:
+  # Guard against out-of-memory under load. Must be first in every pipeline.
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 25
+
+  # Batch telemetry to reduce request volume.
+  batch:
+    send_batch_size: 8192
+    timeout: 5s
+
 exporters:
   otlphttp/mezmo:
-    endpoint: "http://logs.mezmo.com/otel"
+    endpoint: "https://logs.mezmo.com/otel"
+    encoding: proto        # change to "json" to send JSON instead
+    compression: gzip      # supported for both protobuf and JSON payloads
     headers:
-      apikey: "<ingestion key>"
-        
-processors:
-  batch:
-  
+      apikey: "${env:MEZMO_INGESTION_KEY}"
+
 service:
   pipelines:
     logs:
       receivers: [filelog]
+      processors: [memory_limiter, batch]
       exporters: [otlphttp/mezmo]
     traces:
-      receivers: [jaeger]
-      processors: [batch]
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
       exporters: [otlphttp/mezmo]
     metrics:
       receivers: [hostmetrics]
-      processors: [batch]
+      processors: [memory_limiter, batch]
       exporters: [otlphttp/mezmo]
-
 ```
 
-4. Start the Collector with this command: `./otelcol-contrib --config /path/to/config.yaml`
-5. The Collector will start sending logs, metrics and traces to your Pipeline.
+5. Set your Mezmo ingestion key in the environment (referenced as `${env:MEZMO_INGESTION_KEY}` in the config above):
+
+```bash
+export MEZMO_INGESTION_KEY="<your ingestion key>"
+```
+
+6. Start the Collector with this command: `./otelcol-contrib --config /path/to/config.yaml`
+7. The Collector will start sending logs, metrics and traces to your Pipeline.
 
 <Note>
 For complete information on setting up and configuring the OpenTelemetry Collector, visit [https://opentelemetry.io/docs/collector/configuration](https://opentelemetry.io/docs/collector/configuration)
@@ -111,7 +136,7 @@ Now create a `values.yaml`  file.  This example file will give you an OTLP sourc
 #   - Exposes a ClusterIP Service at
 #       otel-collector-opentelemetry-collector.otel.svc.cluster.local
 #     accepting OTLP/gRPC (4317) and OTLP/HTTP (4318) for logs, metrics, traces
-#   - Forwards everything to https://logs.use.dev.mezmo.it/otel via otlphttp
+#   - Forwards everything to https://logs.mezmo.com/otel via otlphttp
 
 mode: daemonset
 
@@ -208,7 +233,7 @@ config:
   exporters:
     # Mezmo OTLP/HTTP ingest — endpoint accepts protobuf or JSON.
     otlphttp/mezmo:
-      endpoint: http://logs.mezmo.com/otel
+      endpoint: https://logs.mezmo.com/otel
       encoding: proto        # change to "json" to send JSON instead
       compression: gzip      # gzip is supported for protobuf and JSON payloads
       headers:
