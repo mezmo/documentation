@@ -378,6 +378,7 @@
             "group": "Getting Started",
             "pages": [
               "aura/quickstart",
+              "aura/quickstart-docker",
               "aura/example-configs",
               "aura/quickstart-orchestration-math",
               "aura/quickstart-k8s-sre"
