@@ -9,6 +9,12 @@ description: "OpenAI-compatible web API server that exposes AURA agents through 
 
 OpenAI-compatible web API server that exposes AURA agents through a standard chat completions endpoint.
 
+## When to run the server
+
+The [CLI](/aura/cli-reference) starts an agent per terminal session, which suits interactive work. Running `aura-web-server` instead keeps agents resident behind an HTTP API, so a caller that isn't a person at a keyboard can start a run: an alert pipeline reacting to a firing monitor, a scheduled job, a CI step, or a chat client such as LibreChat or OpenWebUI.
+
+Requests arrive as OpenAI chat completions, so any system that already speaks that format can call AURA directly. The server exposes no alert-specific receiver, so a monitoring tool that posts its own schema (Alertmanager and PagerDuty webhooks, for example) needs a small adapter to translate its payload into a chat completion request. Long-running investigations can stream progress back over SSE; see the [Streaming API Guide](/aura/streaming-api-guide).
+
 ## Features
 
 - **OpenAI Compatible**: Implements `/v1/chat/completions` endpoint following OpenAI's API schema
