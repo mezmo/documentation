@@ -69,6 +69,30 @@ function processEvent(event) {
 
 ```
 
+### Pipeline State Variables
+
+From within a script, you can read and update the Pipeline's state variables (such as `operational_state`) to drive [Responsive Pipeline](/telemetry-pipelines/configure-responsive-pipelines) logic.
+
+| Function | Description | 
+| ---- | ---- | 
+| `getPipelineStateVariable("<name>")` | Returns the current value of the named Pipeline state variable, such as `operational_state`. | 
+| `setPipelineStateVariable("<name>", "<value>")` | Sets the named Pipeline state variable to the given value. Anyone who can update the Pipeline can change its state. | 
+
+```javascript
+function processEvent(message, metadata, timestamp, annotations) {
+  const state = getPipelineStateVariable("operational_state")
+  if (message.severity === 'critical' && state !== 'incident') {
+    setPipelineStateVariable("operational_state", "incident")
+  }
+  return message
+}
+
+```
+
+<Note>
+Changing `operational_state` from a script has the same effect as changing it in the Web App or through the API. If the target state has automatic replay enabled, this transition can start a replay of recently buffered data. See [Replay Buffered Data](/telemetry-pipelines/replay-buffered-data).
+</Note>
+
 ### Comparison Operators
 
 This processor supports all basic comparison operators that are defined in JavaScript.
