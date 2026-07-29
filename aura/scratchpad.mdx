@@ -11,7 +11,7 @@ Scratchpad works in both single-agent and orchestration modes.
 
 ## Configuration
 
-Configure at `[agent.scratchpad]` (applies to the single agent, or provides defaults for orchestration workers) and optionally override per worker at `[orchestration.worker.<name>.scratchpad]`. Set a top-level `memory_dir` for persistence. See [`[agent.scratchpad]`](/aura/configuration-reference#agentscratchpad) in the configuration reference for the full field table, and [`[mcp.servers.<name>.scratchpad]`](/aura/configuration-reference#per-tool-scratchpad-thresholds) for per-tool interception thresholds.
+Configure at `[agent.scratchpad]` (applies to the single agent, or provides defaults for orchestration workers) and optionally override per worker at `[orchestration.worker.<name>.scratchpad]`. Set a top-level `memory_dir` for persistence. See [`[agent.scratchpad]`](/aura/configuration-reference#agent-scratchpad) in the configuration reference for the full field table, and [`[mcp.servers.<name>.scratchpad]`](/aura/configuration-reference#per-tool-scratchpad-thresholds) for per-tool interception thresholds.
 
 ```toml
 # Top-level — required when scratchpad is enabled. Shared by single-agent
