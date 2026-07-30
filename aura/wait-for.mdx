@@ -11,29 +11,6 @@ A worker that needs to wait for something, such as a build, a rollout, or a job,
 
 The worker supplies a `probe` (an MCP tool plus its arguments) and an `until` condition. AURA re-runs the probe every `poll_sec` seconds until the condition holds or the time bound elapses, then returns a structured result. The probe must be an MCP-provided tool. Native built-in tools cannot be probed.
 
-## Tool Call Arguments
-
-Pass these arguments in the `wait_for` tool call:
-
-| Argument | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `probe` | object | Yes | None | An MCP tool to sample on each poll, as `{ "tool": "<mcp-tool-name>", "args": { ... } }`. |
-| `until` | object | Yes | None | The stop condition. Supply exactly one of the keys in Wait Conditions below. |
-| `poll_sec` | integer (>= 1) | No | `2` | Seconds between samples. Must be less than `max_wait_sec`. |
-| `max_wait_sec` | integer (>= 1) | No | `120` | Total time bound in seconds. Clamped to a hard ceiling of 300. See Limits and Validation. |
-
-```json
-{
-  "probe": {
-    "tool": "kubectl_get",
-    "args": { "resource": "deployment/api", "namespace": "prod" }
-  },
-  "until": { "matches": "\"availableReplicas\":\\s*3" },
-  "poll_sec": 5,
-  "max_wait_sec": 180
-}
-```
-
 ## Observability
 
 The worker calls the outer tool by the name `wait_for`. This is the tool name that appears in tool-call events, and it is distinct from `probe.tool`, the MCP tool being polled (for example, `kubectl_get`). When you filter tool-call events for these waits, match on `wait_for`, not on the probed tool's name.
