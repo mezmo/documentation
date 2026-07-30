@@ -48,44 +48,6 @@ Supply exactly one of these keys:
 `quiet_for_sec` (quiescence) is a weaker signal than a predicate. A silent build reads as settled even when it is only idle. Prefer `matches` or `not_matches` when you can express the done state directly.
 </Note>
 
-## Return Value
-
-`wait_for` returns a structured result:
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `reason` | string | Why the wait stopped. See Stop Reasons. |
-| `last_observation` | string | The most recent probe output. |
-| `elapsed_sec` | integer | Seconds elapsed before stopping. |
-| `samples` | integer | Number of probe samples taken. |
-| `effective_max_wait_sec` | integer | The time bound actually enforced, after clamping to the 300-second ceiling. |
-
-<Note>
-Although `last_observation` can carry up to 256 KiB in the tool result, streaming clients receive tool-call results truncated per `TOOL_RESULT_MAX_LENGTH` (see the [streaming API guide](/aura/streaming-api-guide)).
-</Note>
-
-```json
-{
-  "reason": "matched",
-  "last_observation": "{\"availableReplicas\": 3, \"readyReplicas\": 3}",
-  "elapsed_sec": 47,
-  "samples": 10,
-  "effective_max_wait_sec": 180
-}
-```
-
-### Stop Reasons (`reason`)
-
-| Reason | Meaning |
-| --- | --- |
-| `matched` | A `matches` or `not_matches` predicate held. |
-| `settled` | The `quiet_for_sec` window held. |
-| `timeout` | The time bound elapsed without the condition holding. |
-
-<Note>
-A `timeout` is a normal result, not an error. It returns `last_observation` so the worker can decide what to do next.
-</Note>
-
 ## Limits and Validation
 
 ### Limits
@@ -93,7 +55,7 @@ A `timeout` is a normal result, not an error. It returns `last_observation` so t
 These runtime bounds apply while a `wait_for` call is running:
 
 <Warning>
-AURA clamps `max_wait_sec` to a hard ceiling of 300 seconds and silently reduces larger values. The enforced value is reported as `effective_max_wait_sec` in the Return Value.
+AURA clamps `max_wait_sec` to a hard ceiling of 300 seconds and silently reduces larger values. AURA reports the enforced value as `effective_max_wait_sec` in the tool result. See Return Value under Observability.
 </Warning>
 
 If a wait legitimately needs longer than the 300-second ceiling, the worker can issue another `wait_for` call after a `timeout` result.
@@ -117,6 +79,32 @@ Before the call runs, AURA returns the following pre-call validation problems as
 The worker calls the outer tool by the name `wait_for`. This is the tool name that appears in tool-call events, and it is distinct from `probe.tool`, the MCP tool being polled (for example, `kubectl_get`). When you filter tool-call events for these waits, match on `wait_for`, not on the probed tool's name.
 
 AURA records the following attributes on each span: `wait_condition` (the stop condition), `probe_tool` (the polled MCP tool), `poll_count` (the number of samples taken), `stop_reason` (why the wait stopped), and `elapsed_ms` (the elapsed time in milliseconds). AURA emits OpenTelemetry spans, and the call also surfaces through the `aura.*` Server-Sent Events (SSE) tool-call events. See the [streaming API guide](/aura/streaming-api-guide) for the event reference.
+
+### Return Value
+
+`wait_for` returns a structured tool result the worker inspects rather than configures. Several fields correspond to the span attributes above: `poll_count` appears as `samples`, `stop_reason` as `reason`, and `elapsed_ms` as `elapsed_sec`. The tool result reports these fields:
+
+| Field | Description |
+| --- | --- |
+| `last_observation` | The most recent probe output. |
+| `elapsed_sec` | Elapsed time in seconds before the wait stopped. |
+| `samples` | Number of probe samples taken. |
+| `effective_max_wait_sec` | The enforced time bound, after clamping to the 300-second ceiling. |
+| `reason` | Why the wait stopped. See the reason values below. |
+
+The `reason` field takes one of these values:
+
+- `matched`: a `matches` or `not_matches` predicate held.
+- `settled`: the `quiet_for_sec` window held.
+- `timeout`: the time bound elapsed without the condition holding.
+
+A `timeout` is a normal result, not an error. It still returns `last_observation` so the worker can decide what to do next.
+
+```json
+{ "reason": "matched", "last_observation": "...", "elapsed_sec": 47, "samples": 10, "effective_max_wait_sec": 180 }
+```
+
+Streaming clients receive tool-call results truncated to `TOOL_RESULT_MAX_LENGTH`. See the streaming API guide above for details.
 
 ## See Also
 
