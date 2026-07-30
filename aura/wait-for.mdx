@@ -34,51 +34,15 @@ Pass these arguments in the `wait_for` tool call:
 }
 ```
 
-### Wait Conditions (`until`)
-
-Supply exactly one of these keys:
-
-| Key | Type | Stops When |
-| --- | --- | --- |
-| `matches` | string (regex) | The probe output matches the expression. |
-| `not_matches` | string (regex) | The probe output no longer matches the expression. |
-| `quiet_for_sec` | integer (>= 1) | The probe output is unchanged for that many consecutive seconds. |
-
-<Note>
-`quiet_for_sec` (quiescence) is a weaker signal than a predicate. A silent build reads as settled even when it is only idle. Prefer `matches` or `not_matches` when you can express the done state directly.
-</Note>
-
-## Limits and Validation
-
-### Limits
-
-These runtime bounds apply while a `wait_for` call is running:
-
-<Warning>
-AURA clamps `max_wait_sec` to a hard ceiling of 300 seconds and silently reduces larger values. AURA reports the enforced value as `effective_max_wait_sec` in the tool result. See Return Value under Observability.
-</Warning>
-
-If a wait legitimately needs longer than the 300-second ceiling, the worker can issue another `wait_for` call after a `timeout` result.
-
-- AURA enforces the time bound independently of the probe, so the wait still ends on schedule even if a probe call hangs. The total wait cannot exceed the clamped `max_wait_sec`.
-- AURA rejects probe output larger than 256 KiB as an observation-too-large error. This is a runtime error raised mid-poll, not one of the pre-call validation errors below.
-
-### Validation
-
-Before the call runs, AURA returns the following pre-call validation problems as call errors:
-
-- An empty probe tool name.
-- `args` that is not an object.
-- An invalid regular expression.
-- A zero `poll_sec`, `quiet_for_sec`, or `max_wait_sec`.
-- `poll_sec` greater than or equal to `max_wait_sec`.
-- `quiet_for_sec` greater than `max_wait_sec`.
-
 ## Observability
 
 The worker calls the outer tool by the name `wait_for`. This is the tool name that appears in tool-call events, and it is distinct from `probe.tool`, the MCP tool being polled (for example, `kubectl_get`). When you filter tool-call events for these waits, match on `wait_for`, not on the probed tool's name.
 
 AURA records the following attributes on each span: `wait_condition` (the stop condition), `probe_tool` (the polled MCP tool), `poll_count` (the number of samples taken), `stop_reason` (why the wait stopped), and `elapsed_ms` (the elapsed time in milliseconds). AURA emits OpenTelemetry spans, and the call also surfaces through the `aura.*` Server-Sent Events (SSE) tool-call events. See the [streaming API guide](/aura/streaming-api-guide) for the event reference.
+
+### Wait Conditions (`until`)
+
+Supply exactly one of `matches` (regex the output must start matching), `not_matches` (regex it must stop matching), or `quiet_for_sec` (integer seconds of unchanged output) — prefer `matches`/`not_matches` since quiescence only proves idleness, not completion. `max_wait_sec` is clamped to a 300s ceiling (reported back as `effective_max_wait_sec`) and enforced independently of the probe, so a hung probe can't extend the wait; issue another `wait_for` after a `timeout` if you need longer. Probe output over 256 KiB fails mid-poll as a runtime error. Pre-call validation rejects an empty probe tool name, non-object `args`, an invalid regex, a zero `poll_sec`/`quiet_for_sec`/`max_wait_sec`, `poll_sec >= max_wait_sec`, or `quiet_for_sec > max_wait_sec`.
 
 ### Return Value
 
