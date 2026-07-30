@@ -177,6 +177,7 @@ ungated
 uninstallations
 [Uu]npause
 unparsed
+untrusted
 url
 userinfo
 uuid(s?)
