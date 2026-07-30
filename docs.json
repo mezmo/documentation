@@ -563,5 +563,11 @@
       "robots": "noindex"
     }
   },
-  "description": "Explore guides, APIs, tutorials, and reference materials for collecting telemetry and using Mezmo’s SRE agent to manage production environments."
+  "description": "Explore guides, APIs, tutorials, and reference materials for collecting telemetry and using Mezmo’s SRE agent to manage production environments.",
+  "redirects": [
+    {
+      "source": "/docs/search",
+      "destination": "/docs/search-tips"
+    }
+  ]
 }
