@@ -171,6 +171,139 @@ Response behavior:
 | Non-2xx response | Tool does not run. | The worker receives a tool error: approval channel error. |
 | Invalid JSON response | Tool does not run. | The worker receives a tool error: approval channel error. |
 
+## Sign and Verify Approval Webhooks
+
+Signing is an opt-in HMAC-SHA256 (hash-based message authentication code) "root
+of trust" for the webhook exchange. It verifies that the party returning a
+decision (the responder) is the same party Aura sent the request to. This is the
+same pattern Stripe and GitHub use to verify webhook signatures. The same
+signing also applies to the conversational route's decision submission, so both
+approval paths share one root of trust. Signing is off by default. When no secret
+is set, behavior matches the pre-signing default and Aura logs a warning that
+verification is disabled. Signing is configured entirely by environment
+variables, read once at startup.
+
+### Enable Signing
+
+To enable signing, set the `AURA_HITL_WEBHOOK_SECRET` environment variable. The
+secret's raw UTF-8 bytes are used directly as the HMAC key, so the secret must be
+at least 32 bytes long. The recommended way to generate one is
+`openssl rand -hex 32`, which produces a 64-character value used as-is with no
+decoding step.
+
+A present-but-empty or whitespace-only secret is a hard startup error, so Aura
+fails loudly rather than silently disabling signing. When a secret is set
+together with an `http://` (unencrypted) webhook URL, Aura refuses to start.
+HTTPS is required when signing is on. Secrets are read once at startup, so
+changing any of them requires a restart. At startup, Aura logs whether webhook
+signing is enabled, so you can confirm the secret was picked up after a restart.
+The off state logs a warning that verification is disabled.
+
+Setting `AURA_HITL_WEBHOOK_SECRET_SECONDARY` without a primary is a startup
+error, consistent with the empty or short primary case.
+
+| Environment variable | Default | Description |
+|---|---|---|
+| `AURA_HITL_WEBHOOK_SECRET` | none (signing off) | Primary HMAC key. Presence enables signing. Raw UTF-8 bytes are used as the key, with a minimum of 32 bytes. An empty or whitespace-only value is a startup error. |
+| `AURA_HITL_WEBHOOK_SECRET_SECONDARY` | none | Optional second key, used for verification only, to support zero-downtime key rotation. Setting it without a primary is a startup error. |
+| `AURA_HITL_WEBHOOK_TOLERANCE_SECS` | `300` | Allowed timestamp skew window, in seconds. Valid range is 1 to 86400. |
+
+```bash
+export AURA_HITL_WEBHOOK_SECRET=$(openssl rand -hex 32)     # min 32 bytes; presence enables signing
+export AURA_HITL_WEBHOOK_SECRET_SECONDARY=...               # optional; verification-only, for rotation
+export AURA_HITL_WEBHOOK_TOLERANCE_SECS=300                 # default 300; range 1-86400
+```
+
+### Request Signature Aura Sends
+
+The next two subsections are the contract for whoever builds the webhook
+receiver.
+
+Aura's outbound approval-request POST carries two headers:
+
+```http
+X-Aura-Signature-256: sha256=<64 lowercase hex>
+X-Aura-Timestamp: <unix seconds>
+```
+
+The signed string is the canonical form
+`{unix_timestamp}.{context}.{raw_request_body}`. Aura computes HMAC-SHA256 over
+that string with the secret and hex-encodes the result in lowercase. The approval
+request uses the context `approval-request:{decision_id}`.
+
+`raw_request_body` is the exact bytes of the request body as sent on the wire.
+Compute and verify the signature over those raw bytes before parsing the JSON,
+because parsing and re-encoding the body can change the bytes and break the signature.
+
+The context label ties each signature to a specific decision and direction. As a
+result, a captured signature can't be replayed against a different decision or in
+the other direction.
+
+A receiver verifies Aura's request, and signs its decision, with the same
+computation:
+
+```text
+signed_string = "{timestamp}.{context}.{raw_body}"
+signature     = "sha256=" + lowercase_hex(hmac_sha256(secret, signed_string))
+# Verify an inbound request: recompute with context "approval-request:{decision_id}"
+#   and compare against the X-Aura-Signature-256 header in constant time.
+# Sign an outbound decision: compute with context "approval-decision:{decision_id}"
+#   and send it in the X-Aura-Signature-256 and X-Aura-Timestamp headers.
+```
+
+### Responder Obligation
+
+When signing is enabled, the party that returns a decision (the responder) must
+also sign it. Use the same secret, the same `X-Aura-Signature-256` and
+`X-Aura-Timestamp` headers, and the context `approval-decision:{decision_id}`.
+This applies to both the webhook route's HTTP response body and the
+conversational route's `POST /v1/approvals/{decision_id}` request.
+
+The responder signs its decision with the same canonical string
+`{unix_timestamp}.{context}.{raw_response_body}`, using the context
+`approval-decision:{decision_id}` and the same lowercase-hex `sha256=<hex>`
+format. The responder is a separate service. Give it the same secret value out
+of band. It does not read Aura's environment variables. When the responder
+cannot verify Aura's request signature, it should reject the request with a
+non-2xx response, which Aura treats as an approval channel error.
+
+Aura rejects an invalid, stale, or missing signature. A timestamp outside the
+`AURA_HITL_WEBHOOK_TOLERANCE_SECS` window counts as stale.
+
+| Where the signature check fails | Result |
+|---|---|
+| Webhook response leg | The tool fails closed. The worker receives an approval channel error. |
+| Approval ingress endpoint (`POST /v1/approvals/{decision_id}`) | Aura returns a uniform `401`. |
+
+Signature direction and context labels at a glance:
+
+| Direction | Signed by | Context label |
+|---|---|---|
+| Approval request (outbound) | Aura | `approval-request:{decision_id}` |
+| Approval decision (webhook response and `POST /v1/approvals/{decision_id}`) | Responder | `approval-decision:{decision_id}` |
+
+### Rotate the Signing Key
+
+Rotate the key with a three-restart procedure. Steps 1 and 3 are rolling
+restarts. Each must finish on every Aura instance before you move to the next
+step.
+
+1. Set the new key as `AURA_HITL_WEBHOOK_SECRET_SECONDARY` on every Aura instance
+   and restart, so Aura accepts both the old and new keys when it verifies
+   decisions. Complete this on all instances before continuing.
+2. Update each responder to sign its decisions with the new key. During this
+   window, keep each responder able to verify Aura's requests with both the old
+   and new keys, because Aura still signs its outbound requests with the old key
+   until step 3.
+3. Promote the new key to `AURA_HITL_WEBHOOK_SECRET`, clear the secondary, and
+   restart every Aura instance. After this, Aura signs and verifies with the new
+   key only, so each responder must also be verifying Aura's requests with the
+   new key.
+
+A restart can interrupt in-flight approvals. See
+[Current limitations](#current-limitations) for how the session store affects
+approvals that are in progress.
+
 ## SSE lifecycle events
 
 Approval routes emit lifecycle events on streaming responses. These events are
@@ -224,6 +357,11 @@ POST /v1/approvals/{decision_id}
 ```json
 { "approved": false, "reason": "maintenance window not open" }
 ```
+
+When signing is enabled, the responder must sign the decision POST with the
+`approval-decision:{decision_id}` context. See
+[Sign and Verify Approval Webhooks](#sign-and-verify-approval-webhooks) for the
+signing contract.
 
 The AURA CLI supports this flow in HTTP mode. It renders
 `aura.approval_pending`, prompts for approve/deny, and POSTs the decision back to
@@ -279,5 +417,7 @@ Expected behavior:
   Redis or Valkey session store. A `POST /v1/approvals/{id}` request that lands on
   any instance then resolves an approval parked on another. See
   [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
-- Webhook egress has no built-in authentication layer. Put auth, signing, or
-  network controls in front of the webhook service.
+- Without a signing secret configured, the webhook and conversational approval
+  traffic is unauthenticated. See
+  [Sign and Verify Approval Webhooks](#sign-and-verify-approval-webhooks) to add
+  an HMAC-SHA256 root of trust.
