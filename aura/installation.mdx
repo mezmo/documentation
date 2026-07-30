@@ -1,11 +1,11 @@
 ---
 title: "Installation"
-description: "Install prebuilt AURA binaries with the install script or Homebrew, including platform support, the install environment variables, and checksum verification."
+description: "Install AURA with the install script, Homebrew, or native OS packages (.deb and .rpm), including platform support, the install environment variables, and checksum verification."
 ---
 
 <Note>**Open Alpha** — AURA is under active development. APIs and configuration may change between releases. [Issues and feature requests](https://github.com/mezmo/aura/issues) are welcome — we'd love your feedback.</Note>
 
-Use this page to install the prebuilt `aura` CLI and `aura-web-server` binaries with the install script or **Homebrew**.
+Use this page to install the prebuilt `aura` CLI and `aura-web-server` binaries with the install script, **Homebrew**, or a native OS package.
 
 ## Requirements
 
@@ -86,9 +86,83 @@ brew install mezmo/tap/aura
 
 Linux always uses direct download.
 
+## Install a Native OS Package on Linux (.deb and .rpm)
+
+Every tagged GitHub Release attaches native Debian (`.deb`) and RPM (`.rpm`) packages alongside the raw binaries. Use these if you prefer your system's package manager. You download the package yourself, because the install script does not install packages for you, but you can script the download (see below). This method is Linux-only.
+
+The packages provide the same two binaries as separate packages: `aura` (the CLI) and `aura-web-server`. These two packages install independently and do not depend on each other, so install only the one you need, or both.
+
+On the [GitHub Releases](https://github.com/mezmo/aura/releases) page, open a release and pick the asset from the **Assets** list that matches:
+
+- Package name: `aura` or `aura-web-server`.
+- Architecture: `amd64` or `arm64`.
+- Format: `.deb` for Debian and Ubuntu, or `.rpm` for RPM-based distributions such as RHEL and Fedora.
+
+Debian and RPM name the same two architectures differently: Debian filenames use `amd64` and `arm64`, while RPM filenames use `x86_64` and `aarch64`. Use the token that matches the format so a constructed filename is not wrong.
+
+In the commands below, replace `<package>`, `<version>`, and `<arch>` with the values from the asset you downloaded. Debian packages are named `<package>_<version>_<arch>.deb` and RPM packages are named `<package>-<version>-<release>.<arch>.rpm`, where nfpm's release segment defaults to `1`. For example, an `aura` amd64 package is named like `aura_<version>_amd64.deb`, and an `aura` x86_64 RPM is named like `aura-<version>-1.x86_64.rpm` (versions vary, so match the file you downloaded).
+
+To download a specific version without opening the Releases page, fetch the release asset by pinned version. This can be baked into provisioning or CI:
+
+```bash
+# Download a specific version's Debian package (replace <version> and <arch>)
+curl -fsSL -O https://github.com/mezmo/aura/releases/download/v<version>/aura_<version>_<arch>.deb
+```
+
+Substitute `<version>`, `<arch>`, and the package name, and use the RPM filename shape (`<package>-<version>-1.<arch>.rpm`) for a `.rpm`.
+
+After you download the chosen `.deb`, install it on Debian or Ubuntu. Omit `sudo` if you are already running as root, for example in a minimal container:
+
+```bash
+sudo apt install ./<package>_<version>_<arch>.deb   # resolves dependencies
+sudo dpkg -i ./<package>_<version>_<arch>.deb        # alternative; does not resolve dependencies
+```
+
+After you download the chosen `.rpm`, install it on RHEL or Fedora:
+
+```bash
+sudo dnf install ./<package>-<version>-<release>.<arch>.rpm    # resolves dependencies; release defaults to 1
+sudo rpm -i ./<package>-<version>-<release>.<arch>.rpm         # alternative; does not resolve dependencies
+```
+
+After installing, confirm the version:
+
+```bash
+aura --version        # or: dpkg -l aura  /  rpm -q aura
+```
+
+<Note>`sudo apt install ./file.deb` and `sudo dnf install ./file.rpm` can still reach your configured repositories to resolve dependencies. In an environment without network egress, mirror the package files and `checksums.txt` internally, or use `sudo dpkg -i` or `sudo rpm -i`, which install the local file without contacting repositories. These single-binary packages allow that because they declare no external dependencies.</Note>
+
+<Note>Each package installs only its executable to `/usr/bin/<binary>`, so `aura` lands at `/usr/bin/aura` and `aura-web-server` at `/usr/bin/aura-web-server`. A package does not include a systemd service unit or a default configuration file, so to run `aura-web-server` as a managed service you set that up yourself (see the [Web Server Reference](/aura/web-server-reference)). The install script instead defaults to `~/.local/bin`. Because `/usr/bin` is already on your `PATH`, this method needs no `PATH` setup.</Note>
+
+The `checksums.txt` file on the release covers every published artifact, including these packages, so you can verify a downloaded package against it. Fetch it from the same release as the package you downloaded. In the directory containing that package, run:
+
+```bash
+# Replace <version> with the version of the package you downloaded
+curl -fsSL -O https://github.com/mezmo/aura/releases/download/v<version>/checksums.txt
+sha256sum --ignore-missing -c checksums.txt
+```
+
+<Warning>The version in this URL must match the version of the package you downloaded. `sha256sum --ignore-missing -c` silently skips entries it cannot find, so a mismatched `checksums.txt` would report success without actually verifying your file.</Warning>
+
+This checks only the files present locally. See [Verify Downloads](#verify-downloads) for the full explanation.
+
+### Upgrade and Uninstall
+
+To upgrade, download the new version's package and run the same install command (`sudo apt install ./<file>.deb` or `sudo dnf install ./<file>.rpm`). The package manager replaces the installed version.
+
+To uninstall, remove the package you no longer want:
+
+```bash
+sudo apt remove aura   # or: sudo apt remove aura-web-server   (Debian and Ubuntu)
+sudo dnf remove aura   # or: sudo dnf remove aura-web-server   (RHEL and Fedora)
+```
+
+<Note>Removing the package deletes only `/usr/bin/<binary>`. If you previously installed with the install script, remove that copy from `~/.local/bin` separately for a clean removal.</Note>
+
 ## Next Steps
 
-Binaries land in `AURA_INSTALL`, which defaults to `~/.local/bin`. Make sure that directory is on your `PATH`.
+Binaries land in `AURA_INSTALL`, which defaults to `~/.local/bin`. Make sure that directory is on your `PATH`. Native OS packages instead install to `/usr/bin`, which is already on your `PATH`.
 
 - Configure and use the CLI at the [CLI Reference](/aura/cli-reference).
 - Run the server at the [Web Server Reference](/aura/web-server-reference).
