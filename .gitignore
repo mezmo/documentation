@@ -4,3 +4,5 @@ mstack-workspace/
 # Qdrant sync pipeline working dirs
 tmp/
 output/
+
+node_modules/

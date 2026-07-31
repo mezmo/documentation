@@ -489,25 +489,11 @@
       },
       {
         "tab": "API References",
-        "groups": [
+        "pages": [
+          "docs/authenticating-with-the-api",
           {
-            "group": "API Overview",
-            "pages": [
-              "docs/api-referencesk9h",
-              "docs/authenticating-with-the-api"
-            ]
-          },
-          {
-            "group": "Log Analysis API",
-            "openapi": "apis/log-analysis.json"
-          },
-          {
-            "group": "Telemetry Pipelines API",
-            "openapi": "apis/pipeline.yaml"
-          },
-          {
-            "group": "Enterprise API",
-            "openapi": "apis/enterprise-api.json"
+            "group": "Mezmo API",
+            "openapi": "apis/mezmo-api.yaml"
           }
         ]
       }
