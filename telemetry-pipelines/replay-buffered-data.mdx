@@ -5,10 +5,10 @@ description: "Automatically re-process recently buffered push-source data throug
 
 When a Responsive Pipeline switches to its `incident` state, Replay re-reads a recent window of data from the Pipeline's internal durable buffer for push sources. It then re-processes that data through the same Pipeline with optimizations turned off, so full-fidelity data is indexed into Mezmo Log Analysis for the window leading up to the incident. Replay is opt-in and configured per operational state.
 
-Replay solves a common gap in incident response. Without it, only data that arrives *after* the state switch receives high-fidelity treatment. The minutes just before the incident was detected are lost — a cost-optimized Pipeline would otherwise have sampled or dropped them. Replay recovers that recent window so you have the full context leading up to the incident.
+Replay solves a common gap in incident response. Without it, only data that arrives _after_ the state switch receives high-fidelity treatment. The minutes just before the incident was detected are lost — a cost-optimized Pipeline would otherwise have sampled or dropped them. Replay recovers that recent window so you have the full context leading up to the incident.
 
 <Note>
-Replay re-reads the Pipeline's short-lived internal buffer of recent push-source data and is triggered automatically by an operational-state change. It is not the same as [Archive and Restore Telemetry Data](/telemetry-pipelines/archive-restore-data) or the [Pipeline Data Restoration](/telemetry-pipelines/pipeline-data-restoration-source) source, which restore data from long-term archive storage on demand.
+  Replay re-reads the Pipeline's short-lived internal buffer of recent push-source data and is triggered automatically by an operational-state change. It is not the same as [Archive and Restore Telemetry Data](/telemetry-pipelines/archive-restore-data) or the [Pipeline Data Restoration](/telemetry-pipelines/pipeline-data-restoration-source) source, which restore data from long-term archive storage on demand.
 </Note>
 
 ## How it Works
@@ -30,8 +30,12 @@ Replay is opt-in and configured per operational state. For each operational stat
 
 The replay duration controls how far back in the buffer replay starts reading. It is measured by position in the buffer, not by any timestamp inside the events. You set it in minutes, up to a maximum.
 
+<Frame>
+  ![Image](/images/replay-config.png "Image")
+</Frame>
+
 <Note>
-The exact default and maximum replay duration are configured in the product. Confirm the values available for your account in the Mezmo Web App.
+  The exact default and maximum replay duration are configured in the product. Confirm the values available for your account in the Mezmo Web App.
 </Note>
 
 A typical setup enables automatic replay on the `incident` state, so a replay starts whenever the Pipeline enters an incident.
@@ -41,11 +45,11 @@ A typical setup enables automatic replay on the `incident` state, so a replay st
 While the Pipeline is in the `incident` state, the optimization Processors you disabled for that state stay off. Replayed events are therefore processed at full fidelity and indexed into Mezmo Log Analysis alongside newly arriving data.
 
 <Note>
-Because replayed data is re-processed through the Pipeline, events that were already indexed during normal operation (for example, sampled events) may appear again. Expect some duplication for the overlapping window.
+  Because replayed data is re-processed through the Pipeline, events that were already indexed during normal operation (for example, sampled events) may appear again. Expect some duplication for the overlapping window.
 </Note>
 
 <Note>
-Replay indexes the replayed window at full fidelity, so it re-ingests data that a cost-optimized Pipeline would normally have reduced. Expect a temporary increase in ingested volume for the replayed window. Set the replay duration to the shortest window that gives responders the context they need.
+  Replay indexes the replayed window at full fidelity, so it re-ingests data that a cost-optimized Pipeline would normally have reduced. Expect a temporary increase in ingested volume for the replayed window. Set the replay duration to the shortest window that gives responders the context they need.
 </Note>
 
 A replay stops when either of the following occurs:
@@ -59,11 +63,11 @@ A Pipeline does not automatically return to `normal` when a replay finishes. Swi
 
 ### Visual Indicators
 
-While a replay is in progress during an incident, the Mezmo Web App shows its status in several places:
+The pipeline list and the pipeline itself will be highlighted by the color selected above when your pipeline enters the `incident` state:<br />
 
-- The Pipeline header shows the overall replay status.
-- Each node that is processing replayed data shows a replay indicator.
-- Hovering over a node shows its replay progress.
+<Frame>
+  ![Image](/images/incident-state.png "Image")
+</Frame>
 
 ### Check Replay Status with the API
 
@@ -84,7 +88,6 @@ curl -s --request GET \
   --url 'https://api.mezmo.com/v3/pipeline/replay' \
   -H 'Authorization: Token <<PIPELINE_SERVICE_TOKEN>>' \
   -H 'Content-Type: application/json'
-
 ```
 
 For details on generating a token and authenticating requests, see [Authenticating with the API](/docs/authenticating-with-the-api).
