@@ -301,6 +301,7 @@
               "telemetry-pipelines/datadog-metrics-destination",
               "telemetry-pipelines/blackhole-destination",
               "telemetry-pipelines/new-relic-destination",
+              "telemetry-pipelines/open-telemetry-source",
               "telemetry-pipelines/sumo-logic-logs-destination",
               "telemetry-pipelines/honeycomb-logs-destination",
               "telemetry-pipelines/notification-channel-destination",
