@@ -604,10 +604,14 @@ memory_dir = "/tmp/aura-orchestration"   # legacy flat field; prefer top-level m
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `per_call_timeout_secs` | integer | `0` (disabled) | Per-call timeout for coordinator and worker LLM calls. Set to a positive value to enable. |
+| `stream_inactivity_timeout_secs` | integer | `0` (disabled) | Max seconds of silence between stream items on coordinator and worker orchestration streams before Aura fails the affected task with a no-stream-progress error. Suspends during tool execution and re-arms on each stream item. Must be below `per_call_timeout_secs` (when set) to take effect. Set to a positive value to enable. |
+
+See [request lifecycle](/aura/request-lifecycle) for the operational guidance and caveats on this timeout.
 
 ```toml
 [orchestration.timeouts]
 per_call_timeout_secs = 120
+stream_inactivity_timeout_secs = 60
 ```
 
 ### `[orchestration.artifacts]`
