@@ -104,11 +104,15 @@ Set the state:
 ```bash
 curl -i --request PUT \
   --url 'https://api.mezmo.com/v3/pipeline/state-variable/<<STATEID>>' \
-  -H 'Authorization: Token <<PIPELINE SERVICE_TOKEN>>' \
+  -H 'Authorization: Token <<PIPELINE_SERVICE_TOKEN>>' \
   -H 'Content-Type: application/json' \
   --data '{"pipeline_id": "<<PIPELINE_ID>>", "state": {"operational_state": "incident"}}'
 
 ```
+
+## Replay Buffered Data
+
+A Responsive Pipeline can automatically replay recently buffered push-source data when it enters the `incident` state. This re-processes the data from the minutes just before the incident at full fidelity and indexes it into Mezmo Log Analysis. Replay is opt-in and configured per operational state. For details, see [Replay Buffered Data](/telemetry-pipelines/replay-buffered-data).
 
 ## Interactive Demo
 
