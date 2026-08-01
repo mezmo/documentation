@@ -207,6 +207,7 @@
               "telemetry-pipelines/monitor-data-pipelines",
               "telemetry-pipelines/about-mezmo-trial",
               "telemetry-pipelines/configure-responsive-pipelines",
+              "telemetry-pipelines/replay-buffered-data",
               "telemetry-pipelines/shared-sources",
               "telemetry-pipelines/data-profiling",
               "telemetry-pipelines/about-mezmo-flow",
@@ -300,6 +301,7 @@
               "telemetry-pipelines/datadog-metrics-destination",
               "telemetry-pipelines/blackhole-destination",
               "telemetry-pipelines/new-relic-destination",
+              "telemetry-pipelines/open-telemetry-source",
               "telemetry-pipelines/sumo-logic-logs-destination",
               "telemetry-pipelines/honeycomb-logs-destination",
               "telemetry-pipelines/notification-channel-destination",
@@ -378,6 +380,7 @@
             "group": "Getting Started",
             "pages": [
               "aura/quickstart",
+              "aura/quickstart-docker",
               "aura/example-configs",
               "aura/quickstart-orchestration-math",
               "aura/quickstart-k8s-sre"
@@ -562,5 +565,11 @@
       "robots": "noindex"
     }
   },
-  "description": "Explore guides, APIs, tutorials, and reference materials for collecting telemetry and using Mezmo’s SRE agent to manage production environments."
+  "description": "Explore guides, APIs, tutorials, and reference materials for collecting telemetry and using Mezmo’s SRE agent to manage production environments.",
+  "redirects": [
+    {
+      "source": "/docs/search",
+      "destination": "/docs/search-tips"
+    }
+  ]
 }

@@ -1,6 +1,7 @@
 Actix
 agentic
 Akamai
+Alertmanager
 allowlist(s|ing)?
 alphanumerics
 anonymized
@@ -86,6 +87,7 @@ kafka
 keepalive
 kinesis
 kube
+kubeconfig
 kubernetes
 lineviewer
 Liquid
@@ -181,6 +183,7 @@ uuid(s?)
 Valkey
 Vercel
 vrl
+walkthrough
 webhook's
 websocket(s?)
 whitepaper
