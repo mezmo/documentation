@@ -451,7 +451,7 @@ api_key = "{{ env.OPENAI_API_KEY }}"
 
 ### `type = "bedrock_kb"`
 
-Managed RAG — no embedding model needed. Uses AWS credentials.
+Managed RAG uses AWS credentials, so no embedding model is needed.
 
 ```toml
 [[vector_stores]]
@@ -460,6 +460,7 @@ type = "bedrock_kb"
 knowledge_base_id = "{{ env.BEDROCK_KB_ID }}"
 region = "{{ env.AWS_REGION }}"
 # profile = "default"  # optional
+# managed = true  # optional
 context_prefix = "Company documentation"
 ```
 
@@ -470,8 +471,11 @@ Extra fields:
 | `knowledge_base_id` | string | — | **Required.** Bedrock Knowledge Base ID. |
 | `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
 | `profile` | string | — | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
+| `managed` | bool | `false` | Set to `true` when the store points at a Bedrock managed knowledge base; Aura then sends `managedSearchConfiguration` instead of `vectorSearchConfiguration` on retrieve requests. Leave it `false` or omit it for a classic vector-store-backed knowledge base. |
 
 When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment — for example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
+
+Both managed and classic Bedrock knowledge bases handle embeddings for you. The `managed` flag only selects which kind of knowledge base the store points at. If you leave `managed` unset or `false` for a managed knowledge base, retrieve requests fail with a `ValidationException`. The full error reads: `Incompatible configuration: vectorSearchConfiguration is not supported for managed knowledge bases. Use managedSearchConfiguration instead.` Set `managed = true` to resolve it.
 
 ### Embedding Models
 
