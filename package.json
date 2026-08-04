@@ -1,0 +1,14 @@
+{
+  "name": "mezmo-documentation",
+  "private": true,
+  "description": "Mezmo documentation site tooling",
+  "bin": {
+    "apimerge": "bin/merge-api"
+  },
+  "scripts": {
+    "merge": "bin/merge-api"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
