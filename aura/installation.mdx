@@ -182,7 +182,8 @@ aura --version        # or: dpkg -l aura  /  rpm -q aura
 ```
 
 <Note>On a host with no network egress, the `curl` download commands and the `curl | bash` install script cannot reach GitHub, and the script has no mirror or base-URL override. For a fully air-gapped target, run the download commands (the `.deb`/`.rpm` and `checksums.txt`, or the raw binary) on a separate host that has internet access, transfer the files to the target by your own means (internal mirror, artifact repository, `scp`, and so on), then verify and install locally with `dpkg -i`/`rpm -i` (or the manual binary steps).
-
+</Note>
+<Note>
 `sudo apt install ./file.deb` and `sudo dnf install ./file.rpm` can still reach your configured repositories to resolve dependencies. In an environment without network egress, mirror the package files and `checksums.txt` internally, or use `sudo dpkg -i` or `sudo rpm -i`, which install the local file without contacting repositories. These single-binary packages allow that because they declare no external dependencies.</Note>
 
 <Note>Each package installs only its executable to `/usr/bin/<binary>`, so `aura` lands at `/usr/bin/aura` and `aura-web-server` at `/usr/bin/aura-web-server`. A package does not include a systemd service unit or a default configuration file, so to run `aura-web-server` as a managed service you set that up yourself (see the [Web Server Reference](/aura/web-server-reference)). The install script's `direct` method instead defaults to `AURA_INSTALL_PATH` (`~/.local/bin`). Because `/usr/bin` is already on your `PATH`, this method needs no `PATH` setup.</Note>
