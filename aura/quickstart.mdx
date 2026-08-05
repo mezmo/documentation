@@ -7,14 +7,13 @@ description: "Install the aura binary locally, generate a config, connect an MCP
 
 ## 1. Install AURA
 
+This pipes a remote script to `bash`; to review the script or its checksum behavior first, see the [Installation](/aura/installation#run-the-install-script) page.
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash
 ```
 
-This gets you the `aura` CLI, which is all this quickstart needs. How it installs depends on your platform:
-
-- **macOS with Homebrew.** The script installs the [`mezmo/tap` formula](https://github.com/mezmo/homebrew-tap), which puts `aura` in your Homebrew prefix, already on your `PATH`. The formula ships the `aura` binary alone.
-- **Everything else.** The script downloads release binaries to `~/.local/bin/aura` and `~/.local/bin/aura-web-server`.
+This gets you the `aura` CLI, which is all this quickstart needs. The script auto-selects the best install method for your platform: a native package, **Homebrew**, or a direct binary download.
 
 If `aura` isn't found after a direct download, add the install directory to your `PATH`:
 
@@ -22,7 +21,7 @@ If `aura` isn't found after a direct download, add the install directory to your
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-<Tip>The script takes no arguments. Environment variables control the release version, the install directory, and which binaries you get. See [`scripts/README.md`](https://github.com/mezmo/aura/blob/main/scripts/README.md) for the full list.</Tip>
+<Tip>The script takes no arguments and is configured entirely by environment variables. See [Installation](/aura/installation) for all install methods and environment variables.</Tip>
 
 ## 2. Generate a config
 
