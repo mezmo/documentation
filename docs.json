@@ -379,8 +379,8 @@
           {
             "group": "Getting Started",
             "pages": [
-              "aura/installation",
               "aura/quickstart",
+              "aura/installation",
               "aura/quickstart-docker",
               "aura/example-configs",
               "aura/quickstart-orchestration-math",
