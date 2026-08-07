@@ -205,6 +205,27 @@ only Prometheus tool names. It can only query metrics, not touch the cluster.
 This separation means each worker operates with least-privilege access to tools,
 and the coordinator handles synthesis across domains.
 
+### Managing Large Tool Outputs with Scratchpad
+
+This example enables scratchpad. Large Kubernetes workload listings, log
+exports, and Prometheus metric dumps can overflow the model's context window, so
+scratchpad stores them on disk instead. Both MCP servers routinely return large
+payloads. The `cluster_inspector` and `metrics_analyst` workers call those
+tools, so scratchpad keeps each worker's context focused on its own task. The
+coordinator has no scratchpad.
+
+- **`[agent.scratchpad]`** enables scratchpad. Both workers, `cluster_inspector`
+  and `metrics_analyst`, inherit it because neither overrides it.
+- **`[mcp.servers.kubernetes.scratchpad]`** and
+  **`[mcp.servers.prometheus.scratchpad]`** set per-server thresholds that decide
+  when a tool's output is diverted to disk.
+- Because scratchpad is enabled, **`[agent.llm]`** declares **`context_window`**
+  rather than only **`max_tokens`**. Scratchpad sizes its context budget against
+  the declared context window.
+
+For the full list of scratchpad options, see the [Scratchpad](/aura/scratchpad)
+reference.
+
 ## Customizing tool filters
 
 The `mcp_filter` arrays in `aura-values.yaml` list the exact tool names exposed
