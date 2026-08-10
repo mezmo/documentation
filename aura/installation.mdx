@@ -134,6 +134,8 @@ chmod +x <asset>
 mv <asset> ~/.local/bin/aura   # or ~/.local/bin/aura-web-server
 ```
 
+<Note>Mezmo code-signs and Apple notarizes the macOS release binaries — both the `aura` CLI and `aura-web-server`, for Intel (`amd64`) and Apple Silicon (`arm64`). They run without the Gatekeeper "unidentified developer" prompt, even when downloaded through a web browser from the [GitHub Releases](https://github.com/mezmo/aura/releases) page.</Note>
+
 ## Install a Native OS Package on Linux (.deb and .rpm)
 
 Every tagged GitHub Release attaches native Debian (`.deb`) and RPM (`.rpm`) packages alongside the raw binaries. Use these if you prefer your system's package manager. The install script can install a release `.deb` or `.rpm` for you via `AURA_INSTALL_METHOD=deb` or `AURA_INSTALL_METHOD=rpm`, and it picks one automatically under `auto` on a supported Linux host. The steps below are the manual path, where you download and install the package files yourself. You can script the download (see below). This method is Linux-only.
