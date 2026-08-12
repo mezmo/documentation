@@ -77,6 +77,22 @@ agent.stream (AGENT, ROOT)
 Token usage (`llm.token_count.*`) is recorded on all orchestration phase
 spans (planning, worker).
 
+### Tool spans (`execute_tool`)
+
+For HITL-gated tool calls, `execute_tool` carries a `decision_id` attribute
+whose value is the UUID of the approval decision that gated the call. This is
+the same `decision_id` that appears on the approval webhook payload, the SSE
+lifecycle events, and the approval ingress endpoint (see
+[Human-in-the-Loop Approval Gates](/aura/hitl)).
+
+The attribute is stamped before the approval outcome is known, so every gated
+call carries it regardless of outcome — `approved`, `denied`, `timed_out`,
+`cancelled`, or `errored`. It is stamped for gated calls only; ungated tool
+calls carry no `decision_id` attribute.
+
+`decision_id` sits on the `execute_tool` (TOOL) parent, not on the nested
+`mcp.tool_call` child, where the tool's own status and errors land.
+
 ## OpenInference span kinds
 
 | Kind | Spans |
