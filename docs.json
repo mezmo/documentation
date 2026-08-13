@@ -410,6 +410,7 @@
               "aura/client-side-tools",
               "aura/ollama-guide",
               "aura/telemetry",
+              "aura/security",
               "aura/request-lifecycle",
               "aura/tracing-spans"
             ]

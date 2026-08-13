@@ -1,0 +1,143 @@
+---
+title: "Security and Data Handling"
+description: "AURA's security boundary, data flows, telemetry and OTLP content behavior, permission model, and vulnerability reporting for operators."
+---
+
+This is your reference for AURA's security boundary and data handling. Use it to decide how to deploy AURA, where its data goes, and which controls you have to enforce yourself.
+
+AURA gives you controls that limit what a model can do, but it does not draw a hard security boundary on its own. You define that boundary through the identity you run AURA under, the endpoints you connect, the network policy you enforce, and the approval policy you configure.
+
+## Safety Boundary and Operator Responsibilities
+
+AURA runs model requests and tool calls under the identity and operating system (OS) privileges you assign to it. Its controls can limit which tools a model sees, require approval for configured tool-name patterns, and export an audit trail. AURA does not make model output trustworthy, sandbox tools, undo mutations, or enforce the retention policy of a model provider or Model Context Protocol (MCP) server.
+
+You are responsible for:
+
+- Authenticating users.
+- Isolating the deployment.
+- Granting least-privilege credentials.
+- Selecting trusted model and MCP endpoints.
+- Restricting network egress.
+- Reviewing the approval policy.
+- Backing up any system a tool can change.
+
+Treat data returned by logs, runbooks, vector stores, webpages, and MCP servers as untrusted model input.
+
+[aura-web-server](/aura/web-server-reference) has no end-user authentication and no identity-aware role-based access control (RBAC) for its OpenAI-compatible API. Bind it to a private interface, or place it behind an authenticated Transport Layer Security (TLS) gateway or service mesh.
+
+An air-gapped deployment requires every enabled network dependency to be local or disabled. AURA does not implement a general-purpose egress firewall, so you enforce that boundary with your own network policy. See Data Retention and Large Language Model Egress below for the destinations to check against this rule.
+
+## Telemetry and Data Egress
+
+AURA has two independent telemetry mechanisms with different recipients and purposes:
+
+- **Mezmo CLI product telemetry** sends usage data to Mezmo by default. It is CLI-only.
+- **Operator OpenTelemetry export** sends operational traces to a collector you select, and nowhere else.
+
+### Mezmo CLI Product Telemetry
+
+Only the interactive CLI emits product telemetry. The web server and core library do not emit it, and the published server container does not emit it. Telemetry stays off until you send your first chat message after a one-time notice. You can disable it by setting `DO_NOT_TRACK=1`, `AURA_TELEMETRY_DISABLED=1`, or `AURA_TELEMETRY_ENABLED=false`, or by setting `[telemetry] enabled = false` in `~/.aura/cli.toml`. You can also override the endpoint, which changes the recipient from Mezmo to a destination you choose. For the full event schema and consent model, see [Telemetry & Privacy](/aura/telemetry).
+
+### Operator OpenTelemetry Export
+
+OpenTelemetry export is off unless you set `OTEL_EXPORTER_OTLP_ENDPOINT`. AURA exports only to that endpoint. Mezmo receives nothing unless you point AURA at a Mezmo-operated collector.
+
+<Warning>
+Once OpenTelemetry Protocol (OTLP) export is on, treat the collector as a recipient of prompt, response, and tool content. `OTEL_RECORD_CONTENT=false` is **not** a complete content-suppression control. Do not set `OTEL_EXPORTER_OTLP_ENDPOINT` unless the collector and its downstream systems are approved to receive model and tool content.
+</Warning>
+
+AURA emits two kinds of spans. AURA-owned spans honor `OTEL_RECORD_CONTENT`; Rig-owned spans (created by the underlying Rig library) do not. For AURA-owned spans, `OTEL_RECORD_CONTENT=false` (the default) omits prompt and completion text, and tool arguments and results. `OTEL_RECORD_CONTENT=true` includes them, subject to `OTEL_CONTENT_MAX_LENGTH` (default 1000 bytes). Rig-owned spans (`chat`, `chat_streaming`, `agent.turn`, and `execute_tool`) record content independently of that flag. AURA translates their prompt, response, message, tool-argument, and tool-result attributes for export, subject to `OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT` (65,536 bytes by default), not `OTEL_CONTENT_MAX_LENGTH`. So setting `OTEL_RECORD_CONTENT=false` still exports content from Rig-owned spans.
+
+For the span layout and content-recording behavior, see [Tracing & Span Layout](/aura/tracing-spans). For the OpenTelemetry environment variables the CLI reads, see the [AURA CLI Reference](/aura/cli-reference).
+
+## Credentials
+
+Reference credentials with environment-variable placeholders such as `{{ env.OPENAI_API_KEY }}` instead of writing literal secrets into your TOML, and populate those environment variables from your secret manager. Initialization keeps the placeholder in `config.toml`, but if you enter a new key, the CLI can write it to a local `.env` file using normal filesystem permissions rather than a restrictive mode. Restrict that file and exclude it from version control.
+
+Environment substitution is general-purpose. A secret referenced from `system_prompt`, from any other prompt-bearing field, or from a tool field lands in model context. Resolved credentials also live in AURA's process memory.
+
+Provider and transport authentication fields are not a secret-isolation boundary. A broadly privileged MCP server, STDIO child process, or client-side shell or file tool can read process environment, mounted secrets, and files, and return them to the model or another destination. Run AURA and each MCP server with separate least-privilege identities.
+
+`headers_from_request` forwards selected inbound headers to a destination. Forward only the headers a destination is allowed to receive, and never use a catch-all rule for authentication headers, for example, a `*` pattern that forwards every inbound header.
+
+For the full field reference, see the [Configuration Reference](/aura/configuration-reference).
+
+## Data Retention and Large Language Model Egress
+
+AURA's direct application-level data flows are:
+
+- **Model provider:** the system prompt, user input, relevant conversation history, and tool results placed into model context.
+- **MCP server:** the selected tool name and its arguments, which can contain user input or model-derived data.
+- **Optional destinations:** retrieval-augmented generation (RAG) services, approval webhooks, Redis-compatible session stores, and OTLP collectors, only when you configure them. An approval webhook receives the tool name and arguments under review, and by default that request is unsigned and can use plaintext `http://` unless you configure a signing secret (see Approval and Fail-Closed Behavior below). A Redis-compatible session store can hold operational data such as parked approval payloads and task state, so treat it as a destination with comparable sensitivity.
+
+The CLI also sends API requests to its configured AURA server and, unless you disable it, sends product telemetry to the configured endpoint. `aura init` can contact a provider's model-list endpoint unless you use offline mode.
+
+MCP servers, enabled client-side tools, and STDIO processes can initiate their own network traffic under their own OS privileges, outside AURA's control. Evaluate those components separately and enforce system-level network policy where required. Only describe a deployment as sending data "only" to model providers and MCP servers if network policy independently enforces that boundary and every other feature is disabled.
+
+Provider-side and MCP-side logging, training, residency, and retention are governed by those services. AURA cannot override them, so select providers, terms, and endpoints that meet your requirements, or use local services.
+
+For persistence, the OpenAI-compatible server does not persist ordinary chat history; clients resubmit it with later requests. The CLI saves conversations under `~/.aura/conversations/` until you remove them. Scratchpad files, orchestration artifacts, diagnostic logs, and session-store records can hold operational data. Their permissions, expiry, rotation, backup, and deletion are your responsibility.
+
+## RBAC and MCP Permission Boundaries
+
+`mcp_filter` and `client_tool_filter` control which named tools an agent or worker sees. An explicit empty `mcp_filter` grants no MCP tools, while a missing filter can expose every discovered tool. Use explicit allow-lists for every agent and worker.
+
+These filters are capability-reduction controls, not user-aware RBAC. The MCP server and the credential used to connect to it define the authoritative data and action permissions. Enforce user authentication and RBAC at the ingress, MCP server, cloud identity and access management (IAM), Kubernetes service account, and network layers. Do not give an AURA process broader credentials than any allowed tool call needs.
+
+For the filter fields, see the [Configuration Reference](/aura/configuration-reference). For the empty-filter behavior change, see [empty `mcp_filter` behavior](/aura/breaking-changes-20260723-empty-mcp-filter).
+
+## Read-Only and Mutating Tools
+
+AURA cannot infer whether a tool is read-only or mutating from its name or schema. Separate read-only and mutating servers and credentials, expose only the tools you need, and match every mutating tool name in the approval policy. Prefer a read-only service account for investigation and a separate, narrowly scoped remediation agent for changes.
+
+Client-side tools are disabled by default and require opt-in on both the CLI and the agent configuration. When you enable them, the `Shell`, file-read, and file-update tools run on the client host with the user's privileges and no sandbox. Permission glob rules reduce blast radius, but they are not a hard boundary and can be over-broad.
+
+For the risk model and configuration, see [Client-Side Tools](/aura/client-side-tools).
+
+## Approval and Fail-Closed Behavior
+
+The `[hitl]` policy gates only tool names that match its `require_approval` glob patterns. A matching call reaches its tool only after the configured route returns an `Approved` decision. The following outcomes all fail closed for that call:
+
+- Denial.
+- Timeout.
+- Client disconnect.
+- Shutdown.
+- A malformed or rejected approval.
+- Any transport, channel, or storage failure.
+
+None of them stop the model from proposing another call.
+
+AURA does not establish that an approver is human. A conversational decision comes from the connected client, and a webhook decision can come from a person or an automated service. Your deployment must authenticate users and enforce approver identity and authorization outside AURA.
+
+Webhook hash-based message authentication code (HMAC) signing and verification are optional. Without a signing secret (the `AURA_HITL_WEBHOOK_SECRET` environment variable), AURA sends unsigned requests, accepts unsigned responses, and permits a plaintext `http://` URL. When you set that secret, AURA rejects unsigned or invalid responses and rejects plaintext URLs. Production should use TLS and HMAC.
+
+Tools omitted from `require_approval` are not gated. Approval does not prove a call is correct, because the model's explanation and arguments can reflect hallucination or prompt injection. Approvers should inspect the exact tool, arguments, target, and effect, and reject any call whose impact they cannot determine.
+
+For the full approval configuration, see [Human-in-the-Loop Approval Gates](/aura/hitl).
+
+## Prompt Injection from Logs and Runbooks
+
+Logs, alerts, traces, tickets, runbooks, retrieved documents, webpages, and MCP responses can contain text that instructs the model to ignore policy, reveal data, or call tools. AURA treats this content as context and does not guarantee that the model separates instructions from evidence.
+
+Reduce this risk by combining independent controls:
+
+- Give investigative agents read-only tools and minimal data access.
+- Use explicit tool allow-lists and approval patterns for every mutation.
+- Keep credentials out of model-directed shell and file tools.
+- Restrict outbound network access and MCP destinations.
+- Require an approver to verify source data and exact arguments rather than trusting the model's summary.
+- Test agents with hostile log lines and runbook content before production use.
+
+## Vulnerability Reporting
+
+Report suspected vulnerabilities privately to [security@mezmo.com](mailto:security@mezmo.com). GitHub private vulnerability reporting is not enabled for the repository, so do not rely on its private-advisory URL. Include the affected version, deployment mode, reproduction steps, impact, and any proposed mitigation.
+
+Never include live credentials, production data, or an unredacted exploit in a public issue. Use a public issue only for non-sensitive hardening requests.
+
+AURA does not publish a multi-version support window. Security fixes target the latest release. Upgrade to the newest release before reporting a problem that might already be fixed.
+
+## Release Integrity and Supply Chain
+
+Release binaries and `.deb` and `.rpm` packages ship with SHA-256 checksums. The install script requires a matching checksum by default, and a mismatch is always fatal. Keep `AURA_REQUIRE_CHECKSUM=1`, or supply a separately obtained trusted checksum with `AURA_CHECKSUMS`.
+
+Checksums detect corruption, but because they download from the same location as the artifact, they do not protect against compromise of the release account. AURA does not currently claim cryptographic signatures or provenance attestations, and it does not publish a software bill of materials (SBOM). Where you require those controls, build from a reviewed source revision in a controlled pipeline, generate and retain an SBOM, scan the result, sign it with your organization's identity, and pin deployments to verified package hashes or container digests.

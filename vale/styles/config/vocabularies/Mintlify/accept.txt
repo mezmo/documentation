@@ -9,6 +9,7 @@ Ansible
 antimalware
 apiKey
 APIs
+approver(s?)
 Aptible
 arcsin
 arccos
@@ -123,6 +124,7 @@ Palo
 params
 passthrough
 performant
+plaintext
 pii
 Pino
 prepended
@@ -144,6 +146,7 @@ repo
 repos
 RSyslog
 ruleset
+runbook(s?)
 serverless
 signup
 Splunk
@@ -179,6 +182,8 @@ uninstallations
 [Uu]nmount(s|ed|ing)?
 [Uu]npause
 unparsed
+unredacted
+untrusted
 url
 userinfo
 uuid(s?)
@@ -187,6 +192,7 @@ Vercel
 vrl
 walkthrough
 webhook's
+webpage(s?)
 websocket(s?)
 whitepaper
 worker_reasoning
