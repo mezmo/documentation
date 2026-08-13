@@ -29,6 +29,7 @@ callout
 Checkly
 clickhouse
 CLI(s|'s)
+Cloudsmith
 Cloudwatch
 Codec
 config(s?)
@@ -190,3 +191,4 @@ webhook's
 websocket(s?)
 whitepaper
 worker_reasoning
+zypper

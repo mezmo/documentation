@@ -103,39 +103,50 @@ By default the [install script](https://raw.githubusercontent.com/mezmo/aura/mai
   curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash
   ```
 
-By default the [install script](https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh) installs via `dnf`, or falls back to using `yum` or `rpm`. The script is configured entirely through [environment variables](#install-script-environment-variables).
+By default, for RPM systems, the [install script](https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh) registers the Cloudsmith package repository and installs AURA through a system package manager (`dnf`, `microdnf`, `yum`, or `zypper`). If none of these is available, it falls back to a direct binary download. Later upgrades come from the package manager, for example, `dnf update`. The script is configured entirely through [environment variables](#install-script-environment-variables). Installing packages requires root or `sudo` access. By default the script installs both the `aura` CLI and the daemon, which maps to [`AURA_COMPONENT=all`](#install-script-environment-variables).
 
-  **Install with DNF**
+  **Register the Repository Manually**
 
-  To see which versions and assets are available, browse the [GitHub Releases](https://github.com/mezmo/aura/releases) page.
+  This advanced path is for when you want to register the repository yourself instead of running the install script. You need a package manager that can resolve and install dependencies for you, such as `dnf`, `microdnf`, `yum`, or `zypper`, plus root or `sudo` access. Bare `rpm` can't resolve dependencies, so it isn't enough on its own.
 
-  ```bash
-  # Replace <package>, <version>, and <arch> with the values for the asset you want
-  sudo dnf install https://github.com/mezmo/aura/releases/download/v<version>/<package>-<version>-1.<arch>.rpm
+  Create a repository file at `/etc/yum.repos.d/mezmo-aura.repo` (`/etc/zypp/repos.d/mezmo-aura.repo` on zypper):
+
+  ```ini
+  [mezmo-aura]
+  name=mezmo-aura
+  baseurl=https://dl.cloudsmith.io/public/mezmo/aura/rpm/any-distro/any-version/$basearch
+  enabled=1
+  gpgcheck=1
+  repo_gpgcheck=1
+  gpgkey=https://dl.cloudsmith.io/public/mezmo/aura/gpg.05C8AD333177EB1F.key
   ```
 
-  After installing, confirm the version:
+  Keep `$basearch` literal so the package manager substitutes your architecture.
+
+  The `aura` CLI and the daemon are independent packages, so you can install the CLI, the daemon, or both. Install AURA with your package manager, for example:
 
   ```bash
-  aura --version        # or: rpm -q aura
+  sudo dnf install aura
   ```
 
-  **Download and validate the RPM package directly.**
-
-  Set the package, version, and architecture once, then reuse the constructed filename for the download, the checksum check, and the install. RPM filenames use `x86_64` and `aarch64`, not `amd64` and `arm64`, and the release segment defaults to `1`:
+  Install `aura-web-server` (the daemon, or long-running server component):
 
   ```bash
-  # Replace these three values with the asset you want
-  PACKAGE=aura VERSION=0.1.18 ARCH=x86_64
-  RPM="${PACKAGE}-${VERSION}-1.${ARCH}.rpm"
-  BASE="https://github.com/mezmo/aura/releases/download/v${VERSION}"
-
-  curl -fsSL -O "${BASE}/${RPM}" \
-    && curl -fsSL -O "${BASE}/checksums.txt" \
-    && awk -v file="${RPM}" '$2 == file || $2 == "*" file' checksums.txt \
-      | sha256sum -c - \
-    && sudo dnf install "./${RPM}"
+  sudo dnf install aura-web-server
   ```
+
+  `yum` and `zypper` use the same install and update verbs, so substitute your tool, for example `sudo yum install aura` or `sudo zypper install aura`. `microdnf` shares `dnf` syntax. On first use, `zypper` can prompt to trust the repository GPG key. For unattended installs, pass `--gpg-auto-import-keys --non-interactive`.
+
+  To pin a version directly, use the `<name>-<version>` form, for example `sudo dnf install aura-0.1.18` (`0.1.18` is an example version).
+
+  Confirm the install with `aura --version` (or `rpm -q aura`), and `aura-web-server --version` for the daemon:
+
+  ```bash
+  aura --version
+  aura-web-server --version
+  ```
+
+  Packages are verified against the repository's GPG signatures, and later upgrades come from `dnf update`.
   </Tab>
 
   <Tab title="APT">
@@ -146,25 +157,50 @@ By default the [install script](https://raw.githubusercontent.com/mezmo/aura/mai
   curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash
   ```
 
-By default the [install script](https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh) installs via `dpkg`, or falls back to a direct binary download. The script is configured entirely through [environment variables](#install-script-environment-variables).
+By default, for Debian and Ubuntu systems, the [install script](https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh) registers the Cloudsmith apt repository and installs AURA through `apt-get`. If `apt-get` is unavailable, it falls back to a direct binary download. Later upgrades come from `apt upgrade`. The script is configured entirely through [environment variables](#install-script-environment-variables). Installing packages requires root or `sudo` access. By default the script installs both the `aura` CLI and the daemon, which maps to [`AURA_COMPONENT=all`](#install-script-environment-variables).
 
-  **Install with `dpkg`**
+  **Register the Repository Manually**
 
-To see which versions and assets are available, browse the [GitHub Releases](https://github.com/mezmo/aura/releases) page.
+  Use this path instead of the install script if you'd rather register the repository yourself. You need root or `sudo` access. `apt-get` is required. Bare `dpkg` can't resolve dependencies, so it isn't enough on its own.
+
+  First, install the repository signing key to `/usr/share/keyrings/mezmo-aura-archive-keyring.gpg`. Download the key from `https://dl.cloudsmith.io/public/mezmo/aura/gpg.05C8AD333177EB1F.key`, run it through `gpg --dearmor`, and write the result to that keyring path:
 
   ```bash
-  # Replace these three values with the asset you want
-  PACKAGE=aura VERSION=0.1.18 ARCH=amd64
-  DEB="${PACKAGE}_${VERSION}_${ARCH}.deb"
-  BASE="https://github.com/mezmo/aura/releases/download/v${VERSION}"
-
-  curl -fsSL -O "${BASE}/${DEB}" \
-    && curl -fsSL -O "${BASE}/checksums.txt" \
-    && awk -v file="${DEB}" '$2 == file || $2 == "*" file' checksums.txt \
-      | sha256sum -c - \
-    && sudo dpkg -i "./${DEB}" \
-    && sudo apt-get install -f
+  curl -fsSL https://dl.cloudsmith.io/public/mezmo/aura/gpg.05C8AD333177EB1F.key \
+    | gpg --dearmor \
+    | sudo tee /usr/share/keyrings/mezmo-aura-archive-keyring.gpg > /dev/null
   ```
+
+  Next, create the apt source file `/etc/apt/sources.list.d/mezmo-aura.list` with a source line of this form:
+
+  ```text
+  deb [signed-by=/usr/share/keyrings/mezmo-aura-archive-keyring.gpg] https://dl.cloudsmith.io/public/mezmo/aura/deb/<distro> <codename> main
+  ```
+
+  Replace `<distro>` and `<codename>` with the values for your system, because the apt repository is indexed per distribution. If you are not sure which values apply, run the install script instead. It detects your distribution and codename automatically and is the reliable path.
+
+  The `aura` CLI and the daemon are independent packages, so you can install the CLI, the daemon, or both. Update the package index and install AURA:
+
+  ```bash
+  sudo apt-get update && sudo apt-get install aura
+  ```
+
+  Install `aura-web-server` (the daemon, or long-running server component):
+
+  ```bash
+  sudo apt-get install aura-web-server
+  ```
+
+  To pin a version directly, use the `<name>=<version>` form, for example `sudo apt-get install aura=0.1.18` (`0.1.18` is an example version).
+
+  Confirm the install with `aura --version` (or `dpkg -s aura`), and `aura-web-server --version` for the daemon:
+
+  ```bash
+  aura --version
+  aura-web-server --version
+  ```
+
+  Packages are verified through the `signed-by` keyring, and later upgrades come from `apt upgrade`.
 
   </Tab>
 </Tabs>
@@ -175,22 +211,22 @@ To see which versions and assets are available, browse the [GitHub Releases](htt
 
 | Variable | Description | Default |
 |---|---|---|
-| `AURA_VERSION` | Release tag to install. A leading `v` is optional and is stripped. `latest` follows the GitHub releases/latest redirect to the newest release. Homebrew cannot pin a version: under `auto`, a pinned version skips Homebrew; with `AURA_INSTALL_METHOD=homebrew`, it is a fatal error. | `latest` |
-| `AURA_INSTALL_METHOD` | How to install: `auto`, `homebrew`, `direct`, `deb`, or `rpm`, lowercase (for example `deb`, not `DEB`). Any other value is a fatal error. See [Install AURA](#install-aura). | `auto` |
+| `AURA_VERSION` | Release tag to install. A leading `v` is optional and is stripped. `latest` follows the GitHub releases/latest redirect to the newest release. For the `deb` and `rpm` methods, `AURA_VERSION` pins the package version, and `latest` lets the package manager choose the newest. Homebrew cannot pin a version: under `auto`, a pinned version skips Homebrew; with `AURA_INSTALL_METHOD=homebrew`, it is a fatal error. | `latest` |
+| `AURA_INSTALL_METHOD` | How to install: `auto`, `homebrew`, `direct`, `deb`, or `rpm`, lowercase (for example `deb`, not `DEB`). The `deb` and `rpm` methods need a package manager that resolves dependencies: `apt-get` for `deb`; `dnf`, `microdnf`, `yum`, or `zypper` for `rpm`. Any other value is a fatal error. See [Install AURA](#install-aura). | `auto` |
 | `AURA_INSTALL_PATH` | Install directory for the `direct` method, created if it does not exist. Under `auto`, setting it skips Homebrew, Debian, and RPM in favor of a direct install. Combining it with an explicit `homebrew`, `deb`, or `rpm` method is a fatal error. | `~/.local/bin` |
 | `AURA_COMPONENT` | Which binaries to install: `all`, `server`, or `cli`. `all` or `cli` installs the `aura` CLI. `all` or `server` installs `aura-web-server`. Any other value is a fatal error. | `all` |
-| `AURA_REQUIRE_CHECKSUM` | When `1` (the default), a missing checksums file or a missing entry for an asset is a fatal error; set it to `0` to downgrade those to a warning. A checksum mismatch, or the absence of any checksum tool (`sha256sum`, `shasum`, or `openssl`) when there is a checksum to verify, is always fatal regardless of this setting. Any value other than `0` or `1` is a fatal error. | `1` |
-| `AURA_CHECKSUMS` | Path to a local `checksums.txt` file. When set, the script verifies against this file instead of downloading `checksums.txt` from the release. | (unset) |
+| `AURA_REQUIRE_CHECKSUM` | Applies to the `direct` method only. When `1` (the default), a missing `checksums.txt` file or a missing entry for an asset is a fatal error; set it to `0` to downgrade those to a warning. A checksum mismatch, or the absence of any checksum tool (`sha256sum`, `shasum`, or `openssl`) when there is a checksum to verify, is always fatal regardless of this setting. Any value other than `0` or `1` is a fatal error. | `1` |
+| `AURA_CHECKSUMS` | Applies to the `direct` method only. Path to a local `checksums.txt` file. When set, the script verifies against this file instead of downloading `checksums.txt` from the release. | (unset) |
 
 For a pinned, checksum-verified, non-interactive install suitable for provisioning or CI, combine the variables:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh \
-  | AURA_INSTALL_METHOD=deb AURA_VERSION=0.1.18 AURA_CHECKSUMS=/path/to/checksums.txt bash
+  | AURA_INSTALL_METHOD=direct AURA_VERSION=0.1.18 AURA_CHECKSUMS=/path/to/checksums.txt bash
 ```
 
 
-<Note>With the default `AURA_REQUIRE_CHECKSUM=1`, a local `AURA_CHECKSUMS` file that lacks an entry for the selected asset aborts the install.</Note>
+<Note>For the `direct` method, with the default `AURA_REQUIRE_CHECKSUM=1`, a local `AURA_CHECKSUMS` file that lacks an entry for the selected asset aborts the install.</Note>
 
 ## Next Steps
 
