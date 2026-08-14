@@ -494,10 +494,10 @@
       {
         "tab": "API References",
         "pages": [
-          "docs/authenticating-with-the-api",
+          "docs/api",
           {
             "group": "Mezmo API",
-            "openapi": "apis/mezmo-api.yaml"
+            "openapi": "apis/combined-mezmo-api.yaml"
           }
         ]
       }
@@ -533,18 +533,7 @@
       "copy",
       "view",
       "assistant",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "grok",
-      "aistudio",
-      "devin",
-      "windsurf",
       "mcp",
-      "add-mcp",
-      "cursor",
-      "vscode",
-      "devin-mcp",
       "download-spec"
     ]
   },
@@ -565,6 +554,10 @@
     {
       "source": "/docs/search",
       "destination": "/docs/search-tips"
+    },
+    {
+      "source": "/docs/authenticating-with-the-api",
+      "destination": "/docs/api"
     }
   ]
 }

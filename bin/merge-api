@@ -48,7 +48,7 @@ const ROOT = path.join(__dirname, '..')
 
 const DEFAULTS = {
   dir: 'apis'
-, output: 'mezmo-api.yaml'
+, output: 'combined-mezmo-api.yaml'
 , base_server: 'https://api.mezmo.com'
 , spec_version: '3.0.0'
 }
@@ -109,7 +109,7 @@ EXIT STATUS
 
 EXAMPLES
   ${name}
-  ${name} --spec-dir specs --output ../build/mezmo-api.yaml
+  ${name} --spec-dir specs --output ../build/combined-mezmo-api.yaml
   ${name} --base-server https://api.staging.mezmo.com --quiet
 `.trim())
 }
