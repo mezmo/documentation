@@ -544,7 +544,8 @@
       "add-mcp",
       "cursor",
       "vscode",
-      "devin-mcp"
+      "devin-mcp",
+      "download-spec"
     ]
   },
   "footer": {
