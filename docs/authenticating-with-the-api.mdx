@@ -3,6 +3,8 @@ title: "Authenticating With The API"
 description: "Authenticate Mezmo API requests with key-based tokens in the Authorization header, including enterprise delegation, token types, and best practices."
 ---
 
+Download the [OpenAPI Spec](/apis/mezmo-api.yaml).
+
 When making API requests, it is crucial to authenticate them to ensure secure communication and proper authorization. Mezmo's API utilizes a key-based authentication system. This method involves including a unique access key in the Authorization header of your request, prefixed with the `Token`  scheme.
 
 ### Quick start
@@ -15,7 +17,6 @@ export $MZM_ACCESS_KEY = 'sta_1a2b3c4d5e6f7890abcdef1234567890abcdef12'
 curl -H "Authorization: Token $MZM_ACCESS_KEY" \
      -H "Accept: application/json" \
      https://api.mezmo.com/v3/pipeline
-
 ```
 
 ```javascript
@@ -25,7 +26,6 @@ const res = await fetch('https://api.mezmo.com/v3/auth/token>', {
 		'Accept': 'application/json'
 	}
 })
-
 ```
 
 For enterprise operations, additional, specific account context may be included for delegation as needed.
@@ -38,7 +38,6 @@ export MZM_ENTERPRISE_KEY = 'ste_d710b57dc7dedde45ccc4c35b68cf385b89f8dc3'
 curl -H "Authorization: Token $MZM_ENTERPRISE_KEY" \
      -H "x-delegate-account-id: 507f1f77bc" \
      https://api.mezmo.com/v3/pipeline
-
 ```
 
 ---
@@ -50,11 +49,9 @@ Choose the Appropriate Access Key Type:
 Mezmo offers different token types, each designed for specific use cases and levels of access. Carefully select the token type that best aligns with the requirements of your application or integration. This might include:
 
 1. **Service Accounts**: Often used for machine-to-machine communication, background services, or applications that require persistent access. Service accounts have only single access key associated with it
-
-    1. **Enterprise Service Accounts**: Similar to a standard service account with the exception that these access keys are not bound to an individual account and may be used to manage an enterprise programmatically, or interface with any of the child accounts associated with an enterprise organization.
-
-2. **Personal Access Keys**: Associated with a specific user with in the organization which may have a shorter lifespan. These keys inherently have the level of access as the user it is associated with. Changing the permissions granted to a user changes the scope of any access keys they may have provisioned. 
-    1. Scoped Access: Additionally, personal access keys may be created with a limited level of access to further restrict what they may be used for.
+   1. **Enterprise Service Accounts**: Similar to a standard service account with the exception that these access keys are not bound to an individual account and may be used to manage an enterprise programmatically, or interface with any of the child accounts associated with an enterprise organization.
+2. **Personal Access Keys**: Associated with a specific user with in the organization which may have a shorter lifespan. These keys inherently have the level of access as the user it is associated with. Changing the permissions granted to a user changes the scope of any access keys they may have provisioned.
+   1. Scoped Access: Additionally, personal access keys may be created with a limited level of access to further restrict what they may be used for.
 
 #### Examples
 
@@ -73,7 +70,6 @@ curl -H "Authorization: Token $MZM_ENTERPRISE_KEY" \
 curl -H "Authorization: Token $MZM_ENTERPRISE_KEY" \
      -H "x-delegate-account-id: 507f1f77bc" \
      https://api.mezmo.com/v3/pipeline
-
 ```
 
 ### Security best practices
@@ -92,7 +88,6 @@ curl -H "Authorization: Token $MZM_ACCESS_KEY" https://api.mezmo.com/v3/pipeline
 # Avoid
 curl -H "Authorization: Token sta_34b8f6897cd3396e6af781c3bfe34065b690f90b" \ 
      https://api.mezmo.com/v3/pipeline
-
 ```
 
 ---
@@ -101,11 +96,11 @@ curl -H "Authorization: Token sta_34b8f6897cd3396e6af781c3bfe34065b690f90b" \
 
 Common HTTP codes
 
-| Code | Meaning | What to do | 
-| ---- | ---- | ---- | 
-| `401` | Token invalid or expired | Check token format and expiration. Re‑issue if needed. | 
-| `403` | Insufficient permissions | Verify the token has the required scopes. | 
-| `404` | Resource not found | Check the endpoint URL and resource IDs. | 
+| Code | Meaning | What to do |
+| --- | --- | --- |
+| `401` | Token invalid or expired | Check token format and expiration. Re‑issue if needed. |
+| `403` | Insufficient permissions | Verify the token has the required scopes. |
+| `404` | Resource not found | Check the endpoint URL and resource IDs. |
 
 Quick validation
 
@@ -114,7 +109,6 @@ Quick validation
 ```bash
 export MZM_ACCESS_KEY = 'sta_34b8f6897cd3396e6af781c3bfe34065b690f90b'
 curl -I -H "Authorization: Token $MZM_ACCESS_KEY" https://api.mezmo.com/v3/pipeline
-
 ```
 
 Debug headers
@@ -125,7 +119,6 @@ Responses from the API will include additional metadata in the response headers 
 export MZM_ACCESS_KEY = 'sta_34b8f6897cd3396e6af781c3bfe34065b690f90b'
 curl -v -H "Authorization: Token $MZM_ACCESS_KEY" https://api.mezmo.com/v3/pipeline
 # Inspect x-auth-* headers in the response
-
 ```
 
 ```http
@@ -138,5 +131,4 @@ x-auth-enterprise-id: 68c584136b9b08b8fc53a85e
 x-auth-subject-email: user@example.com
 x-auth-account-short-id: d3396ea1f
 x-auth-access-type: access
-
 ```
