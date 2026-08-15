@@ -336,7 +336,6 @@
               "telemetry-pipelines/build-pipelines-terraform",
               "telemetry-pipelines/syntax-for-editing-pipeline-component-configuration-values",
               "telemetry-pipelines/pipeline-architecture-for-kubernetes-data-optimizationzlz",
-              "telemetry-pipelines/tutorial--how-to-build-a-telemetry-pipeline-with-terraform",
               "telemetry-pipelines/kafka-aeh"
             ]
           },
