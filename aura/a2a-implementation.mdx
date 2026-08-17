@@ -123,6 +123,33 @@ The error message when no config matches:
 
 `x-aura-model` is **not** part of the A2A spec — it is an Aura extension. Like all request headers, it is also forwarded to the agent's MCP connections via the `headers_from_request` mechanism.
 
+## Multi-turn conversations
+
+Use `contextId` to group `message:send` requests into a single conversation. It is optional. To start a new conversation, omit `contextId`. The server generates one and returns it on the task object as `task.contextId`, which you read back from the first `message:send` response. The same value is present on the `GET /a2a/v1/tasks/{id}` response. The first `message:send` call is shown under [Testing with curl](#testing-with-curl) below.
+
+To continue the conversation, send another `message:send` with `message.contextId` set to that value, placed inside the `message` object alongside the other message fields. You group requests into one conversation only by `contextId`. When you send a follow-up on the same `contextId`, the agent includes its own prior answers as context, along with prior user prompts, so it can reference what it said earlier.
+
+```bash
+# <context-id> is the task.contextId returned by the prior response.
+curl -s -X POST http://localhost:8080/a2a/v1/message:send \
+  -H "Content-Type: application/json" \
+  -H "A2A-Version: 1.0" \
+  -d '{
+    "message": {
+      "messageId": "msg-002",
+      "role": "ROLE_USER",
+      "parts": [{ "text": "And what is that result times 3?" }],
+      "contextId": "<context-id>"
+    }
+  }' | jq .
+```
+
+Conversation continuity depends on the session store. The default in-memory store keeps a conversation only within a single server process for its lifetime. A Redis or Valkey session store shares conversation history by `contextId` across instances, subject to a configured TTL. To configure the durable or multi-pod backend, see [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
+
+<Note>
+There is no wire-contract change. `task.history` still contains only the user prompt. The agent's answer is still delivered as artifacts (the "Response" stream and "Final Info"). This section covers request-side `contextId` linkage and improved recall, not a new response field.
+</Note>
+
 ## Testing with curl
 
 Assumes the server is running on `localhost:8080`.
@@ -291,6 +318,6 @@ curl -s -X POST http://localhost:8080/ \
 - **`A2A-Version` is optional** — when present on `/a2a/v1/rpc` requests, the version is validated. An unsupported value returns `-32009 Version not supported`. REST endpoints do not enforce the header.
 - **`messageId` and `role` are required** on the `Message` object — malformed bodies return `-32602 Invalid params`.
 - **Text-only parts** — the executor only accepts `text` parts; `file` and `data` parts return an error.
-- Tasks are stored in the `a2a-rs-server` in-memory `TaskStore` for the lifetime of the process. Use `GET /a2a/v1/tasks/{id}` or `GetTask` to poll after `message:send` returns.
+- By default, tasks are stored in the `a2a-rs-server` in-memory `TaskStore` for the lifetime of the process. A Redis or Valkey [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments) persists tasks for durable or multi-pod deployments. Use `GET /a2a/v1/tasks/{id}` or `GetTask` to poll after `message:send` returns.
 - Request headers passed to `/a2a/v1/message:send` are forwarded to the agent's MCP connections (same `headers_from_request` mechanism as the OpenAI-compatible endpoint). This includes `x-aura-model`.
 - **`x-aura-model` is an Aura extension**, not part of the A2A spec. It selects the agent configuration when multiple configs are loaded — see [Model selection](#model-selection-x-aura-model).
