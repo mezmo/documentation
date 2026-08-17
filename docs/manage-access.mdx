@@ -3,11 +3,13 @@ title: "Manage Access"
 description: "Manage users, permissions, discoverability, sign-in policies, two-factor authentication, and password rules for your Mezmo organization."
 ---
 
-Adding users to your Mezmo Organization allows you to share access to logs, views, alerts, and other Mezmo resources with other members of your team. This page will show you how to manage users as a Mezmo administrator, including how to add new users, assign permissions, and set global sign-in policies. To see available security features, go to [**Settings &gt; Organization &gt; Security**](https://app.mezmo.com/manage/team-settings).
+Adding users to your Mezmo Organization allows you to share access to logs, views, alerts, and other Mezmo resources with other members of your team. This page will show you how to manage users as a Mezmo administrator, including how to add new users, assign roles, and set global sign-in policies. To see available security features, go to [**Settings &gt; Organization &gt; Security**](https://app.mezmo.com/manage/team-settings).
 
 ## Access Control
 
-By default, members who aren't assigned to any groups can see all logs. If this is set to `off`, then these members can't see any logs until they're assigned to a group. This only applies to users who are in the [Members](/docs/manage-access) role and aren't assigned to any groups.
+Access Control is on by default. While it is on, non-admin users (Basic and Read-only members) without access scopes can see all logs. Turn it off to prevent those users from seeing any logs until they hold a role that grants access scopes.
+
+You can also control what logs members see by using [Role-Based Access Control](/docs/rbac).
 
 ## Discoverability
 
@@ -25,8 +27,6 @@ Sign-in policy determines which authentication methods members are allowed to us
 - **SAML Sign-in** - Let members sign in using an identity provider such as Okta or OneLogin. Available for enterprise customers only. Learn how to set up [SAML SSO](/docs/enterprise-saml-sso#onelogin-setup).
 - **Idle Logout** - Log members out after a period of inactivity. Available for all plans.
 - **Redirect after logout** - Redirect members to an address after they logout. Available for all plans.
-
-You can also control what logs members see by using [Role Based Access Control](/docs/rbac).
 
 ## Two-Factor Authentication
 

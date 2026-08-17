@@ -189,7 +189,6 @@
               "docs/import-and-export-organizations",
               "docs/rbac",
               "docs/manage-members",
-              "docs/manage-groups",
               "docs/feature-access-matrix",
               "docs/system-cross-domain-identity-management",
               "docs/add-enterprise-admins"
@@ -563,6 +562,10 @@
     {
       "source": "/docs/search",
       "destination": "/docs/search-tips"
+    },
+    {
+      "source": "/docs/manage-groups",
+      "destination": "/docs/rbac"
     }
   ]
 }
