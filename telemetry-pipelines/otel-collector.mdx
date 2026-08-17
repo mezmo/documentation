@@ -17,7 +17,22 @@ You can export your telemetry data directly to Mezmo with the OpenTelemetry Expo
 receivers:
   # Collect new lines from log files in /var/log
   filelog:
-    include: [/var/log/*.log]
+    include:
+      # normal *nix system logs
+      - /var/log/*.log
+      # add more glob paths if you need to watch more logs not in the default location
+    start_at: end # change to "beginning" if you want to scrape from the start of the file.
+    include_file_path: true
+    storage: file_storage
+
+    # When memory_limiter refuses, back off and retry rather than drop.
+    # file_storage holds the offset, so refused lines are re-read after
+    # the backoff window instead of being lost.
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 30s
+      max_elapsed_time: 5m
 
   # Collect metrics about the host on which the collector is running
   hostmetrics:
@@ -196,12 +211,16 @@ presets:
   kubernetesAttributes:
     enabled: true
     extractAllPodLabels: true
+    extractAllPodAttributes: false # toggle to true if you also want attributes
   # Per-node pod/container CPU, memory, network, fs metrics scraped from each
   # node's own kubelet (https://${K8S_NODE_NAME}:10250/stats/summary). Preset
   # also creates the nodes/stats + nodes/proxy RBAC and appends kubeletstats
   # to the metrics pipeline below.
   kubeletMetrics:
     enabled: true
+  kubernetesEvents:
+    enabled: true
+    useK8sEventsReceiver: true
 
 config:
   receivers:

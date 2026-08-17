@@ -189,7 +189,6 @@
               "docs/import-and-export-organizations",
               "docs/rbac",
               "docs/manage-members",
-              "docs/manage-groups",
               "docs/feature-access-matrix",
               "docs/system-cross-domain-identity-management",
               "docs/add-enterprise-admins"
@@ -336,7 +335,6 @@
               "telemetry-pipelines/build-pipelines-terraform",
               "telemetry-pipelines/syntax-for-editing-pipeline-component-configuration-values",
               "telemetry-pipelines/pipeline-architecture-for-kubernetes-data-optimizationzlz",
-              "telemetry-pipelines/tutorial--how-to-build-a-telemetry-pipeline-with-terraform",
               "telemetry-pipelines/kafka-aeh"
             ]
           },
@@ -558,6 +556,10 @@
     {
       "source": "/docs/authenticating-with-the-api",
       "destination": "/docs/api"
+    },
+    {
+      "source": "/docs/manage-groups",
+      "destination": "/docs/rbac"
     }
   ]
 }
