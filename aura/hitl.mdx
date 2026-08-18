@@ -196,6 +196,12 @@ posting a decision. `aura.approval_completed` includes `decision_id`, terminal
 `timed_out`, `cancelled`, and `errored`; `errored` means the approval channel
 failed before a human decision was obtained.
 
+Aura also stamps this `decision_id` on the `execute_tool` span for every gated
+call, regardless of outcome. This lets you
+correlate an approval with the authorized action directly in the trace. See
+[Tracing & Span Layout](/aura/tracing-spans#span-attributes) for the full list
+of span attributes, including `decision_id`.
+
 ## Conversational route
 
 Use conversational routing when the approver is present on the chat stream. The
