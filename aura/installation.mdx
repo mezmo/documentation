@@ -83,11 +83,7 @@ EOF
   sudo dnf install aura aura-web-server
   ```
 
-  Substitute `microdnf`, `yum`, or `zypper` if that is what the system uses.
-
-  To pin a version, append it to the package name (`dnf install aura-0.1.18`). `zypper` uses `aura=0.1.18` instead, and needs `sudo zypper --gpg-auto-import-keys refresh mezmo-aura` once to trust the signing key.
-
-  To list the versions the repository carries, run `dnf --showduplicates list aura` (`zypper search -s aura`), or browse the [Cloudsmith package list](https://cloudsmith.io/~mezmo/repos/aura/packages/).
+  `zypper` needs `sudo zypper --gpg-auto-import-keys refresh mezmo-aura` once to trust the signing key.
 
   After installing, confirm the version:
 
@@ -95,7 +91,7 @@ EOF
   aura --version        # or: rpm -q aura
   ```
 
-  Individual `.rpm` files are also attached to each [GitHub release](https://github.com/mezmo/aura/releases), for mirroring into an internal repository.
+  Browse the [Cloudsmith package list](https://cloudsmith.io/~mezmo/repos/aura/packages/) for the versions the repository carries. Individual `.rpm` files are also attached to each [GitHub release](https://github.com/mezmo/aura/releases), for mirroring into an internal repository.
   </Tab>
 
   <Tab title="APT">
@@ -116,17 +112,13 @@ EOF
   sudo apt-get install -y aura aura-web-server
   ```
 
-  To pin a version, qualify the package name: `sudo apt-get install aura=0.1.18`.
-
-  To list the versions the repository carries, run `apt-cache madison aura`, or browse the [Cloudsmith package list](https://cloudsmith.io/~mezmo/repos/aura/packages/).
-
   After installing, confirm the version:
 
   ```bash
   aura --version        # or: dpkg -s aura
   ```
 
-  Individual `.deb` files are also attached to each [GitHub release](https://github.com/mezmo/aura/releases), for mirroring into an internal repository.
+  Browse the [Cloudsmith package list](https://cloudsmith.io/~mezmo/repos/aura/packages/) for the versions the repository carries. Individual `.deb` files are also attached to each [GitHub release](https://github.com/mezmo/aura/releases), for mirroring into an internal repository.
 
   </Tab>
 
@@ -143,7 +135,7 @@ EOF
 
   For older versions and `checksums.txt`, browse the [GitHub Releases](https://github.com/mezmo/aura/releases) page.
 
-  Each download arrives non-executable and keeps its platform suffix, so make it executable, rename it to `aura` or `aura-web-server`, and move it somewhere on your `PATH`.
+  Each download arrives non-executable and keeps its platform suffix.
   </Tab>
 </Tabs>
 
