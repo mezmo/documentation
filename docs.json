@@ -464,7 +464,6 @@
               "guide-to-pipeline-architecture/kafka-data-optimization-pipeline",
               "guide-to-pipeline-architecture/kubernetes-data-optimization-pipeline",
               "guide-to-pipeline-architecture/basic-data-rehydration-pipeline",
-              "guide-to-pipeline-architecture/basic-configuration-of-a-pipeline-with-in-stream-alerts",
               "guide-to-pipeline-architecture/convert-events-to-metrics",
               "guide-to-pipeline-architecture/mask-and-encrypt-data",
               "guide-to-pipeline-architecture/route-data",
@@ -555,6 +554,10 @@
     },
     {
       "source": "/docs/authenticating-with-the-api",
+      "destination": "/docs/api"
+    },
+    {
+      "source": "/pipeline-api",
       "destination": "/docs/api"
     },
     {
