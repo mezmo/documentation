@@ -9,15 +9,6 @@ This Pipette depicts the typical configuration of a Data Compliance processor gr
 
 This group uses the [Route Processor](/telemetry-pipelines/route-processor) to send specific events to the [Redact Processor](/telemetry-pipelines/redact-processor) and the [Encrypt Field Processor](/telemetry-pipelines/encrypt-fields-processor), before storage, to obfuscate user IDs and credit card numbers, and to also enable the decryption of credit card numbers in case they are needed for specific analysis. 
 
-## Interactive Demo
-
-This demo demonstrates the configuration of a processor chain for encrypting and redacting data. You will need to have pop-ups enabled for your browser or docs.mezmo.com to view the demo. You can also view [this demo on the mezmo.com website](https://www.mezmo.com/demos/mask-encrypt-data) without a pop-up. 
-
-&lt;!-- To open the pop-up on clicking a button, add the following data-navattic attributes to an existing button on your page -->
-<button data-navattic-open="https://capture.navattic.com/clvgzc9yx000n0aicccy36c4b" data-navattic-title="Mask and Encrypt Data">
-  View the demo in a pop-up
-</button>
-
 ## Overview
 
 This schematic of the Pipette illustrates the Processor chain for redacting and encrypting Personally Identifying Information focusing on login User IDs and credit card numbers. The Processor configurations are described in detail in the sections that match the numbers in the schematic. 
