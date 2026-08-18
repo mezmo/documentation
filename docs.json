@@ -558,6 +558,10 @@
       "destination": "/docs/api"
     },
     {
+      "source": "/pipeline-api",
+      "destination": "/docs/api"
+    },
+    {
       "source": "/docs/manage-groups",
       "destination": "/docs/rbac"
     }
