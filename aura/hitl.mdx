@@ -262,6 +262,12 @@ failed before a human decision was obtained.
 These approval events do not carry `tool_call_intent`; that field is part of the
 webhook payload only.
 
+Aura also stamps this `decision_id` on the `execute_tool` span for every gated
+call, regardless of outcome. This lets you
+correlate an approval with the authorized action directly in the trace. See
+[Tracing & Span Layout](/aura/tracing-spans#span-attributes) for the full list
+of span attributes, including `decision_id`.
+
 ## Conversational route
 
 Use conversational routing when the approver is present on the chat stream. The

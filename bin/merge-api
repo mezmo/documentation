@@ -1,0 +1,943 @@
+#!/usr/bin/env node
+'use strict'
+
+/**
+ * Merges Mezmo's per-application OpenAPI documents into a single user-facing
+ * spec. Run `merge-api --help` for usage.
+ *
+ * Re-run this whenever any of the source specs are regenerated:
+ *
+ *     npm run merge:apis
+ *
+ * ## Adding another API
+ *
+ * Drop its spec (.json/.yaml/.yml) into the source directory and re-run. Every
+ * spec there is picked up automatically, and the path prefix each one needs is
+ * derived from the `servers` URL it already declares, so a service published at
+ * https://api.mezmo.com/v4 has its paths merged under /v4 with no config here.
+ *
+ * Anything that varies per run -- source directory, output file, base server --
+ * is a CLI flag. The constants below are policy decisions, deliberately not
+ * exposed as flags because they are structured data rather than single values:
+ *
+ *   SOURCE_ORDER      order sources are processed in, for collision reporting
+ *   SHARED_SCHEMAS    names that may be defined by more than one source
+ *   PRIVATE_TAGS      tags whose operations stay out of the public spec
+ *   SUPERSEDED_SCHEMES  auth schemes to drop even if a source still declares them
+ *   TAG_DESCRIPTIONS  copy for tags no source declares
+ *   TAG_RENAMES       keep two sources' identically named tags in separate groups
+ *   DEPRECATIONS      mark matching operations deprecated, with a migration note
+ *
+ * Every tag an operation references ends up declared at the top level, and tags
+ * nothing references are pruned, so the rendered navigation has no unlabelled or
+ * empty groups. A newly added spec that introduces a tag with no description
+ * warns rather than failing -- check the run output after adding one.
+ *
+ * The merge is deterministic: the same inputs always produce byte-identical
+ * output. Anything it cannot resolve on its own -- a duplicated path, a
+ * conflicting schema or security scheme, a server it cannot be folded into --
+ * aborts the run rather than letting one source silently overwrite another.
+ */
+
+const fs = require('node:fs')
+const path = require('node:path')
+const {parseArgs, styleText} = require('node:util')
+const yaml = require('js-yaml')
+
+const ROOT = path.join(__dirname, '..')
+
+const DEFAULTS = {
+  dir: 'apis'
+, output: 'combined-mezmo-api.yaml'
+, base_server: 'https://api.mezmo.com'
+, spec_version: '3.0.0'
+}
+
+/** Populated by main() from the command line before any merging happens. */
+let config
+
+const CLI_OPTIONS = {
+  'spec-dir': {type: 'string', short: 'd'}
+, 'output': {type: 'string', short: 'o'}
+, 'base-server': {type: 'string', short: 's'}
+, 'spec-version': {type: 'string'}
+, 'quiet': {type: 'boolean', short: 'q', default: false}
+, 'help': {type: 'boolean', short: 'h', default: false}
+}
+
+function showHelp() {
+  const name = path.basename(process.argv[1])
+
+  console.log(`
+${name} - merge Mezmo's per-application OpenAPI specs into one document
+
+USAGE
+  ${name} [options]
+
+DESCRIPTION
+  Reads every .json, .yaml, and .yml spec in the source directory and merges
+  them into a single OpenAPI 3.1 document.
+
+  Each source's paths are namespaced by the sub-path of its own server URL, so
+  a spec served from ${DEFAULTS.base_server}/v3 contributes its paths under /v3.
+  Schemas shared across sources are deduplicated, superseded auth schemes are
+  dropped, and tags are reconciled so no navigation group renders unlabelled or
+  empty. Operations tagged Internal or Experimental are omitted.
+
+  The merge is deterministic. A duplicated path, a conflicting schema or
+  security scheme, or a server that cannot be folded into the base server
+  aborts the run instead of letting one source overwrite another.
+
+OPTIONS
+  -d, --spec-dir <dir>     Directory to read source specs from.
+                           (default: ${DEFAULTS.dir})
+  -o, --output <file>      File to write the merged spec to. Relative paths
+                           resolve against the source directory.
+                           (default: ${DEFAULTS.output})
+  -s, --base-server <url>  Server URL the merged document advertises. A source
+                           served from a sub-path of this URL has that sub-path
+                           folded into its path keys.
+                           (default: ${DEFAULTS.base_server})
+      --spec-version <ver> Value for info.version of the merged document.
+                           (default: ${DEFAULTS.spec_version})
+  -q, --quiet              Print only warnings and errors.
+  -h, --help               Show this help and exit.
+
+EXIT STATUS
+  0  merged successfully
+  1  no specs found, or an unresolved conflict between sources
+
+EXAMPLES
+  ${name}
+  ${name} --spec-dir specs --output ../build/combined-mezmo-api.yaml
+  ${name} --base-server https://api.staging.mezmo.com --quiet
+`.trim())
+}
+
+/**
+ * Flags resolve against the working directory the way a CLI user expects, while
+ * the defaults stay anchored to the repo so the tool works from any directory.
+ */
+function parseCliArgs(argv) {
+  let values
+
+  try {
+    ({values} = parseArgs({args: argv, options: CLI_OPTIONS, strict: true}))
+  } catch (err) {
+    error(`${err.message}\n`)
+    error(`Run with --help for usage.`)
+    process.exit(1)
+  }
+
+  if (values.help) {
+    showHelp()
+    process.exit(0)
+  }
+
+  const dir = values['spec-dir']
+    ? path.resolve(process.cwd(), values['spec-dir'])
+    : path.join(ROOT, DEFAULTS.dir)
+
+  return {
+    dir
+  , output: path.resolve(dir, values.output || DEFAULTS.output)
+  , base_server: (values['base-server'] || DEFAULTS.base_server).replace(/\/+$/, '')
+  , spec_version: values['spec-version'] || DEFAULTS.spec_version
+  , quiet: values.quiet
+  }
+}
+
+/**
+ * Builds a `[LABEL]` tag with only the label text colorized, not the brackets.
+ * Several call sites lead with `\n` to blank-line-separate report sections;
+ * that leading whitespace is moved ahead of the tag instead of splitting it
+ * onto its own line, so `info('\nfoo')` reads as a blank line then `[INFO] foo`.
+ */
+function tagged(label, color, args) {
+  const tag = `[${styleText(color, label)}]`
+  const [first, ...rest] = args
+  const leadingNewlines = typeof first === 'string' ? first.match(/^\n+/) : null
+
+  return leadingNewlines
+    ? [leadingNewlines[0] + tag, first.slice(leadingNewlines[0].length), ...rest]
+    : [tag, ...args]
+}
+
+/** Suppressed by --quiet; warnings and errors always go to stderr instead. */
+function info(...args) {
+  if (!config.quiet) console.log(...tagged('INFO', 'cyan', args))
+}
+
+/** Non-fatal issue worth the user's attention. Always printed, regardless of --quiet. */
+function warn(...args) {
+  console.error(...tagged('WARN', 'yellow', args))
+}
+
+/** A problem serious enough to abort the run, or a fatal argument/setup error. */
+function error(...args) {
+  console.error(...tagged('ERROR', 'red', args))
+}
+
+/**
+ * The end-of-run summary of what the merge did (paths per source, tags
+ * declared, operations deprecated, and so on). Deliberately plain -- unlike
+ * info()/error() it carries no [INFO]/[ERROR] tag or color, since it isn't a
+ * log line about something happening but a report to read once the run is
+ * over. Still suppressed by --quiet.
+ */
+function printReport(...args) {
+  if (!config.quiet) console.log(...args)
+}
+
+/** Relative when that reads better, absolute when it would be a chain of `..`. */
+function displayPath(target) {
+  const relative = path.relative(process.cwd(), target)
+  return relative && !relative.startsWith('..') ? relative : target
+}
+
+/**
+ * Schemas that legitimately appear in more than one source document. These are
+ * always taken from SHARED_SCHEMA_SOURCE, whose copies have drifted ahead of
+ * the others; copies in any other source are discarded regardless of merge
+ * order. Any collision NOT in this list is a bug in a source spec.
+ */
+const SHARED_SCHEMAS = new Set([
+  'http-error'
+, 'http-error-item'
+, 'validation-error'
+, 'legacy-http-error-item'
+, 'legacy-validation-error'
+])
+const SHARED_SCHEMA_SOURCE = 'enterprise-api'
+
+/**
+ * Operations tagged with any of these, and paths under INTERNAL_PATH_PREFIXES,
+ * are omitted from the public spec.
+ */
+const PRIVATE_TAGS = new Set(['Internal', 'Experimental'])
+const INTERNAL_PATH_PREFIXES = ['/internal']
+
+/**
+ * Descriptions for tags that no source spec declares at the top level. Sources
+ * routinely tag operations with names they never define -- log-analysis uses 16
+ * tags but declares 9 -- which would otherwise render as unlabelled navigation
+ * groups. Also supplies copy for tags introduced by TAG_RENAMES.
+ */
+const TAG_DESCRIPTIONS = {
+  'Groups': 'Manage log groups that scope which data is accessible to members in that group.'
+, 'Index Rate Alert': 'Configure alerts that fire when the log index rate crosses a threshold.'
+, 'Keys': 'Create and manage ingestion and service keys for an account.'
+, 'Members': 'Manage organization members, their roles, and RBAC group assignments.'
+, 'Parsing Template': 'Manage custom log parsing templates.'
+, 'Screens': 'Create and manage custom UI layouts for display on large format screens.'
+, 'Enterprise v1': 'Legacy enterprise management endpoints, superseded by the Enterprise API.'
+}
+
+/**
+ * Per-source tag renames, applied to both operations and declared tags. Without
+ * this, two sources that use one tag name for different generations of an API
+ * collapse into a single navigation group.
+ */
+const TAG_RENAMES = {
+  'log-analysis': {Enterprise: 'Enterprise v1'}
+}
+
+/**
+ * Operations matching a rule are marked `deprecated: true` and get a migration
+ * note prepended to their description. `pathPattern` is tested against the path
+ * as the source declares it, before any version prefix is folded in.
+ */
+const DEPRECATIONS = [
+  {
+    source: 'log-analysis'
+  , pathPattern: /^\/v1\/enterprise(\/|$)/
+  , note: 'Superseded by the `/v3/enterprise` endpoints under the **Enterprise** tag.'
+  }
+]
+
+const HTTP_METHODS = new Set([
+  'get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'
+])
+
+/**
+ * AccessToken supersedes pipeline's PipelineServiceKey. The description below
+ * combines log-analysis's guidance on obtaining a key with the token format
+ * PipelineServiceKey documented.
+ */
+const ACCESS_TOKEN = {
+  type: 'apiKey'
+, in: 'header'
+, name: 'Authorization'
+, description: [
+    'The primary authentication method for the Mezmo API.'
+  , ''
+  , 'Pass the key in the `Authorization` header in the format `Token <ACCESS TOKEN>`.'
+  , 'For example:'
+  , ''
+  , '```'
+  , "curl -H 'Authorization: Token <ACCESS TOKEN>'"
+  , '```'
+  , ''
+  , 'This key is used for all APIs with the exception of ingest.'
+  ].join('\n')
+}
+
+function buildInfo() {
+  return {
+    title: 'Mezmo API'
+  , description: [
+      '*REST API for the Mezmo platform: send and export log data, build and'
+    , 'manage telemetry pipelines, and administer enterprise accounts.*'
+    , ''
+    , 'To use the inline testing functionality here, go into your Mezmo account'
+    , 'and add the following address to your CORS Origins page: `https://docs.mezmo.com`.'
+    ].join('\n')
+  , version: config.spec_version
+  , contact: {
+      name: 'Mezmo'
+    , email: 'support@mezmo.com'
+    , url: 'https://mezmo.com/support'
+    }
+  }
+}
+
+/**
+ * Security schemes that no longer authenticate anything. They are dropped even
+ * when a source still declares them; operations fall back to the global
+ * AccessToken requirement.
+ */
+const SUPERSEDED_SCHEMES = new Set(['PipelineServiceKey'])
+
+/**
+ * Sources processed in a specific order. Any other spec found in apis/ is
+ * merged too, appended in alphabetical order -- adding a new API means
+ * dropping its file into apis/ and nothing else. This only affects which
+ * source "wins" first refusal on a name (paths, schemas, security schemes);
+ * top-level tags are always sorted alphabetically regardless of source order.
+ */
+const SOURCE_ORDER = ['pipeline', 'log-analysis', 'enterprise-api']
+
+const SPEC_EXTENSIONS = ['.json', '.yaml', '.yml']
+
+/**
+ * Stamped onto the merged document and checked when loading each source, so a
+ * previously generated spec left in the source directory is never folded back
+ * in as an input -- which would otherwise collide with the sources it came from.
+ */
+const GENERATED_BY = 'merge-api'
+
+/**
+ * Every spec in the source directory except the merged output, ordered by
+ * SOURCE_ORDER with unlisted files appended alphabetically.
+ *
+ * Comparison is by resolved path rather than filename, so an --output pointing
+ * inside the source directory is excluded whatever it is called. Output written
+ * elsewhere can still leave a stale merged file behind here, which is what the
+ * GENERATED_BY stamp catches when each source is loaded.
+ */
+function discoverSources() {
+  if (!fs.existsSync(config.dir)) {
+    error(`Source directory not found: ${displayPath(config.dir)}`)
+    process.exit(1)
+  }
+
+  const names = fs.readdirSync(config.dir)
+    .filter((file) => SPEC_EXTENSIONS.includes(path.extname(file)))
+    .filter((file) => path.resolve(config.dir, file) !== config.output)
+    .map((file) => ({name: path.basename(file, path.extname(file)), file}))
+
+  const rank = (entry) => {
+    const index = SOURCE_ORDER.indexOf(entry.name)
+    return index === -1 ? SOURCE_ORDER.length : index
+  }
+
+  return names.sort((a, b) => {
+    return rank(a) - rank(b) || a.name.localeCompare(b.name)
+  })
+}
+
+/**
+ * Works out what to prepend to a source's path keys so its operations still
+ * resolve against the base server. Returns null when the source is served from
+ * somewhere the merged document cannot represent, which aborts the merge.
+ */
+function derivePathPrefix(doc) {
+  const urls = (doc.servers || []).map((server) => server.url)
+  if (!urls.length) return ''
+
+  const prefixes = new Set(urls.map((url) => {
+    if (url === config.base_server) return ''
+    if (url.startsWith(`${config.base_server}/`)) {
+      return url.slice(config.base_server.length).replace(/\/$/, '')
+    }
+    return null
+  }))
+
+  // A single unambiguous prefix, or nothing we can safely fold in.
+  return prefixes.size === 1 ? [...prefixes][0] : null
+}
+
+/**
+ * Structural comparison used to tell a harmless duplicate definition -- two
+ * generated specs declaring the same scheme identically -- from a real conflict.
+ */
+function deepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
+function load(file) {
+  const raw = fs.readFileSync(path.join(config.dir, file), 'utf8')
+  return file.endsWith('.yaml') || file.endsWith('.yml')
+    ? yaml.load(raw)
+    : JSON.parse(raw)
+}
+
+function isPrivateOperation(operation) {
+  const tags = operation.tags || []
+  return tags.some((tag) => PRIVATE_TAGS.has(tag))
+}
+
+/**
+ * Matches an internal prefix either at the start of the path or immediately
+ * behind a version segment, so both `/internal/x` and `/v3/internal/x` are
+ * recognized however the source happens to declare them.
+ */
+function isInternalPath(pathname) {
+  const candidates = [pathname, pathname.replace(/^\/v\d+(?=\/)/, '')]
+
+  return INTERNAL_PATH_PREFIXES.some((prefix) => {
+    return candidates.some((candidate) => {
+      return candidate === prefix || candidate.startsWith(`${prefix}/`)
+    })
+  })
+}
+
+/** Returns the original array when no rename applies, to avoid pointless copies. */
+function applyTagRenames(tags, renames) {
+  if (!renames || !Array.isArray(tags)) return tags
+
+  const renamed = tags.map((tag) => renames[tag] || tag)
+  return renamed.some((tag, index) => tag !== tags[index]) ? renamed : tags
+}
+
+function findDeprecation(sourceName, rawPath) {
+  return DEPRECATIONS.find((rule) => {
+    return rule.source === sourceName && rule.pathPattern.test(rawPath)
+  })
+}
+
+/**
+ * Marks an operation deprecated and leads its description with the migration
+ * note. The note goes on the operation rather than only the tag because readers
+ * arriving from search land on a single endpoint and never see the tag copy.
+ */
+function deprecateOperation(operation, note) {
+  const notice = `> **Deprecated.** ${note}`
+
+  return {
+    ...operation
+  , deprecated: true
+  , description: operation.description
+      ? `${notice}\n\n${operation.description}`
+      : notice
+  }
+}
+
+/**
+ * Strips private operations from a path item, applies tag renames and
+ * deprecation rules to the survivors, and records the tags they reference.
+ * Returns null when nothing publicly documentable is left, so the path drops
+ * out of the merged spec.
+ *
+ * Operations are copied before mutation -- the loaded source documents are
+ * shared across the run, and editing in place would leak between passes.
+ */
+function filterPathItem(pathItem, pathname, context) {
+  const {source, rawPath, dropped, diagnostics} = context
+  const renames = TAG_RENAMES[source.name]
+  const deprecation = findDeprecation(source.name, rawPath)
+
+  const kept = {}
+  let keptOperations = 0
+
+  for (const [key, value] of Object.entries(pathItem)) {
+    if (!HTTP_METHODS.has(key)) {
+      kept[key] = value
+      continue
+    }
+
+    if (isPrivateOperation(value)) {
+      dropped.push(`${key.toUpperCase()} ${pathname}`)
+      continue
+    }
+
+    let operation = value
+
+    const tags = applyTagRenames(operation.tags, renames)
+    if (tags !== operation.tags) operation = {...operation, tags}
+
+    if (deprecation) {
+      operation = deprecateOperation(operation, deprecation.note)
+      diagnostics.deprecated.push({rule: deprecation, operation: `${key.toUpperCase()} ${pathname}`})
+    }
+
+    // Recorded so reconcileTags() can declare tags no source defines and prune
+    // declarations nothing references.
+    for (const tag of operation.tags || []) diagnostics.usedTags.add(tag)
+
+    kept[key] = operation
+    keptOperations += 1
+  }
+
+  return keptOperations > 0 ? kept : null
+}
+
+/**
+ * Reconciles the top-level `tags` array against the tags operations actually
+ * reference, so every navigation group in the rendered docs has a definition
+ * and no group renders empty.
+ *
+ * Sources tag operations with names they never declare, and dropping private
+ * operations can orphan a tag that was declared, so this runs after all sources
+ * are merged rather than per source.
+ */
+/**
+ * Single accumulator for everything the run discovers, threaded through the
+ * merge and read back at the end to build the summary and raise warnings.
+ * One object (rather than a fistful of loose Maps/Sets/Arrays passed around
+ * individually) is what lets buildReport() take a single argument.
+ */
+function createDiagnostics() {
+  return {
+    summary: [] // per-source stats: paths, schemas, dropped operations
+  , deprecated: [] // {rule, operation} for every operation marked deprecated
+  , skipped: [] // source files skipped for carrying the GENERATED_BY stamp
+  , collisions: [] // unresolved conflicts between sources; any entry aborts the run
+  , dangling: [] // unresolved $ref targets, filled in once the merge completes
+  , tags: null // {synthesized, undescribed, pruned}, filled in by reconcileTags()
+  , totals: null // {paths, schemas, tags}, filled in once the merge completes
+  , usedTags: new Set() // tag names referenced by surviving operations
+  , tagNames: new Set() // declared tag names already added, for dedup
+  , pathOwner: new Map() // path -> source that defined it, for collision detection
+  , schemaOwner: new Map() // schema name -> source that defined it
+  , schemeOwner: new Map() // security scheme name -> source that defined it
+  , sharedSeen: new Set()  // SHARED_SCHEMAS names seen from the canonical source
+  }
+}
+
+function reconcileTags(merged, sources, diagnostics) {
+  const {usedTags} = diagnostics
+  const declared = new Map(merged.tags.map((tag) => [tag.name, tag]))
+
+  const synthesized = []
+  const undescribed = []
+
+  for (const name of usedTags) {
+    if (declared.has(name)) continue
+
+    const description = TAG_DESCRIPTIONS[name]
+    if (!description) undescribed.push(name)
+
+    declared.set(name, description ? {name, description} : {name})
+    synthesized.push(name)
+  }
+
+  const pruned = merged.tags
+    .filter((tag) => !usedTags.has(tag.name))
+    .map((tag) => tag.name)
+
+  pruned.forEach((name) => declared.delete(name))
+
+  // Top-level nav order is just alphabetical -- source order only matters for
+  // where paths/schemas come from, not for how tags are listed.
+  merged.tags = [...declared.values()].sort((a, b) => a.name.localeCompare(b.name))
+
+  return {synthesized, undescribed, pruned}
+}
+
+/**
+ * Groups paths so every tag's operations sit in one contiguous block, ordered
+ * alphabetically by tag to match the top-level `tags` array. Sources declare
+ * paths in their own order, so merging several specs otherwise scatters a tag's
+ * endpoints across the document.
+ */
+function orderPathsByTag(merged) {
+  const tagOf = (pathItem) => {
+    for (const key of Object.keys(pathItem)) {
+      if (!HTTP_METHODS.has(key)) continue
+      const [tag] = pathItem[key].tags || []
+      if (tag) return tag
+    }
+    return null
+  }
+
+  const entries = Object.entries(merged.paths).map(([pathname, item], index) => {
+    return {pathname, item, tag: tagOf(item), index}
+  })
+
+  entries.sort((a, b) => {
+    // Source declaration order within a block: authors group related endpoints
+    // deliberately, and sorting by path string would scramble that.
+    if (a.tag === b.tag) return a.index - b.index
+    // An untagged path belongs to no nav group, so there is no name to sort it
+    // against -- park it at the end rather than guessing.
+    if (a.tag === null || b.tag === null) return a.tag === null ? 1 : -1
+    return a.tag.localeCompare(b.tag)
+  })
+
+  merged.paths = Object.fromEntries(entries.map((entry) => [entry.pathname, entry.item]))
+}
+
+function main(argv) {
+  config = parseCliArgs(argv)
+
+  const merged = {
+    openapi: '3.1.0'
+  , 'x-generated-by': GENERATED_BY
+  , info: buildInfo()
+  , servers: [{url: 'https://api.mezmo.com'}]
+  , externalDocs: {url: 'https://docs.mezmo.com'}
+  , security: [{AccessToken: []}]
+  , tags: []
+  , paths: {}
+  , components: {securitySchemes: {AccessToken: ACCESS_TOKEN}, schemas: {}}
+  }
+
+  const diagnostics = createDiagnostics()
+
+  const sources = discoverSources()
+  if (!sources.length) {
+    error(`No source specs found in ${displayPath(config.dir)}`)
+    process.exit(1)
+  }
+
+  for (const source of sources) {
+    const doc = load(source.file)
+
+    if (doc['x-generated-by'] === GENERATED_BY) {
+      diagnostics.skipped.push(source.file)
+      continue
+    }
+
+    const dropped = []
+    let pathCount = 0
+
+    const pathPrefix = derivePathPrefix(doc)
+    if (pathPrefix === null) {
+      diagnostics.collisions.push(
+        `${source.name}: servers ${JSON.stringify((doc.servers || []).map((s) => s.url))}`
+      + ` cannot be folded into ${config.base_server}. Point the source at`
+      + ` ${config.base_server} (optionally with a version sub-path), or pass a`
+      + ' different --base-server.'
+      )
+      continue
+    }
+
+    for (const [rawPath, pathItem] of Object.entries(doc.paths || {})) {
+      const pathname = pathPrefix + rawPath
+
+      // Checked against both forms: a source may declare `/internal/...`
+      // directly, or sit behind a version prefix as `/v3/internal/...`.
+      if (isInternalPath(rawPath) || isInternalPath(pathname)) {
+        dropped.push(`ALL ${pathname}`)
+        continue
+      }
+
+      const kept = filterPathItem(pathItem, pathname, {source, rawPath, dropped, diagnostics})
+      if (!kept) continue
+
+      if (diagnostics.pathOwner.has(pathname)) {
+        diagnostics.collisions.push(
+          `path ${pathname}: defined by both ${diagnostics.pathOwner.get(pathname)} and ${source.name}`
+        )
+        continue
+      }
+
+      diagnostics.pathOwner.set(pathname, source.name)
+      merged.paths[pathname] = kept
+      pathCount += 1
+    }
+
+    // Schemas. Shared error schemas are taken from enterprise-api; copies in
+    // other sources are dropped as duplicates rather than treated as conflicts.
+    let schemaCount = 0
+    let sharedSkipped = 0
+
+    for (const [name, schema] of Object.entries(doc.components?.schemas || {})) {
+      if (SHARED_SCHEMAS.has(name)) {
+        if (source.name !== SHARED_SCHEMA_SOURCE) {
+          sharedSkipped += 1
+          continue
+        }
+        diagnostics.sharedSeen.add(name)
+      } else if (diagnostics.schemaOwner.has(name)) {
+        diagnostics.collisions.push(
+          `schema ${name}: defined by both ${diagnostics.schemaOwner.get(name)} and ${source.name}`
+        )
+        continue
+      }
+
+      diagnostics.schemaOwner.set(name, source.name)
+      merged.components.schemas[name] = schema
+      schemaCount += 1
+    }
+
+    // Every component bucket other than schemas and securitySchemes, which are
+    // handled explicitly above.
+    for (const [bucket, entries] of Object.entries(doc.components || {})) {
+      if (bucket === 'schemas' || bucket === 'securitySchemes') continue
+
+      merged.components[bucket] = merged.components[bucket] || {}
+      for (const [name, value] of Object.entries(entries)) {
+        if (name in merged.components[bucket]) {
+          diagnostics.collisions.push(`components.${bucket}.${name}: redefined by ${source.name}`)
+          continue
+        }
+        merged.components[bucket][name] = value
+      }
+    }
+
+    // Security schemes. AccessToken is composed above rather than taken from any
+    // source, and superseded schemes are dropped outright. Remaining legacy
+    // schemes carry over because individual operations still reference them.
+    for (const [name, scheme] of Object.entries(doc.components?.securitySchemes || {})) {
+      if (name === 'AccessToken' || SUPERSEDED_SCHEMES.has(name)) continue
+
+      const existing = merged.components.securitySchemes[name]
+      if (existing && !deepEqual(existing, scheme)) {
+        diagnostics.collisions.push(
+          `security scheme ${name}: ${diagnostics.schemeOwner.get(name)} and ${source.name}`
+        + ' define it differently'
+        )
+        continue
+      }
+
+      diagnostics.schemeOwner.set(name, source.name)
+      merged.components.securitySchemes[name] = scheme
+    }
+
+    // Declared tags go through the same renames as the operations that
+    // reference them, so a source declaring a renamed tag stays consistent.
+    const renames = TAG_RENAMES[source.name] || {}
+
+    for (const tag of doc.tags || []) {
+      const name = renames[tag.name] || tag.name
+      if (PRIVATE_TAGS.has(name) || diagnostics.tagNames.has(name)) continue
+
+      diagnostics.tagNames.add(name)
+      merged.tags.push(name === tag.name ? tag : {...tag, name})
+    }
+
+    diagnostics.summary.push({
+      source: source.name
+    , file: source.file
+    , pathPrefix
+    , paths: pathCount
+    , schemas: schemaCount
+    , sharedSkipped
+    , dropped
+    })
+  }
+
+  for (const name of SHARED_SCHEMAS) {
+    if (!diagnostics.sharedSeen.has(name)) {
+      diagnostics.collisions.push(
+        `shared schema ${name}: not defined by ${SHARED_SCHEMA_SOURCE}, which is`
+      + ' the canonical source for it'
+      )
+    }
+  }
+
+  for (const file of diagnostics.skipped) {
+    warn(`Skipped ${file} -- it is a previously generated merge output.`)
+  }
+
+  diagnostics.tags = reconcileTags(merged, sources, diagnostics)
+  orderPathsByTag(merged)
+
+  if (diagnostics.tags.undescribed.length) {
+    warn(
+      `\n${diagnostics.tags.undescribed.length} tag(s) render without a description:`
+    + ` ${diagnostics.tags.undescribed.join(', ')}`
+    )
+    warn('Add copy for them to TAG_DESCRIPTIONS in this script.')
+  }
+
+  const staleDeprecations = DEPRECATIONS.filter((rule) => {
+    return !diagnostics.deprecated.some((entry) => entry.rule === rule)
+  })
+
+  if (staleDeprecations.length) {
+    warn('\nDEPRECATIONS rules that matched no operation:')
+    for (const rule of staleDeprecations) warn(`  ${rule.source} ${rule.pathPattern}`)
+    warn('The source spec may have moved or removed those paths.')
+  }
+
+  pruneDanglingSecurity(merged)
+
+  if (diagnostics.collisions.length) {
+    error('Merge aborted -- unresolved collisions between source specs:\n')
+    for (const collision of diagnostics.collisions) error(`  ${collision}`)
+    error(
+      '\nFix these in the source spec. If a duplicate definition is intentional,'
+    + ' add the schema name to SHARED_SCHEMAS so one canonical copy wins.'
+    )
+    process.exit(1)
+  }
+
+  fs.mkdirSync(path.dirname(config.output), {recursive: true})
+  fs.writeFileSync(
+    config.output
+  , yaml.dump(merged, {noRefs: true, lineWidth: 100, sortKeys: false})
+  )
+  info(`Wrote ${displayPath(config.output)}`)
+
+  diagnostics.dangling = findDanglingRefs(merged)
+  if (diagnostics.dangling.length) {
+    const total = diagnostics.dangling.reduce((sum, [, count]) => sum + count, 0)
+    const detail = config.quiet
+      ? 'Run without --quiet for the full breakdown.'
+      : 'See the report below for the full breakdown.'
+
+    warn(
+      `\n${total} $ref(s) across ${diagnostics.dangling.length} target(s) do not resolve.`
+    + ` These are inherited from the source specs and should be fixed there. ${detail}`
+    )
+  }
+
+  diagnostics.totals = {
+    paths: Object.keys(merged.paths).length
+  , schemas: Object.keys(merged.components.schemas).length
+  , tags: merged.tags.length
+  }
+
+  printReport(buildReport(diagnostics))
+}
+
+/**
+ * Drops references to security schemes that no source actually defines.
+ * log-analysis's global security listed an ibmIamAuth scheme that was never
+ * declared; the merged document sets its own global security, but per-operation
+ * requirements are copied verbatim and can carry the same kind of dangling name.
+ */
+function pruneDanglingSecurity(merged) {
+  const defined = new Set(Object.keys(merged.components.securitySchemes))
+  const removed = new Set()
+
+  for (const pathItem of Object.values(merged.paths)) {
+    for (const [key, operation] of Object.entries(pathItem)) {
+      if (!HTTP_METHODS.has(key) || !Array.isArray(operation.security)) continue
+
+      const kept = operation.security.filter((requirement) => {
+        const names = Object.keys(requirement)
+        const dangling = names.filter((name) => !defined.has(name))
+        dangling.forEach((name) => removed.add(name))
+        return dangling.length === 0
+      })
+
+      if (kept.length) operation.security = kept
+      else operation.security = undefined
+    }
+  }
+
+  if (removed.size) {
+    info(`Dropped undefined security schemes: ${[...removed].sort().join(', ')}`)
+  }
+}
+
+/**
+ * Finds $refs whose targets do not exist in the merged document. These are
+ * inherited from the source specs rather than introduced by the merge -- pure
+ * data collection, so the caller decides how to warn about and report them.
+ */
+function findDanglingRefs(merged) {
+  const targets = new Map()
+  const walk = (node) => {
+    if (!node || typeof node !== 'object') return
+    if (Array.isArray(node)) return node.forEach(walk)
+
+    if (typeof node.$ref === 'string') {
+      targets.set(node.$ref, (targets.get(node.$ref) || 0) + 1)
+    }
+    Object.values(node).forEach(walk)
+  }
+  walk(merged)
+
+  const dangling = [...targets.entries()].filter(([ref]) => {
+    if (!ref.startsWith('#/')) return true
+
+    let node = merged
+    for (const segment of ref.slice(2).split('/')) {
+      const key = segment.replace(/~1/g, '/').replace(/~0/g, '~')
+      if (!node || typeof node !== 'object' || !(key in node)) return true
+      node = node[key]
+    }
+    return false
+  })
+
+  return dangling.sort((a, b) => b[1] - a[1])
+}
+
+/**
+ * Assembles the end-of-run summary from a completed diagnostics object.
+ * Returns a single string rather than printing directly, so main() can emit
+ * the whole report with one printReport() call instead of many scattered ones.
+ * Warnings are not included here -- they are raised via error() at the point
+ * each condition is detected, not deferred to this summary.
+ */
+function buildReport(diagnostics) {
+  const {summary, totals, tags, deprecated, dangling} = diagnostics
+  const lines = [`merged ${summary.length} source spec(s):`, '']
+
+  for (const entry of summary) {
+    const shared = entry.sharedSkipped
+      ? `, ${entry.sharedSkipped} shared schema(s) deduped`
+      : ''
+    const prefix = entry.pathPrefix ? ` [paths prefixed ${entry.pathPrefix}]` : ''
+
+    lines.push(
+      `  ${entry.file}: ${entry.paths} paths, ${entry.schemas} schemas${shared}${prefix}`
+    )
+    for (const operation of entry.dropped) {
+      lines.push(`      dropped (internal/experimental): ${operation}`)
+    }
+  }
+
+  lines.push('', `total: ${totals.paths} paths, ${totals.schemas} schemas, ${totals.tags} tags`)
+
+  if (tags.synthesized.length) {
+    lines.push(
+      ''
+    , `Declared ${tags.synthesized.length} tag(s) used by operations but not`
+    + ` defined by any source: ${tags.synthesized.join(', ')}`
+    )
+  }
+
+  if (tags.pruned.length) {
+    lines.push(
+      ''
+    , `Pruned ${tags.pruned.length} declared tag(s) that no operation uses:`
+    + ` ${tags.pruned.join(', ')}`
+    )
+  }
+
+  if (deprecated.length) {
+    lines.push('', `Marked ${deprecated.length} operation(s) deprecated:`)
+    for (const entry of deprecated) lines.push(`  ${entry.operation}`)
+  }
+
+  if (dangling.length) {
+    lines.push('', 'Unresolved $ref targets (inherited from the source specs):')
+    for (const [ref, count] of dangling) {
+      lines.push(`  ${String(count).padStart(4)}x  ${ref}`)
+    }
+  }
+
+  return lines.join('\n')
+}
+
+// Only runs the merge when this file is executed directly (`node bin/merge-api`
+// or `./bin/merge-api`) -- not when required as a module, e.g. from a test.
+if (require.main === module) {
+  main(process.argv.slice(2))
+}

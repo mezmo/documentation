@@ -32,3 +32,22 @@ docs into a Qdrant knowledge base and pushes a snapshot to S3:
 
 PR branches run the same pipeline against a throwaway local collection but
 never publish a snapshot.
+
+## Local Testing
+Mintlify offers a CLI that can be used to preview locally. To install globally:
+
+```bash
+npm i -g mint
+```
+
+To run the local application on the default port:
+```bash
+mint dev
+```
+
+This starts a local server at: http://localhost:3000 which will hot reload while you're making changes.
+
+To use a custom port:
+```bash
+mint dev --port 3333
+```

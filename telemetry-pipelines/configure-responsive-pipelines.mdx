@@ -104,17 +104,16 @@ Set the state:
 ```bash
 curl -i --request PUT \
   --url 'https://api.mezmo.com/v3/pipeline/state-variable/<<STATEID>>' \
-  -H 'Authorization: Token <<PIPELINE SERVICE_TOKEN>>' \
+  -H 'Authorization: Token <<PIPELINE_SERVICE_TOKEN>>' \
   -H 'Content-Type: application/json' \
   --data '{"pipeline_id": "<<PIPELINE_ID>>", "state": {"operational_state": "incident"}}'
 
 ```
 
+## Replay Buffered Data
+
+A Responsive Pipeline can automatically replay recently buffered push-source data when it enters the `incident` state. This re-processes the data from the minutes just before the incident at full fidelity and indexes it into Mezmo Log Analysis. Replay is opt-in and configured per operational state. For details, see [Replay Buffered Data](/telemetry-pipelines/replay-buffered-data).
+
 ## Interactive Demo
 
-This interactive demo illustrates a telemetry pipeline that is configured to respond to a Datadog data volume spike incident. You will need to have pop-ups enabled to view the demo. You can also [view the demo without pop-ups](https://www.mezmo.com/demos/responsive-pipeline-volume-spike) at mezmo.com
-
-&lt;!-- To open the pop-up on clicking a button, add the following data-navattic attributes to an existing button on your page -->
-<button data-navattic-open="https://capture.navattic.com/clzsclm8e000009laaj3zeyyn" data-navattic-title="Responsive Pipeline: Volume Spike Protection">
-  View the demo in a pop-up
-</button>
+[This interactive demo](https://capture.navattic.com/clzsclm8e000009laaj3zeyyn) illustrates a telemetry pipeline that is configured to respond to a Datadog data volume spike incident. 

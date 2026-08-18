@@ -83,6 +83,7 @@ is_greater_or_equal_to
 Jira
 jq
 json
+kagent
 kafka
 keepalive
 kinesis
@@ -175,6 +176,7 @@ unencrypted
 unexpressible
 ungated
 uninstallations
+[Uu]nmount(s|ed|ing)?
 [Uu]npause
 unparsed
 untrusted

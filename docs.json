@@ -7,7 +7,10 @@
     "light": "#9383C2",
     "dark": "#61479E"
   },
-  "favicon": "/favicon.ico",
+  "favicon": {
+    "light": "/favicon-m-black.ico",
+    "dark": "/favicon-m-white.ico"
+  },
   "appearance": {
     "default": "dark"
   },
@@ -186,7 +189,6 @@
               "docs/import-and-export-organizations",
               "docs/rbac",
               "docs/manage-members",
-              "docs/manage-groups",
               "docs/feature-access-matrix",
               "docs/system-cross-domain-identity-management",
               "docs/add-enterprise-admins"
@@ -207,6 +209,7 @@
               "telemetry-pipelines/monitor-data-pipelines",
               "telemetry-pipelines/about-mezmo-trial",
               "telemetry-pipelines/configure-responsive-pipelines",
+              "telemetry-pipelines/replay-buffered-data",
               "telemetry-pipelines/shared-sources",
               "telemetry-pipelines/data-profiling",
               "telemetry-pipelines/about-mezmo-flow",
@@ -300,6 +303,7 @@
               "telemetry-pipelines/datadog-metrics-destination",
               "telemetry-pipelines/blackhole-destination",
               "telemetry-pipelines/new-relic-destination",
+              "telemetry-pipelines/open-telemetry-source",
               "telemetry-pipelines/sumo-logic-logs-destination",
               "telemetry-pipelines/honeycomb-logs-destination",
               "telemetry-pipelines/notification-channel-destination",
@@ -331,7 +335,6 @@
               "telemetry-pipelines/build-pipelines-terraform",
               "telemetry-pipelines/syntax-for-editing-pipeline-component-configuration-values",
               "telemetry-pipelines/pipeline-architecture-for-kubernetes-data-optimizationzlz",
-              "telemetry-pipelines/tutorial--how-to-build-a-telemetry-pipeline-with-terraform",
               "telemetry-pipelines/kafka-aeh"
             ]
           },
@@ -378,6 +381,7 @@
             "group": "Getting Started",
             "pages": [
               "aura/quickstart",
+              "aura/installation",
               "aura/quickstart-docker",
               "aura/example-configs",
               "aura/quickstart-orchestration-math",
@@ -487,21 +491,11 @@
       },
       {
         "tab": "API References",
-        "groups": [
+        "pages": [
+          "docs/api",
           {
-            "group": "API Overview",
-            "pages": [
-              "docs/api-referencesk9h",
-              "docs/authenticating-with-the-api"
-            ]
-          },
-          {
-            "group": "Log Analysis API",
-            "openapi": "log-analysis.json"
-          },
-          {
-            "group": "Telemetry Pipelines API",
-            "openapi": "pipeline.yaml"
+            "group": "Mezmo API",
+            "openapi": "apis/combined-mezmo-api.yaml"
           }
         ]
       }
@@ -537,18 +531,8 @@
       "copy",
       "view",
       "assistant",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "grok",
-      "aistudio",
-      "devin",
-      "windsurf",
       "mcp",
-      "add-mcp",
-      "cursor",
-      "vscode",
-      "devin-mcp"
+      "download-spec"
     ]
   },
   "footer": {
@@ -568,6 +552,18 @@
     {
       "source": "/docs/search",
       "destination": "/docs/search-tips"
+    },
+    {
+      "source": "/docs/authenticating-with-the-api",
+      "destination": "/docs/api"
+    },
+    {
+      "source": "/pipeline-api",
+      "destination": "/docs/api"
+    },
+    {
+      "source": "/docs/manage-groups",
+      "destination": "/docs/rbac"
     }
   ]
 }
