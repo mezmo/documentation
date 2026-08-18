@@ -63,6 +63,8 @@ agent.stream (AGENT, ROOT)
 
 ## Span attributes
 
+*When `OTEL_RECORD_CONTENT=true`, AURA also records the assembled system prompt on the agent entry-point spans (`agent.stream`, `agent.prompt`, `agent.chat`) and on the `orchestration.planning` and `orchestration.worker` spans. See [Content recording](#content-recording).*
+
 ### Agent root (`agent.stream`)
 
 `user.id`, `session.id`, `metadata`, `input.value`, `output.value`,
@@ -107,8 +109,13 @@ spans (planning, worker).
 
 `OTEL_RECORD_CONTENT` governs only AURA-owned spans. When `false` (the default),
 it omits prompt and completion text, and tool arguments and results. When `true`,
-it includes them, truncated to `OTEL_CONTENT_MAX_LENGTH` (default 1000 bytes,
-rounded down to the nearest UTF-8 boundary).
+it includes them, along with the assembled system prompt (the preamble, which
+includes the orchestration instructions and the skills catalog). AURA truncates
+all of this content to `OTEL_CONTENT_MAX_LENGTH` (default 1000 bytes, rounded down
+to the nearest UTF-8 boundary). At export, the recorded system prompt appears as
+leading `system` entries in the input messages (`llm.input_messages`) in Phoenix
+and other OpenInference viewers. AURA translates the raw `gen_ai.system_instructions`
+key into those leading `system` entries rather than exporting it directly.
 
 Rig-owned spans (`chat`, `chat_streaming`, `agent.turn`, and `execute_tool`)
 record content through `gen_ai.*` attributes. The OpenInference exporter

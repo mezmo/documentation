@@ -440,7 +440,7 @@ server):
 | `OTEL_EXPORTER_OTLP_ENDPOINT`           | OTLP collector endpoint (gRPC). When unset, no OTel layer is installed even in standalone mode.      |
 | `OTEL_SERVICE_NAME`                     | Resource attribute (defaults to `aura`).                                                             |
 | `OTEL_LOG_LEVEL`                        | Override the OTel layer's filter. Default captures `aura=trace`, `aura_cli=info`, and rig spans.     |
-| `OTEL_RECORD_CONTENT`                   | Gates content only on AURA-owned spans (`false` default omits it). Rig-owned chat/agent-turn/tool spans record content regardless, so `false` does not fully suppress exported content. See [Security and Data Handling](/aura/security). |
+| `OTEL_RECORD_CONTENT`                   | Gates content, including the assembled system prompt, on AURA-owned spans (`false` default omits it). Rig-owned `chat`, `chat_streaming`, `agent.turn`, and `execute_tool` spans record content regardless, so `false` does not fully suppress exported content. See [Security and Data Handling](/aura/security). |
 | `OTEL_CONTENT_MAX_LENGTH`               | Max bytes for content attributes on AURA-owned spans (default 1000, rounded down to the nearest UTF-8 boundary).                     |
 | `OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT`     | Truncation limit for translated Rig-owned content (default 65,536 bytes, rounded down to the nearest UTF-8 boundary). |
 
