@@ -1,7 +1,7 @@
 ---
 title: "AURA: open source agent harness for production SRE work"
 sidebarTitle: "AURA Overview"
-description: "AURA is an open source agent harness for production SRE work. Scoped tools, approval gates, MCP-native, and a trace of every call."
+description: "Scoped tools, approval gates, MCP-native connectivity, and a trace of every call."
 ---
 
 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -10,15 +10,15 @@ description: "AURA is an open source agent harness for production SRE work. Scop
   </span>
 </div>
 
-AURA is an open source agent harness for production operations work, written in Rust and licensed Apache 2.0. It takes an LLM plus the tools you already run and turns them into an agent that can work a live incident: reading cluster state, querying logs and metrics, checking your runbooks, and reporting what it found.
+Written in Rust and licensed Apache 2.0, AURA takes an LLM plus the tools you already run and turns them into an agent that can work a live incident: reading cluster state, querying logs and metrics, checking your runbooks, and reporting what it found.
 
-You declare the agent in TOML. Workers are separate roles, each with its own prompt and its own list of tools, so the worker that inspects a cluster is not the worker that changes it. Tools arrive over MCP, which means anything with an MCP server is reachable without writing an adapter.
+You declare the agent in TOML. Workers are separate roles, each with its own prompt and tool list, so the worker that inspects a cluster is not the worker that changes it. Tools connect over MCP, so anything with an MCP server is reachable without writing an adapter.
 
 ## What it does
 
-Model output alone does not make an agent you can point at production. The harness decides which tools each worker can reach, what pauses before a write, what happens when a tool call fails, what state survives across turns, and what record you have when the run is over.
+Model output alone does not make an agent you can point at production. The harness decides which tools each worker can reach, what pauses before a write, what happens when a tool call fails, what state survives across turns, and what record you have when the run is over. 
 
-AURA is that harness, and it is open source. You own the config and the deployment, and the telemetry goes where you point it. Nothing has to route through a vendor for the agent to work.
+You own the config and deployment, and the telemetry goes where you point it. Nothing has to route through a vendor for the agent to work.
 
 ## Use cases
 
