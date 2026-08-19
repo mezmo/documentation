@@ -75,14 +75,32 @@ Client POST /v1/chat/completions
 |---------|---------|--------------|---------|
 | First chunk timeout | 90 sec | `FIRST_CHUNK_TIMEOUT_SECS` | Max wait for first provider chunk |
 | Stream timeout | 15 min | `STREAMING_TIMEOUT_SECS` | Max request duration |
+| Stream inactivity timeout | Disabled (`0`) | `STREAM_INACTIVITY_TIMEOUT_SECS` | Max silence between stream items after the first chunk |
 | Shutdown grace period | 30 sec | `SHUTDOWN_TIMEOUT_SECS` | Time for in-flight requests to finish on shutdown |
 | Heartbeat | 15 sec | — | Disconnect detection |
 
 ### Rationale
 
 - **First chunk timeout (90 sec)**: Catches provider connection failures early. If the LLM hasn't sent any data within this window, the request is aborted rather than hanging for the full stream timeout. The window is sized for reasoning models, which can legitimately take over a minute before the first chunk.
+- **Stream inactivity timeout (disabled by default)**: Closes the gap between the first-chunk timeout, which guards only the opening chunk, and the stream timeout, which is the whole-request budget. Once streaming starts, a provider that goes silent between chunks runs all the way to the stream timeout by default. Enable this to fail a stalled stream sooner.
 - **Stream timeout (15 min)**: Supports long-running MCP tools. Set to 0 to disable (not recommended).
 - **Heartbeat (15 sec)**: Standard SSE keepalive. Detects disconnect during silent tool execution.
+
+### Tuning Stream Inactivity Timeouts
+
+There are two knobs at two layers, both disabled by default (`0`). The TOML `stream_inactivity_timeout_secs` (in `[orchestration.timeouts]`, see [configuration reference](/aura/configuration-reference)) governs coordinator and worker orchestration streams. The server `STREAM_INACTIVITY_TIMEOUT_SECS` (see [web server reference](/aura/web-server-reference)) governs single-agent streaming requests.
+
+The TOML knob exempts tool execution from its timer. The TOML deadline suspends during tool execution and re-arms on each stream item, so slow MCP tool calls and paused HITL approvals do not trip it. This makes it the reliable knob for orchestrated deployments.
+
+When the timer fires, the behavior depends on the layer. For orchestration, the affected task fails with a no-stream-progress error (an agent-timeout failure) and the run completes with partial results instead of dying mid-wave. For the server single-agent path, the request terminates as a timeout.
+
+<Warning>
+Orchestrated worker activity reaches the server layer as tool and progress events. Those events re-arm the server deadline but cannot suspend it, so a worker tool call that goes quiet past the window can still trip the server-layer timeout. For orchestrated deployments, rely on the TOML `stream_inactivity_timeout_secs`. If you also set the server `STREAM_INACTIVITY_TIMEOUT_SECS`, size it above the TOML window.
+</Warning>
+
+<Note>
+Aura pins OpenAI to Chat Completions, which streams nothing while the model is thinking, so a long think reads as inactivity and can trip the deadline. Anthropic, Gemini, and OpenAI-compatible `reasoning_content` streams re-arm while thinking, so this affects first-party OpenAI only. Size the window above worst-case think time for those models, or leave the knob off.
+</Note>
 
 ---
 

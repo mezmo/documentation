@@ -83,6 +83,7 @@ is_greater_or_equal_to
 Jira
 jq
 json
+kagent
 kafka
 keepalive
 kinesis
@@ -144,6 +145,7 @@ repos
 rollout
 RSyslog
 ruleset
+runbook(s?)
 serverless
 signup
 Splunk
@@ -176,6 +178,7 @@ unencrypted
 unexpressible
 ungated
 uninstallations
+[Uu]nmount(s|ed|ing)?
 [Uu]npause
 unparsed
 url
@@ -185,7 +188,7 @@ Valkey
 Vercel
 vrl
 wait_for
-walkthrough
+walkthrough(s?)
 webhook's
 websocket(s?)
 whitepaper

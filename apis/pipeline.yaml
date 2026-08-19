@@ -3629,7 +3629,6 @@ paths:
                     enum:
                       - DEMO
                       - OTEL
-                      - OTELLOGS
                   minItems: 1
                 metadata:
                   type: object

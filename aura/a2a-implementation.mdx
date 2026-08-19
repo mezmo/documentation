@@ -3,7 +3,7 @@ title: "A2A Integration"
 description: "A2A protocol endpoints, transport modes, the agent card URL, task lifecycle, and testing examples."
 ---
 
-This module wires the [A2A RC 1.0](https://github.com/a2a-protocol) protocol into the Aura web server via [`a2a-rs-server`](https://github.com/a2aproject/a2a-rs).
+This module wires the [A2A RC 1.0](https://github.com/a2a-protocol) protocol into the Aura web server via [`a2a-rs-server`](https://github.com/a2aproject/a2a-rs). Aura also serves a v0.3 JSON-RPC binding at the root for pre-1.0 clients (see [A2A v0.3 Root Binding](#a2a-v03-root-binding)).
 
 ## Enabling A2A
 
@@ -19,7 +19,7 @@ AURA_ENABLE_A2A=true cargo run --bin aura-web-server
 cargo run --bin aura-web-server -- --enable-a2a
 ```
 
-When disabled, the A2A endpoints (`/a2a/v1/*`, `/.well-known/agent-card.json`) are not mounted and return 404.
+When disabled, the A2A endpoints (`/.well-known/agent-card.json`, `/a2a/v1/*`, and `POST /`) are not mounted and return 404.
 
 ## Endpoints
 
@@ -36,10 +36,39 @@ When disabled, the A2A endpoints (`/a2a/v1/*`, `/.well-known/agent-card.json`) a
 | `GET/POST` | `/a2a/v1/tasks/{id}/subscribe` | REST (SSE) | Subscribe to task updates (legacy path) |
 | `POST` | `/a2a/v1/tasks/{id}/cancel` | REST | Cancel a task (legacy path) |
 | `POST` | `/a2a/v1/rpc` | JSON-RPC 2.0 | All of the above via JSON-RPC envelope |
+| `POST` | `/` | JSON-RPC 2.0 (v0.3) | A2A v0.3 JSON-RPC binding for pre-1.0 clients (for example, kagent); see [A2A v0.3 Root Binding](#a2a-v03-root-binding) |
 
 ### `message:send` — immediate return
 
 `AuraRequestHandler` forces `return_immediately = true` on every `message:send` request. The HTTP response returns as soon as the task is queued in `Working` state, without waiting for the agent to finish. Poll `GET /a2a/v1/tasks/{id}` or subscribe via `message:stream` / `tasks/{id}:subscribe` to track completion.
+
+## A2A v0.3 Root Binding
+
+`POST /` (the bare service root) serves an A2A v0.3 JSON-RPC 2.0 binding. It runs alongside the existing v1.0 JSON-RPC at `/a2a/v1/rpc` and the v1.0 REST mounts under `/a2a/v1/*`.
+
+A2A v0.x clients, such as kagent's bring-your-own (BYO) agent feature, read the pre-1.0 top-level `url` field of the agent card (see [v0.x Client Compatibility](#v0x-client-compatibility)). Finding none, they fall back to POSTing JSON-RPC at the bare service root. Before this binding, Aura advertised its endpoints only through `supportedInterfaces[]` and mounted JSON-RPC only at `/a2a/v1/rpc`. Those clients hit the root, got a 404, and appeared to hang silently because they never received a usable response.
+
+The root binding is active automatically whenever A2A is enabled with the existing `--enable-a2a` flag or `AURA_ENABLE_A2A` environment variable. There is no new flag or environment variable. See [Enabling A2A](#enabling-a2a).
+
+The root binding accepts the v0.3 slash-style method names: `message/send`, `message/stream`, `tasks/get`, `tasks/cancel`, and `tasks/resubscribe`.
+
+The root binding shares the same request handler, agent executor, and in-memory task store as the v1.0 bindings, so behavior matches. A root `message/send` returns immediately with a task in the `Working` state, the same as the v1.0 `message:send` (see [message:send — immediate return](#messagesend--immediate-return)). The resulting task is stored in the same task store, so you can poll it with a v0.3 `tasks/get` call to `POST /` or with the REST endpoint `GET /a2a/v1/tasks/{id}`. The `x-aura-model` header works the same way at the root as on the other endpoints: it selects the agent configuration when multiple configs are loaded, and is forwarded to the agent's MCP connections (see [Model selection](#model-selection-x-aura-model)).
+
+The root binding accepts only the v0.3 method names above. Any other method returns `-32601 Method not found`. This includes the v1.0 method names (`SendMessage`, `GetTask`, `CancelTask`), which belong to `/a2a/v1/rpc`, and the `push-notification` and extended-card methods, which are unsupported and match the card's `pushNotifications: false` capability.
+
+A malformed JSON body returns a JSON-RPC parse error `-32700` rather than a bare HTTP 422. All protocol failures are returned inside the JSON-RPC envelope at HTTP 200, as the A2A spec requires.
+
+<Note>
+These slash-style method names belong only to the root binding. They are distinct from the v1.0 method names (`SendMessage`, `GetTask`, `CancelTask`) used at `/a2a/v1/rpc`.
+</Note>
+
+<Note>
+The root binding is served on the same host and port as the rest of the server; it opens no new port. Enabling A2A does not add any flag or environment variable to the Aura process. However, because `POST /` was previously always a 404, a reverse proxy, load balancer, or Kubernetes Ingress in front of Aura may need a routing rule to forward bare `POST /` to the Aura backend. Watch for collisions with health-check paths or other services that share the same origin. Only `POST /` is mounted at the root; `GET /` continues to return 404, so health-check probes on `GET /` are unaffected. Disabling A2A unmounts this route along with the other A2A surfaces, and `POST /` then returns 404 again.
+</Note>
+
+<Warning>
+The A2A endpoints, including this root binding, have no built-in authentication or authorization. This matches the rest of the A2A surface. Protect the endpoint with network policy, mutual TLS (mTLS), or proxy-level authentication as your deployment requires.
+</Warning>
 
 ## Agent card URL (`AURA_SERVER_URL`)
 
@@ -61,14 +90,21 @@ The card then advertises absolute endpoints under that origin:
 
 ```jsonc
 {
+  "url": "https://aura.example.com/",
+  "preferredTransport": "JSONRPC",
   "supportedInterfaces": [
     { "url": "https://aura.example.com/a2a/v1",     "protocolBinding": "HTTP+JSON", "protocolVersion": "1.0" },
-    { "url": "https://aura.example.com/a2a/v1/rpc", "protocolBinding": "JSONRPC",   "protocolVersion": "1.0" }
+    { "url": "https://aura.example.com/a2a/v1/rpc", "protocolBinding": "JSONRPC",   "protocolVersion": "1.0" },
+    { "url": "https://aura.example.com/",           "protocolBinding": "JSONRPC",   "protocolVersion": "0.3" }
   ]
 }
 ```
 
 A trailing slash on `AURA_SERVER_URL` is trimmed before the paths are appended.
+
+### v0.x Client Compatibility
+
+The top-level `url` and `preferredTransport` fields let pre-1.0 A2A clients discover the endpoint. The third `supportedInterfaces` entry advertises the same root binding to v1.0-aware clients. Both use the same `AURA_SERVER_URL` origin already documented in the `AURA_SERVER_URL` table above, so there is no new configuration. See [A2A v0.3 Root Binding](#a2a-v03-root-binding) for how the root endpoint handles these clients.
 
 ## Model selection (`x-aura-model`)
 
@@ -86,6 +122,33 @@ The error message when no config matches:
 - No header and no default: `"no agent configuration available"` (A2A `invalid_params`)
 
 `x-aura-model` is **not** part of the A2A spec — it is an Aura extension. Like all request headers, it is also forwarded to the agent's MCP connections via the `headers_from_request` mechanism.
+
+## Multi-turn conversations
+
+Use `contextId` to group `message:send` requests into a single conversation. It is optional. To start a new conversation, omit `contextId`. The server generates one and returns it on the task object as `task.contextId`, which you read back from the first `message:send` response. The same value is present on the `GET /a2a/v1/tasks/{id}` response. The first `message:send` call is shown under [Testing with curl](#testing-with-curl) below.
+
+To continue the conversation, send another `message:send` with `message.contextId` set to that value, placed inside the `message` object alongside the other message fields. You group requests into one conversation only by `contextId`. When you send a follow-up on the same `contextId`, the agent includes its own prior answers as context, along with prior user prompts, so it can reference what it said earlier.
+
+```bash
+# <context-id> is the task.contextId returned by the prior response.
+curl -s -X POST http://localhost:8080/a2a/v1/message:send \
+  -H "Content-Type: application/json" \
+  -H "A2A-Version: 1.0" \
+  -d '{
+    "message": {
+      "messageId": "msg-002",
+      "role": "ROLE_USER",
+      "parts": [{ "text": "And what is that result times 3?" }],
+      "contextId": "<context-id>"
+    }
+  }' | jq .
+```
+
+Conversation continuity depends on the session store. The default in-memory store keeps a conversation only within a single server process for its lifetime. A Redis or Valkey session store shares conversation history by `contextId` across instances, subject to a configured TTL. To configure the durable or multi-pod backend, see [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
+
+<Note>
+There is no wire-contract change. `task.history` still contains only the user prompt. The agent's answer is still delivered as artifacts (the "Response" stream and "Final Info"). This section covers request-side `contextId` linkage and improved recall, not a new response field.
+</Note>
 
 ## Testing with curl
 
@@ -207,11 +270,54 @@ curl -s -X POST http://localhost:8080/a2a/v1/rpc \
 
 ---
 
+### JSON-RPC (v0.3) — send a message
+
+This is the endpoint that pre-1.0 clients like kagent use automatically. The v0.3 binding uses the v0.3 wire format, which differs from the v1.0 examples above: `role` is lowercase (`user`), each part carries a `kind` discriminator (`{ "kind": "text", ... }`), and responses come back with v0.3 spellings (for example, kebab-case task states).
+
+```bash
+# No A2A-Version header; that header only applies to /a2a/v1/rpc
+curl -s -X POST http://localhost:8080/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {
+        "kind": "message",
+        "messageId": "msg-003",
+        "role": "user",
+        "parts": [{ "kind": "text", "text": "Summarize the A2A protocol." }]
+      }
+    },
+    "id": 1
+  }' | jq .
+```
+
+---
+
+### JSON-RPC (v0.3) — get a task
+
+This polls a task created by the v0.3 `message/send` call above. The same task is also reachable through the REST endpoint `GET /a2a/v1/tasks/{id}`.
+
+```bash
+# No A2A-Version header; that header only applies to /a2a/v1/rpc
+curl -s -X POST http://localhost:8080/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tasks/get",
+    "params": { "id": "<task-id>" },
+    "id": 2
+  }' | jq .
+```
+
+---
+
 ## Notes
 
 - **`A2A-Version` is optional** — when present on `/a2a/v1/rpc` requests, the version is validated. An unsupported value returns `-32009 Version not supported`. REST endpoints do not enforce the header.
 - **`messageId` and `role` are required** on the `Message` object — malformed bodies return `-32602 Invalid params`.
 - **Text-only parts** — the executor only accepts `text` parts; `file` and `data` parts return an error.
-- Tasks are stored in the `a2a-rs-server` in-memory `TaskStore` for the lifetime of the process. Use `GET /a2a/v1/tasks/{id}` or `GetTask` to poll after `message:send` returns.
+- By default, tasks are stored in the `a2a-rs-server` in-memory `TaskStore` for the lifetime of the process. A Redis or Valkey [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments) persists tasks for durable or multi-pod deployments. Use `GET /a2a/v1/tasks/{id}` or `GetTask` to poll after `message:send` returns.
 - Request headers passed to `/a2a/v1/message:send` are forwarded to the agent's MCP connections (same `headers_from_request` mechanism as the OpenAI-compatible endpoint). This includes `x-aura-model`.
 - **`x-aura-model` is an Aura extension**, not part of the A2A spec. It selects the agent configuration when multiple configs are loaded — see [Model selection](#model-selection-x-aura-model).

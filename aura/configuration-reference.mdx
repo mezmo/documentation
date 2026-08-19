@@ -47,6 +47,7 @@ Defines the agent identity, system prompt, and behavioral settings.
 |---|---|---|---|
 | `name` | string | *required* | Display name. Doubles as the model identifier clients send in requests. |
 | `alias` | string | — | Stable identifier for model selection. Clients send this as the `model` field. Useful when the name contains spaces. |
+| `description` | string | — | Optional one-line, human-readable summary of the agent. Use it to distinguish multiple loaded configs that would otherwise differ only by `name` or `alias`. Display-only. It appears in `/v1/models`, `/aura/info`, and the CLI `/model` picker, but is never part of runtime settings and never sent to the model. Omitted from `/v1/models` and `/aura/info` responses when unset. Not to be confused with the required per-worker `description` under `[orchestration]`, which guides planning and is not shown to people. It is free-form text with no enforced length limit; the CLI `/model` picker collapses whitespace and truncates it to fit the terminal. |
 | `system_prompt` | string | *required* | The agent's system prompt. Multi-line strings use TOML `"""..."""` syntax. |
 | `turn_depth` | integer | `5` | Max tool-call rounds per user turn. Acts as a failsafe to prevent models from spinning out in unbounded tool-call loops. |
 | `nudge_last_turn` | bool | `false` | Append a wrap-up warning to tool output on the final turn before `turn_depth` terminates the run (orchestration workers are told to call `submit_result`), rather than silently losing all gathered work. |
@@ -62,6 +63,7 @@ Defines the agent identity, system prompt, and behavioral settings.
 [agent]
 name = "DevOps Assistant"
 alias = "devops"
+description = "General-purpose assistant with tool access"
 system_prompt = """
 You are a DevOps assistant with access to GitHub.
 Help with code review, PR management, and repo exploration.
@@ -101,6 +103,7 @@ Agent selection follows this order:
 [agent]
 name = "DevOps Assistant"
 alias = "devops"             # clients send "model": "devops"
+description = "DevOps assistant with GitHub access"
 system_prompt = "You are a DevOps expert."
 model_owner = "mezmo"        # override owned_by in /v1/models (defaults to LLM provider)
 ```
@@ -451,7 +454,7 @@ api_key = "{{ env.OPENAI_API_KEY }}"
 
 ### `type = "bedrock_kb"`
 
-Managed RAG — no embedding model needed. Uses AWS credentials.
+Managed RAG uses AWS credentials, so no embedding model is needed.
 
 ```toml
 [[vector_stores]]
@@ -460,6 +463,7 @@ type = "bedrock_kb"
 knowledge_base_id = "{{ env.BEDROCK_KB_ID }}"
 region = "{{ env.AWS_REGION }}"
 # profile = "default"  # optional
+# managed = true  # optional
 context_prefix = "Company documentation"
 ```
 
@@ -470,8 +474,11 @@ Extra fields:
 | `knowledge_base_id` | string | — | **Required.** Bedrock Knowledge Base ID. |
 | `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
 | `profile` | string | — | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
+| `managed` | bool | `false` | Set to `true` when the store points at a Bedrock managed knowledge base; Aura then sends `managedSearchConfiguration` instead of `vectorSearchConfiguration` on retrieve requests. Leave it `false` or omit it for a classic vector-store-backed knowledge base. |
 
 When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment — for example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
+
+Both managed and classic Bedrock knowledge bases handle embeddings for you. The `managed` flag only selects which kind of knowledge base the store points at. If you leave `managed` unset or `false` for a managed knowledge base, retrieve requests fail with a `ValidationException`. The full error reads: `Incompatible configuration: vectorSearchConfiguration is not supported for managed knowledge bases. Use managedSearchConfiguration instead.` Set `managed = true` to resolve it.
 
 ### Embedding Models
 
@@ -604,10 +611,14 @@ memory_dir = "/tmp/aura-orchestration"   # legacy flat field; prefer top-level m
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `per_call_timeout_secs` | integer | `0` (disabled) | Per-call timeout for coordinator and worker LLM calls. Set to a positive value to enable. |
+| `stream_inactivity_timeout_secs` | integer | `0` (disabled) | Max seconds of silence between stream items on coordinator and worker orchestration streams before Aura fails the affected task with a no-stream-progress error. Suspends during tool execution and re-arms on each stream item. Must be below `per_call_timeout_secs` (when set) to take effect. Set to a positive value to enable. |
+
+See [request lifecycle](/aura/request-lifecycle) for the operational guidance and caveats on this timeout.
 
 ```toml
 [orchestration.timeouts]
 per_call_timeout_secs = 120
+stream_inactivity_timeout_secs = 60
 ```
 
 ### `[orchestration.artifacts]`

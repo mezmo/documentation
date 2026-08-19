@@ -33,7 +33,7 @@ You can obtain this key under Setting | API Keys In App.
 
 ### OpenTelemetry Collector Configuration
 
-To configure an OTel collector to export to Mezmo, you can add the following to your exporters section of your OTel Collector config file:
+To configure an existing OTel collector to export to Mezmo, you can add the following to your exporters section of your OTel Collector config file:
 
 ```yaml
 exporters:
@@ -69,4 +69,4 @@ The endpoint accepts gzip-compressed OTLP payloads in both protobuf and JSON for
   The endpoint in the exporters configuration must exactly match the URL above. You don't need to specify the `/v1/[type]` path, this is done automatically by the collector
 </warning>
 
-For more details, visit [OpenTelemetry Collector](telemetry-pipelines/otel-collector)
+For more details, visit [OpenTelemetry Collector](./otel-collector)

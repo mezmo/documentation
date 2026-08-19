@@ -3,7 +3,7 @@ title: "AURA Web Server Reference"
 description: "OpenAI-compatible web API server that exposes AURA agents through a standard chat completions endpoint — endpoints, deployment env vars, and architecture."
 ---
 
-<Note>**Open Alpha** — AURA is under active development. APIs and configuration may change between releases. [Issues and feature requests](https://github.com/mezmo/aura/issues) are welcome — we'd love your feedback.</Note>
+<Note>**Active development** — APIs and configuration may change between releases as AURA evolves. [Issues and feature requests](https://github.com/mezmo/aura/issues) are welcome — we'd love your feedback.</Note>
 
 <Note>**Part of the [AURA Project](https://github.com/mezmo/aura)** - A production-ready framework for building AI agents with declarative TOML configuration.</Note>
 
@@ -59,12 +59,16 @@ GET /v1/models
 ```
 Returns all loaded agents. Each agent's `alias` (or `name` if no alias is set) is its model `id`. The `owned_by` field defaults to the underlying LLM provider (e.g. `"openai"`, `"anthropic"`) and can be overridden with `model_owner` in the agent config. Clients like LibreChat and OpenWebUI use this endpoint to populate their model picker.
 
+Each entry can also carry a `description`, a human-readable summary sourced from the agent's `[agent].description` config (see the [configuration reference](/aura/configuration-reference#agent)). This extends the OpenAI model object. The key is omitted when `[agent].description` is unset, so strict OpenAI clients can ignore it.
+
+The `/aura/info` endpoint reports this same per-agent `description`; both read the agent's `[agent].description` config value rather than computing it independently. `/v1/models` alone is enough to populate a model picker in an OpenAI-compatible client.
+
 Response:
 ```json
 {
   "object": "list",
   "data": [
-    {"id": "devops", "object": "model", "created": 1677649963, "owned_by": "mezmo"},
+    {"id": "devops", "object": "model", "created": 1677649963, "owned_by": "mezmo", "description": "General-purpose assistant with tool access"},
     {"id": "research-assistant", "object": "model", "created": 1677649963, "owned_by": "mezmo"}
   ]
 }
@@ -180,6 +184,7 @@ Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tr
 | `TOOL_RESULT_MAX_LENGTH` | `1000` | Truncation limit for streamed tool results (0 = no truncation) |
 | `STREAMING_TIMEOUT_SECS` | `900` | Max duration for a streaming request before cancellation |
 | `FIRST_CHUNK_TIMEOUT_SECS` | `90` | Max wait for the first LLM chunk before treating the connection as hung (0 = disabled) |
+| `STREAM_INACTIVITY_TIMEOUT_SECS` | `0` | Max silence between stream items after the first chunk before the server fails the streaming request (0 = disabled). Applies to single-agent streaming; tool execution is exempt. For orchestrated deployments, use the TOML `stream_inactivity_timeout_secs` instead. See [request lifecycle](/aura/request-lifecycle#timeout-configuration) for tuning guidance, and the [configuration reference](/aura/configuration-reference) for the TOML field. |
 | `SHUTDOWN_TIMEOUT_SECS` | `30` | Grace period for in-flight streams after SIGTERM/SIGINT |
 | `STREAMING_BUFFER_SIZE` | `400` | SSE chunk buffer size; higher values reduce latency but increase memory use |
 | `AURA_DEBUG_PROVIDER_ERRORS` | `false` | **Dev only.** Surface raw upstream provider errors to clients (capped). Keep off when public-facing — error bodies can echo request content. Raw error is always in logs/OTel. |
