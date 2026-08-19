@@ -59,12 +59,16 @@ GET /v1/models
 ```
 Returns all loaded agents. Each agent's `alias` (or `name` if no alias is set) is its model `id`. The `owned_by` field defaults to the underlying LLM provider (e.g. `"openai"`, `"anthropic"`) and can be overridden with `model_owner` in the agent config. Clients like LibreChat and OpenWebUI use this endpoint to populate their model picker.
 
+Each entry can also carry a `description`, a human-readable summary sourced from the agent's `[agent].description` config (see the [configuration reference](/aura/configuration-reference#agent)). This extends the OpenAI model object. The key is omitted when `[agent].description` is unset, so strict OpenAI clients can ignore it.
+
+The `/aura/info` endpoint reports this same per-agent `description`; both read the agent's `[agent].description` config value rather than computing it independently. `/v1/models` alone is enough to populate a model picker in an OpenAI-compatible client.
+
 Response:
 ```json
 {
   "object": "list",
   "data": [
-    {"id": "devops", "object": "model", "created": 1677649963, "owned_by": "mezmo"},
+    {"id": "devops", "object": "model", "created": 1677649963, "owned_by": "mezmo", "description": "General-purpose assistant with tool access"},
     {"id": "research-assistant", "object": "model", "created": 1677649963, "owned_by": "mezmo"}
   ]
 }

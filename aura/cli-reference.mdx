@@ -309,10 +309,24 @@ Use `/model` to browse and select which model to use for requests.
 ```
 /model              # list all available models
 /model gpt          # filter models matching "gpt"
-/model gpt-4o       # select "gpt-4o" if it matches exactly or uniquely
+/model gpt-4o       # narrow to "gpt-4o"; press Enter to select the unique match
 ```
 
-In **HTTP mode**, the model list is fetched from the server's `/v1/models` endpoint. In **standalone mode**, it comes directly from the loaded TOML configs (each config's `alias` or `name` becomes a selectable model).
+`/model` opens a numbered picker with one model per row. A `Name` and `Description` header appears when at least one listed model has a description and the terminal is wide enough for a description column. `❯` marks the row you have Tab-selected, and `✓` marks the model currently in use:
+
+```
+     Name                       Description
+  1. Mezmo Anthropic SRE Agent  Anthropic-backed config to solve all of your production problems
+❯ 2. Mezmo OpenAI SRE Agent ✓   OpenAI-backed config for the same production problems
+```
+
+Descriptions are truncated to fit the terminal width. When the terminal is too narrow for a usable description column, the column is dropped rather than truncated to a stub. A listed model without a description shows a blank cell in the `Description` column; the column itself stays, and only a list where no model has a description drops it.
+
+Descriptions come from each agent config's `[agent].description` (see the [configuration reference](/aura/configuration-reference)). In **HTTP mode**, the model list, including ids and descriptions, comes from the server's `/v1/models` endpoint. In **standalone mode**, it comes from the loaded TOML configs, using each config's `alias` or `name` plus its description.
+
+Typing a filter that narrows to exactly one model still shows the unique-match auto-complete row, now including that model's description.
+
+The model list, descriptions included, is remembered per conversation, so it survives restarts.
 
 ---
 
