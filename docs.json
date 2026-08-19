@@ -380,6 +380,7 @@
           {
             "group": "Getting Started",
             "pages": [
+              "aura/index",
               "aura/quickstart",
               "aura/installation",
               "aura/quickstart-docker",

@@ -144,6 +144,7 @@ repo
 repos
 RSyslog
 ruleset
+runbook(s?)
 serverless
 signup
 Splunk
@@ -185,7 +186,7 @@ uuid(s?)
 Valkey
 Vercel
 vrl
-walkthrough
+walkthrough(s?)
 webhook's
 websocket(s?)
 whitepaper
