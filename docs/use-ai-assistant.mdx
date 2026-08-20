@@ -1,22 +1,22 @@
 ---
-title: "Use the AI Assistant"
-description: "Analyze logs and telemetry in natural language with the Mezmo AI Assistant using prompts, time expressions, context mentions, and slash commands."
+title: "Use the Mezmo Assistant"
+description: "Analyze logs and telemetry in natural language with the Mezmo Assistant using prompts, time expressions, context mentions, and slash commands."
 ---
 
-The Mezmo AI Assistant helps you analyze logs, investigate issues, and work with your telemetry data using natural language. Ask questions and get insights without writing complex queries.
+The Mezmo Assistant helps you analyze logs, investigate issues, and work with your telemetry data using natural language. Ask questions and get insights without writing complex queries. It's powered by [AURA](/aura), Mezmo's open-source harness for production-ready agents.
 
-## Access the AI Assistant
+## Access the Mezmo Assistant
 
-You can access the AI Assistant from two locations:
+You can access the Mezmo Assistant from two locations:
 
-- **From the homepage**: Click the AI Assistant icon or prompt area to start a conversation
+- **From the homepage**: Click the Mezmo Assistant icon or prompt area to start a conversation
 - **From the AI Agent page**: Navigate to the dedicated AI Agent interface for an expanded view with chat history
 
-The AI Assistant is available throughout your Mezmo workspace and provides context-aware help based on where you access it.
+The assistant is available throughout your Mezmo workspace and provides context-aware help based on where you access it.
 
 ## Ask Questions
 
-Type your questions or requests in plain language. The AI Assistant can help with:
+Type your questions or requests in plain language. The Mezmo Assistant can help with:
 
 - Analyzing log patterns and trends
 - Performing root cause analysis on issues
@@ -32,7 +32,7 @@ Type your questions or requests in plain language. The AI Assistant can help wit
 
 ## Using Time Expressions
 
-You can use natural language time expressions when querying log data with the AI Assistant.
+You can use natural language time expressions when querying log data with the Mezmo Assistant.
 
 ### Time Formats
 
@@ -70,7 +70,7 @@ Use the `@` symbol to attach context to your prompts for more relevant responses
 2. Select from available context types: pipelines, pipeline nodes (when viewing a pipeline), tap data (when available), or other context relevant to your current view.
 3. Continue typing your prompt.
 
-You can attach multiple pieces of context to a single prompt. The AI Assistant will show suggested prompts based on your attached context.
+You can attach multiple pieces of context to a single prompt. The Mezmo Assistant will show suggested prompts based on your attached context.
 
 ## Use Slash Commands
 
@@ -80,7 +80,7 @@ Slash commands give you quick access to common prompts and actions.
 2. Select a category from the menu, such as **Pipeline prompts** or **Log Analysis prompts**.
 3. Select a prompt to add it to your message.
 
-The default prompts change based on where you open the AI Assistant:
+The default prompts change based on where you open the Mezmo Assistant:
 
 - **Pipeline pages**: Pipeline-related prompts
 - **Log Analysis or Live Tail pages**: Log Analysis prompts
@@ -89,7 +89,7 @@ When you attach context with `@` mentions, the available prompts update to match
 
 ## View Tool Call Progress
 
-When the AI Assistant performs operations like analyzing logs or querying data, you'll see progress indicators showing:
+When the Mezmo Assistant performs operations like analyzing logs or querying data, you'll see progress indicators showing:
 
 - Which tool is currently running
 - Progress updates as the operation proceeds
@@ -99,7 +99,7 @@ You can cancel long-running requests by clicking the stop button.
 
 ## View Completed Tool Calls
 
-After the AI Assistant responds, you can review the tools used during the conversation. A collapsible section below the response shows how many tools were called.
+After the Mezmo Assistant responds, you can review the tools used during the conversation. A collapsible section below the response shows how many tools were called.
 
 ### Tool Summary
 
@@ -120,9 +120,9 @@ Click any tool to expand its details:
 - **Result**: Output returned (successful calls)
 - **Error**: Error message (failed calls)
 
-## What the AI Assistant Can Do
+## What the Mezmo Assistant Can Do
 
-The AI Assistant uses specialized tools to help you work with your data:
+The Mezmo Assistant uses specialized tools to help you work with your data:
 
 **Log Analysis and Root Cause Analysis**
 - Analyze logs to identify root causes using time ranges or relative time expressions (for example, "last hour")
@@ -152,7 +152,7 @@ The AI Assistant uses specialized tools to help you work with your data:
 
 **Trace Analysis**
 
-If your account has trace analysis enabled, the AI Assistant can help you analyze OpenTelemetry trace data:
+If your account has trace analysis enabled, the Mezmo Assistant can help you analyze OpenTelemetry trace data:
 
 - View service graphs showing how your services communicate
 - List failed traces for a time range, optionally filtered by service
@@ -173,11 +173,11 @@ If your account has trace analysis enabled, the AI Assistant can help you analyz
 
 ## Chat History
 
-Your conversations with the AI Assistant are automatically saved. The homepage sidebar shows your recent chat history, so you can review previous conversations, continue earlier discussions, and access past analysis and insights.
+Your conversations with the Mezmo Assistant are automatically saved. The homepage sidebar shows your recent chat history, so you can review previous conversations, continue earlier discussions, and access past analysis and insights.
 
 ## Responses and Formatting
 
-The AI Assistant provides responses in formatted markdown, including:
+The Mezmo Assistant provides responses in formatted markdown, including:
 
 - **Code blocks** with syntax highlighting for technical content
 - **Tables** for structured data
@@ -189,9 +189,9 @@ The AI Assistant provides responses in formatted markdown, including:
 
 - **Be specific**: Include relevant details like time ranges, field names, or error messages
 - **Use context**: Attach pipelines or other context with `@` mentions for more accurate responses
-- **Ask follow-up questions**: The AI Assistant remembers your conversation context
+- **Ask follow-up questions**: The Mezmo Assistant remembers your conversation context
 - **Try slash commands**: Use `/` to discover common prompts and actions
 
 ## Cancel Requests
 
-If a request is taking too long or you want to stop the current operation, click the **Stop** button while the AI Assistant is processing. The partial response will remain visible, and a "Cancelled" message will indicate the request was stopped. You can then start a new prompt or refine your question.
+If a request is taking too long or you want to stop the current operation, click the **Stop** button while the Mezmo Assistant is processing. The partial response will remain visible, and a "Cancelled" message will indicate the request was stopped. You can then start a new prompt or refine your question.
