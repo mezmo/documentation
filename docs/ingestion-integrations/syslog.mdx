@@ -1,18 +1,48 @@
 ---
 title: "Syslog"
-description: "Set up Syslog log ingestion to Mezmo over TCP and UDP on a provisioned port, with RFC 5424 and RFC 3164 auto parsing."
+description: "Route Syslog log ingestion to Mezmo through an OpenTelemetry Collector, which parses Syslog with RFC 5424 and RFC 3164 support and forwards it to the Mezmo OTEL Source."
 ---
 
-You can set up log ingestion from Syslog to Mezmo using both TCP and UDP on the same provisioned port. If you are using a custom port to send logs via UDP, please contact Mezmo support to provision the port. Consult your local Syslog man page for full configuration details.
+Mezmo ingests Syslog data by placing an OpenTelemetry (OTel) Collector between your Syslog senders and Mezmo. The Collector receives Syslog over TCP or UDP with its `syslog` receiver, then forwards the parsed logs to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) using the `otlphttp` exporter.
+
+```
+Syslog sender  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+```
 
 ## Set Up Syslog Log Ingestion
 
-Follow the instructions in the Mezmo Web App to set up Syslog log ingestion using your Mezmo syslog port and ingestion key.
+1. Log in to the [Mezmo Web App](https://app.mezmo.com), create (or open) a Pipeline, and add an [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source). Note the ingestion key — you'll use it as `apikey`.
+2. Download the `otelcol-contrib` distribution, which includes the `syslog` receiver, from [the OpenTelemetry website](https://github.com/open-telemetry/opentelemetry-collector-releases).
+3. Create a configuration file `config.yaml`:
 
-1. Log in to the [Mezmo Web App](https://app.mezmo.com).
-2. In the bottom section of the left-hand navigation, click **Help**.
-3. Select **Add Log Sources**. 
-4. Under **Via syslog**, click **syslog**.
-5. Follow the instructions to set up Syslog log ingestion.
+```yaml
+receivers:
+  syslog:
+    protocol: rfc5424
+    tcp:
+      listen_address: "0.0.0.0:514"
 
-We accept [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) and [RFC 3164](https://datatracker.ietf.org/doc/html/rfc3164) for auto parsing Syslog.
+exporters:
+  otlphttp/mezmo:
+    endpoint: "https://logs.mezmo.com/otel"
+    compression: gzip
+    headers:
+      apikey: "<YOUR_INGESTION_KEY>"
+
+service:
+  pipelines:
+    logs:
+      receivers: [syslog]
+      exporters: [otlphttp/mezmo]
+```
+
+Set `protocol` to `rfc5424` or `rfc3164` depending on the format your Syslog sender uses, and swap the `tcp` block for a `udp` block if you're sending over UDP instead. Consult your local Syslog man page and the [Collector `syslog` receiver documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/syslogreceiver) for full configuration details.
+
+4. Point your Syslog senders at the host and port where the Collector's `syslog` receiver is listening.
+5. Start the Collector:
+
+```bash
+./otelcol-contrib --config /path/to/config.yaml
+```
+
+Logs will begin appearing in the Mezmo Log Viewer once the Collector starts forwarding data.

@@ -50,11 +50,11 @@ Mezmo also parses source information metadata from log lines, which is listed in
 
 ### Hostname
 
-A hostname is the name of the log line source, and is automatically parsed by the [Mezmo Logging Agent](/docs/introducing-the-agent), as well as [Syslog based ingestion](/docs/syslog). However, when you are sending log lines for ingestion with the REST API or a [code library](/docs/code-libraries), you must specify the host name.
+A hostname is the name of the log line source, and is automatically parsed by the [Mezmo Logging Agent](/docs/introducing-the-agent), as well as [Syslog based ingestion](/docs/ingestion-integrations/syslog). However, when you are sending log lines for ingestion with the REST API or a [code library](/docs/code-libraries), you must specify the host name.
 
 ### Tags
 
-You can use a tag to group lines, and more than one tag can be applied to a single line. Tags are listed in the **All Tags** menu in the web app. Tagging is supported by both the [Mezmo Logging Agent](/docs/introducing-the-agent) as well as custom-template supported [Syslog based ingestion](/docs/syslog) such as rsyslog or syslog-ng.
+You can use a tag to group lines, and more than one tag can be applied to a single line. Tags are listed in the **All Tags** menu in the web app. Tagging is supported by both the [Mezmo Logging Agent](/docs/introducing-the-agent) as well as custom-template supported [Syslog based ingestion](/docs/ingestion-integrations/syslog) such as rsyslog or syslog-ng.
 
 ### Other information
 
@@ -67,7 +67,7 @@ The [Mezmo Logging Agent](/docs/introducing-the-agent) automatically parses this
 
 ## Application Information Metadata
 
-In addition to source information, Mezmo can also parse application information from log lines. The [Mezmo Logging Agent](/docs/introducing-the-agent) automatically parses the application name as the filename (for example: `error.log`) while [Syslog based ingestion](/docs/syslog) uses the syslog-generated `APP-NAME` tag. For the REST API  and [code library](/docs/code-libraries), you must specify the app name.
+In addition to source information, Mezmo can also parse application information from log lines. The [Mezmo Logging Agent](/docs/introducing-the-agent) automatically parses the application name as the filename (for example: `error.log`) while [Syslog based ingestion](/docs/ingestion-integrations/syslog) uses the syslog-generated `APP-NAME` tag. For the REST API  and [code library](/docs/code-libraries), you must specify the app name.
 
 ## Automatic and Custom Parsing for Field Search
 
