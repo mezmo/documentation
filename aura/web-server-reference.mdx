@@ -88,9 +88,20 @@ Request body:
   "model": "devops",
   "messages": [
     {"role": "user", "content": "What tools do you have available?"}
-  ]
+  ],
+  "user": "u-1234",
+  "metadata": {"team": "sre"}
 }
 ```
+
+Two optional OpenAI-compatible fields carry request context into traces:
+
+- `user`: optional string. An end-user identifier that flows into the `user.id` span attribute.
+- `metadata`: optional map of string to string. It is serialized into the `metadata` span attribute.
+
+Both are request-only inputs: they surface only as span attributes on exported traces (`user.id` and `metadata` respectively) and are not part of the chat-completion response body.
+
+See [Tracing & Span Layout](/aura/tracing-spans#span-attributes) for how these fields surface in traces.
 
 Response:
 ```json
@@ -184,6 +195,8 @@ Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tr
 | `SHUTDOWN_TIMEOUT_SECS` | `30` | Grace period for in-flight streams after SIGTERM/SIGINT |
 | `STREAMING_BUFFER_SIZE` | `400` | SSE chunk buffer size; higher values reduce latency but increase memory use |
 | `AURA_DEBUG_PROVIDER_ERRORS` | `false` | **Dev only.** Surface raw upstream provider errors to clients (capped). Keep off when public-facing — error bodies can echo request content. Raw error is always in logs/OTel. |
+
+OpenTelemetry and Phoenix environment variables (endpoint, project routing, and content recording) are not listed here; they are documented in [Tracing & Span Layout](/aura/tracing-spans) and the [AURA CLI Reference](/aura/cli-reference).
 
 ## See Also
 

@@ -443,6 +443,7 @@ server):
 | `OTEL_RECORD_CONTENT`                   | Gates content, including the assembled system prompt, on AURA-owned spans (`false` default omits it). Rig-owned `chat`, `chat_streaming`, `agent.turn`, and `execute_tool` spans record content regardless, so `false` does not fully suppress exported content. See [Security and Data Handling](/aura/security). |
 | `OTEL_CONTENT_MAX_LENGTH`               | Max bytes for content attributes on AURA-owned spans (default 1000, rounded down to the nearest UTF-8 boundary).                     |
 | `OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT`     | Truncation limit for translated Rig-owned content (default 65,536 bytes, rounded down to the nearest UTF-8 boundary). |
+| `PHOENIX_PROJECT_NAME`                  | Sets the `openinference.project.name` resource attribute. Phoenix routes traces to a project by that attribute alone and ignores `service.name` and `OTEL_SERVICE_NAME` for routing. When unset, AURA sets the attribute to the service name (`OTEL_SERVICE_NAME`, then `aura`) instead, so traces are grouped under a project of that name. |
 
 ---
 
