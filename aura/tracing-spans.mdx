@@ -10,6 +10,12 @@ OpenTelemetry support is enabled by default via the `otel` feature in both
 environment variables (for example `OTEL_EXPORTER_OTLP_ENDPOINT`) to export
 traces — no endpoint set means no OTel layer is installed.
 
+The exporter supports two wire transports, `grpc` (the default) and
+`http/protobuf`, which you select with `OTEL_EXPORTER_OTLP_PROTOCOL`. TLS is
+enabled automatically when the endpoint uses an `https://` scheme. For the
+full list of environment variables, see
+[Standalone-mode OpenTelemetry](/aura/cli-reference#standalone-mode-opentelemetry).
+
 AURA emits spans using the [OpenInference](https://github.com/Arize-ai/openinference/tree/main/spec)
 semantic convention (`llm.*`, `tool.*`, `input.*`, `output.*`) rather than the
 `gen_ai.*` conventions. Any `gen_ai.*` attributes from underlying provider

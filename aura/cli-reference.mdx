@@ -446,12 +446,29 @@ traces come from the server process.
 OTel init is independent of `--log-file`; you can run with traces only
 (no log file), logs only (no OTel endpoint), or both.
 
+The OTLP wire transport is selectable. `grpc` is the default, and
+`http/protobuf` is the alternative, which you select with
+`OTEL_EXPORTER_OTLP_PROTOCOL`. Use `http/protobuf` for collectors behind a
+proxy or ingress that terminates HTTPS but doesn't support unencrypted (h2c)
+gRPC, or that exposes only the OTLP HTTP receiver. An `https://` endpoint
+enables TLS automatically; an `http://` endpoint stays plain text. The gRPC
+transport uses the platform's native root certificate store, and the
+`http/protobuf` transport uses the exporter's own bundled root certificates.
+There is no separate variable to enable TLS. On the `http/protobuf` path, the
+exporter appends `/v1/traces` to
+`OTEL_EXPORTER_OTLP_ENDPOINT`, whereas `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`
+is used verbatim, with no path appended.
+
 Other relevant OTel env vars (read by the `aura` crate, unchanged from the
 server):
 
 | Variable                                | Purpose                                                                                              |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`           | OTLP collector endpoint (gRPC). When unset, no OTel layer is installed even in standalone mode.      |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`           | OTLP collector endpoint. When unset, no OTel layer is installed even in standalone mode. An `https://` scheme enables TLS; `http://` stays plain text. |
+| `OTEL_EXPORTER_OTLP_PROTOCOL`           | Wire transport for trace export: `grpc` (default) or `http/protobuf`. Case-insensitive and whitespace-trimmed. An unrecognized value logs a warning and falls back to `grpc`, so traces are not dropped. |
+| `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL`    | Trace-signal transport override. Takes precedence over `OTEL_EXPORTER_OTLP_PROTOCOL`.                |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`    | Trace-signal endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` for both the TLS decision and the send target. On the `http/protobuf` path it is used verbatim, with no `/v1/traces` appended. |
+| `OTEL_EXPORTER_OTLP_HEADERS`            | Comma-separated `key=value` pairs sent as gRPC metadata or HTTP headers, for example, proxy authentication. |
 | `OTEL_SERVICE_NAME`                     | Resource attribute (defaults to `aura`).                                                             |
 | `OTEL_LOG_LEVEL`                        | Override the OTel layer's filter. Default captures `aura=trace`, `aura_cli=info`, and rig spans.     |
 | `OTEL_RECORD_CONTENT`                   | When `true`, prompt/completion/tool args/results are recorded as span attributes.                    |
