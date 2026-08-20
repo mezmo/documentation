@@ -119,6 +119,126 @@ the sentinel `<invalid url>`, and a command with no extractable file name as
 a populated one lists them. Older servers omit the field entirely, and the CLI
 then uses its generic startup call-to-action.
 
+### Inspecting Tools (`detail` Parameter)
+
+`detail` is an optional, comma-separated query parameter. Its tokens are
+trimmed, and empty tokens are ignored; if both `tools` and `tools:summary`
+appear, in either order, `tools` wins because it returns everything the summary
+does and more. Tool discovery is strictly opt-in, so it adds zero latency or
+cost unless a request asks for it. Omitting `detail`, or sending it empty,
+leaves the response unchanged; the table below gives the value-by-value effects.
+
+| Value | Effect |
+|-------|--------|
+| _(omitted / empty)_ | Response unchanged; no `tools` key; no MCP server contacted. |
+| `tools` | For every agent in the response, AURA connects to each configured MCP server, runs `tools/list`, and adds a `tools` array of full MCP `Tool` objects to that server's entry under `mcp_servers`. |
+| `tools:summary` | Same discovery, but each tool is reduced to `{ "name", "description" }`. Use it to list capabilities cheaply without the verbose schemas. |
+
+An unrecognized token is rejected with HTTP 400, not silently ignored; the body
+uses the standard error shape:
+
+```json
+{"error":{"message":"unknown detail 'schemas'; expected 'tools' or 'tools:summary'","type":"invalid_request_error"}}
+```
+
+Request full tool objects with `?detail=tools`:
+
+```bash
+curl "http://localhost:8080/aura/info?detail=tools" | jq
+```
+
+The `logs` server's entry gains a `tools` array (fragment):
+
+```json
+"logs": {
+  "transport": "http_streamable",
+  "url": "https://logs.example.com",
+  "description": "Search logs.",
+  "tools": [
+    {
+      "name": "search_logs",
+      "title": "Search logs",
+      "description": "Search log lines by query and time range.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "from": { "type": "string", "format": "date-time" },
+          "to": { "type": "string", "format": "date-time" }
+        },
+        "required": ["query"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "lines": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}
+```
+
+Discovery is uniform: every agent in the response is queried the same way, and each configured MCP server under it gains its own `tools` array with the structure shown here.
+
+<Note>`Tool` fields serialize in MCP-spec camelCase (`inputSchema`, `outputSchema`, `readOnlyHint`, …) on purpose. This differs from the snake_case of the surrounding endpoint fields (`mcp_servers`, `transport`, `default_agent`); it is not a typo.</Note>
+
+| Field | Notes |
+|-------|-------|
+| `name` | Required. |
+| `title` | Optional. |
+| `description` | Optional. |
+| `inputSchema` | Optional. |
+| `outputSchema` | Optional. |
+| `annotations` | Optional; contains `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`. |
+| `_meta` | Optional. |
+
+The MCP spec's `icons` field is dropped and never appears in this response.
+
+`annotations` is optional, and each hint inside it (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) is independently optional and may be absent. When authoring a governance rule, treat an absent hint as unknown rather than as a safe or `false` value — default to requiring approval until the hint is present.
+
+With `?detail=tools:summary`, the same server's `tools` collapses to name and
+description (fragment):
+
+```json
+"logs": {
+  "transport": "http_streamable",
+  "url": "https://logs.example.com",
+  "description": "Search logs.",
+  "tools": [
+    { "name": "search_logs", "description": "Search log lines by query and time range." }
+  ]
+}
+```
+
+Discovery runs per request and forwards the caller's request headers, so
+`headers_from_request` credential resolution uses the caller's credentials. The
+returned tools therefore reflect what that caller is authorized to see. Which
+incoming header(s) get forwarded is deployment-specific: each MCP server maps
+them in its
+[`headers_from_request`](/aura/configuration-reference#header-forwarding-headers_from_request)
+setting rather than the endpoint defining one fixed name, so confirm which
+header to send with whoever configured AURA.
+
+Discovery is bounded by a 30-second timeout per agent. Agents are queried
+concurrently, so total request time is roughly that of the worst single agent,
+not the sum of all agents.
+
+Published tool values are AURA's post-sanitization values: LLM-safe names and
+possibly rewritten input schemas that reflect what AURA actually invokes, not
+the raw upstream advertisement. The `tools` field carries no credentials, consistent
+with the credential-free `mcp_servers` view described above.
+
+<Note>An empty `tools` array means the server connected and advertised zero tools; an omitted `tools` key means the server was not contacted successfully: it failed, timed out, or was not attempted. So you can tell "no tools" from "no answer" (see the [`aura.mcp_status`](#custom-event-types) statuses `connected`, `failed`, and `not_attempted`).</Note>
+
+For governance rules, treat an omitted `tools` key as unknown coverage for that server and default to requiring approval for its tools until a later request populates the array.
+
 ## Custom AURA Events (Optional)
 
 Most custom AURA events are optional and require `AURA_CUSTOM_EVENTS=true`.
