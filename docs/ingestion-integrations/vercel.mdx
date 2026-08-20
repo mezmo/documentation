@@ -1,0 +1,50 @@
+---
+title: "Vercel"
+description: "Stream Vercel logs to Mezmo by pointing the Vercel Syslog integration at an OpenTelemetry Collector, which relays them to the Mezmo OTEL Source."
+---
+
+Vercel has created [a Mezmo integration](https://vercel.com/integrations/logdna) that you can set up as a Vercel Add-on to start streaming Vercel logs. Vercel's integration sends Syslog to a URL you configure, so point it at an OpenTelemetry (OTel) Collector running a `syslog` receiver. The Collector then relays the logs to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) with the `otlphttp` exporter.
+
+```
+Vercel (Syslog integration)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+```
+
+## Set Up the OpenTelemetry Collector
+
+1. Log in to the [Mezmo Web App](https://app.mezmo.com), create (or open) a Pipeline, and add an [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source). Note the ingestion key — you'll use it as `apikey`.
+2. Download the `otelcol-contrib` distribution, which includes the `syslog` receiver, from [the OpenTelemetry website](https://github.com/open-telemetry/opentelemetry-collector-releases).
+3. Create a `config.yaml` and run the Collector somewhere reachable from Vercel's infrastructure over the public internet:
+
+```yaml
+receivers:
+  syslog:
+    protocol: rfc5424
+    tcp:
+      listen_address: "0.0.0.0:514"
+
+exporters:
+  otlphttp/mezmo:
+    endpoint: "https://logs.mezmo.com/otel"
+    compression: gzip
+    headers:
+      apikey: "<YOUR_INGESTION_KEY>"
+
+service:
+  pipelines:
+    logs:
+      receivers: [syslog]
+      exporters: [otlphttp/mezmo]
+```
+
+4. Start the Collector:
+
+```bash
+./otelcol-contrib --config /path/to/config.yaml
+```
+
+## Configure the Vercel Integration
+
+1. In the Vercel dashboard, add the [Mezmo integration](https://vercel.com/integrations/logdna) as an Add-on.
+2. When prompted for a Syslog URL, enter the address and port where your OTel Collector's `syslog` receiver is publicly reachable.
+
+Be aware that it can take up to 30 minutes before your logs start arriving after the integration is configured. Check the Collector's logs if you're having issues receiving data from Vercel.
