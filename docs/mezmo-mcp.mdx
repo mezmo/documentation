@@ -13,6 +13,7 @@ Add Mezmo MCP and you can:
 - 📦 List, describe, **create, and edit Pipelines**
 - 🔌 Tap **live pipeline traffic** for inspection
 - 📤 Export and filter **Logs** with powerful query syntax
+- 🔎 Review **AI Investigations** for your account
 
 ## Overview
 
@@ -310,6 +311,38 @@ Same as above, but uses absolute time ranges.
 - **Grouping field**: Logs are grouped by `_app` by default. You can also group by `_host`, `level`, or any custom field
 - **Deduplication mode**: Use `template` mode (default) to show one example per unique log pattern, or `none` for raw chronological order
 - **Limits**: Control how many logs per source and total timeline events to return
+
+### 10. AI Investigations
+
+An AI investigation is an AI-generated root-cause and analysis record for your account. Mezmo triggers investigations internally, for example from a Pipeline Node Alert. These two tools read and list existing investigations; they do not create them. Your account needs the appropriate investigation permission to use these tools; this is managed through your account's [roles and permissions](/docs/rbac).
+
+#### `list_ai_investigations`
+
+Lists AI-generated investigations for your account.
+
+**Parameters:**
+
+- `state` (optional): filter by investigation state; one of `triggered`, `investigating`, or `completed`
+- `last_id` (optional): pagination cursor; the id of the last investigation from the previous page
+- `updated_since` (optional): an RFC3339 date-time; returns only investigations updated since then
+- `limit` (optional): maximum number of results, from 1 to 1000. Defaults to `1000`
+
+To fetch the next page, pass the last returned investigation's id as `last_id`.
+
+**Example:**
+"List my completed AI investigations from the last day"
+"Show me AI investigations that are still investigating"
+
+#### `get_ai_investigation`
+
+Gets details for a specific AI investigation by id. A returned investigation includes its state and the AI's root-cause findings, such as a confidence score and suggested resolution.
+
+**Parameters:**
+
+- `investigation_id` (required): the id of the investigation to retrieve
+
+**Example:**
+"Show me the details for investigation 66f1a2b3c4d5e6f7a8b9c0d1"
 
 ---
 
