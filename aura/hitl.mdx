@@ -144,8 +144,28 @@ Fields:
 | `decision_id` | Unique id for this approval decision. |
 | `request_id` | Aura request id for the chat completion. |
 | `scope` | Which agent surface is asking, independent of why. `kind = "single"` for a single-agent run or `kind = "worker"` for an orchestration worker. Both HITL origins carry a scope. |
-| `origin` | Why approval was requested. `kind = "config_gate"` (a configured glob matched the tool call, carries the matched glob) or `kind = "agent_requested"` (the agent called `request_approval`, carries the reason). |
+| `origin` | Why approval was requested. `kind = "config_gate"`: a configured glob matched the tool call; carries the matched glob. `kind = "agent_requested"`: the agent called `request_approval`; carries `reason` and `agent_name` (the calling config's `[agent].name` — the coordinator's name in orchestration mode). The per-worker identity is always in `scope`, not `origin`. |
 | `items` | Tool call payloads awaiting approval. One item per request. |
+
+### Agent-requested origin
+
+An `agent_requested` origin carries `agent_name` next to `reason`. The example
+below shows just the `origin` object; the full request shape is the primary
+example above, which uses a `config_gate` origin.
+
+```json
+{
+  "kind": "agent_requested",
+  "reason": "Deleting a production deployment is destructive and needs a human decision.",
+  "agent_name": "SRE Orchestrator"
+}
+```
+
+`agent_name` appears only on `agent_requested` origins; `config_gate` origins
+are unchanged. The field is additive, so a consumer sees `agent_name` absent or
+empty only in approval records written before Aura added this field.
+Both routes surface the same `origin`, so `agent_name` also appears on the SSE
+`aura.approval_requested` and `aura.approval_pending` events.
 
 ## Webhook response
 
