@@ -535,6 +535,8 @@ Tagged by `mode`: `"conversational"` or `"webhook"`.
 | `mode` | string | — | **Required.** `"conversational"` (attended, over an open SSE stream) or `"webhook"` (unattended, posts to a URL). |
 | `timeout_secs` | integer | `60` (conversational) / `300` (webhook) | Seconds to wait for a decision before failing closed. |
 | `url` | string | — | **Required for `webhook` mode only.** Must start with `http://` or `https://`. |
+| `headers` | table | `{}` | **Webhook mode only.** Static outgoing headers `{ "header-name" = "value" }` sent on every approval POST. |
+| `headers_from_request` | table | `{}` | **Webhook mode only.** Forwards an incoming request header onto every approval POST (see below). |
 
 ```toml
 [hitl]
@@ -545,6 +547,33 @@ mode = "webhook"
 url = "https://approvals.example.com/aura"
 timeout_secs = 300
 ```
+
+#### Header Forwarding (`headers`, `headers_from_request`)
+
+`headers` and `headers_from_request` are webhook-mode only. As with MCP header
+forwarding, the `headers_from_request` table maps outgoing header name → incoming
+request header name, and a forwarded header takes precedence over a matching
+static `headers` value. For the HITL approval webhook, outgoing header names are
+sent in lowercase.
+
+The `[hitl.route]` header keys configure the outgoing approval-webhook POST and
+are independent of the identically named `[mcp.servers.<name>]` header keys,
+which configure MCP tool-server requests.
+
+Forwarding sensitive headers such as `authorization` exposes them to your
+approval webhook — prefer a static `headers` token for webhook auth and be
+deliberate about what you forward. In CLI standalone mode,
+`headers_from_request` resolves only against headers supplied via
+`AURA_EXTRA_HEADERS` (empty by default); static `headers` always apply.
+
+```toml
+[hitl.route]
+headers = { "Authorization" = "Bearer {{ env.APPROVAL_WEBHOOK_TOKEN }}" }
+headers_from_request = { "x-request-id" = "x-request-id" }
+```
+
+See [HITL](/aura/hitl#forward-headers-to-the-webhook) for precedence, case
+handling, security considerations, and the CLI-context caveat.
 
 ---
 

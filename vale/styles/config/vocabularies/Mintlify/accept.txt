@@ -180,6 +180,7 @@ uninstallations
 [Uu]nmount(s|ed|ing)?
 [Uu]npause
 unparsed
+untrusted
 url
 userinfo
 uuid(s?)
