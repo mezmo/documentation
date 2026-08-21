@@ -1,0 +1,1390 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ai-governance-service",
+    "version": "v3",
+    "description": "Policy Driven AI Accountability and Governance",
+    "contact": {
+      "name": "Mezmo",
+      "email": "support@mezmo.com",
+      "url": "https://mezmo.com/support"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.mezmo.com",
+      "x-internal": false
+    }
+  ],
+  "tags": [
+    {
+      "name": "agent",
+      "description": "Agent management API"
+    }
+  ],
+  "paths": {
+    "/v3/governance/agent": {
+      "get": {
+        "operationId": "getGovernanceAgentList",
+        "summary": "Retrieve all agents",
+        "tags": [
+          "agent"
+        ],
+        "description": "Retrieve all runtime agents under the account of the requester.",
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response format containing a list of agents for a specific account,\nin addition to the standard metadata object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "GetGovernanceAgentListResponse",
+                  "description": "Response format containing a list of agents for a specific account,\nin addition to the standard metadata object.",
+                  "properties": {
+                    "meta": {
+                      "type": "object",
+                      "description": "Additional contextual information about the api response",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 50,
+                          "description": "A human readable identifier denoting the resource type",
+                          "example": "policy"
+                        },
+                        "pk": {
+                          "type": "string",
+                          "maxLength": 50,
+                          "description": "The data property which holds the resource identifier",
+                          "nullable": true,
+                          "example": "64a7f1e5c9e77b0012345678"
+                        },
+                        "page": {
+                          "type": "object",
+                          "description": "Cursors to adjacent pages, null for a single resource",
+                          "properties": {
+                            "next": {
+                              "type": "string",
+                              "maxLength": 256,
+                              "description": "Cursor to the next page of results",
+                              "nullable": true
+                            },
+                            "previous": {
+                              "type": "string",
+                              "maxLength": 256,
+                              "description": "Cursor to the previous page of results",
+                              "nullable": true
+                            }
+                          }
+                        },
+                        "links": {
+                          "type": "object",
+                          "additionalProperties": true,
+                          "description": "Uri templates for this and related resources",
+                          "properties": {
+                            "self": {
+                              "type": "object",
+                              "additionalProperties": true,
+                              "description": "Uri templates for the resource this response carries",
+                              "properties": {
+                                "list": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "get"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for retrieving a list of the resource type",
+                                      "example": "https://api.mezmo.com/v3/governance/resource"
+                                    }
+                                  }
+                                },
+                                "detail": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "get"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for retrieving a single detail representation \nof the resource type",
+                                      "example": "https://api.mezmo.com/v3/governance/resource/{resource_id}"
+                                    }
+                                  }
+                                },
+                                "update": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "patch"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for partially updating an individual resource",
+                                      "example": "https://api.mezmo.com/v3/governance/resource/{resource_id}"
+                                    }
+                                  }
+                                },
+                                "replace": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "put"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for fully replacing or updating an individual resource",
+                                      "example": "https://api.mezmo.com/v3/governance/resource/{resource_id}"
+                                    }
+                                  }
+                                },
+                                "create": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "post"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for creating a new instance of a specific resource",
+                                      "example": "https://api.mezmo.com/v3/governance/resource"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "related": {
+                              "type": "object",
+                              "additionalProperties": true,
+                              "description": "Additional URI templates for interacting with resources \nwhich are tightly related"
+                            }
+                          },
+                          "required": [
+                            "self"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "pk",
+                        "page",
+                        "links"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "maxItems": 1000,
+                      "items": {
+                        "$ref": "#/components/schemas/agent"
+                      }
+                    }
+                  },
+                  "required": [
+                    "meta",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A normalized representation of an error that is returned from an http request\nin response to failed input validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/validation-error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "postGovernanceAgentRegister",
+        "summary": "Register a new runtime agent",
+        "tags": [
+          "agent"
+        ],
+        "description": "Creates a standalone agent record with an associated\nservice account and access key.\nThe returned access key is shown once and should be persisted by the runtime.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Agent",
+                "description": "Represents a runtime agent identity registered with an associated service account.",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 128,
+                    "description": "A user-friendly name of the registered agent.",
+                    "example": "Aura Investigator Agent"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 512,
+                    "description": "Optional additional details about the agent.",
+                    "example": "PoC registration for AURA runtime"
+                  },
+                  "version": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "description": "The version of the registered agent instance.",
+                    "example": "0.1.0"
+                  },
+                  "instance_id": {
+                    "type": "string",
+                    "maxLength": 256,
+                    "description": "A unique identifier for the running agent instance.",
+                    "example": "aura-instance-ab12cd34"
+                  },
+                  "runtime_name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 128,
+                    "description": "The name of the runtime agent.",
+                    "example": "aura"
+                  },
+                  "endpoint_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true,
+                    "maxLength": 250,
+                    "description": "Optional base URL where the agent instance can be reached.",
+                    "example": "https://example.com/agent"
+                  },
+                  "healthcheck_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true,
+                    "maxLength": 250,
+                    "description": "Optional URL used to check health of the agent instance.",
+                    "example": "https://example.com/agent/health"
+                  },
+                  "documentation_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true,
+                    "maxLength": 250,
+                    "description": "Optional URL to documentation for this agent runtime.",
+                    "example": "https://example.com/docs"
+                  }
+                },
+                "required": [
+                  "name",
+                  "version",
+                  "instance_id",
+                  "runtime_name"
+                ]
+              }
+            }
+          },
+          "description": "Represents a runtime agent identity registered with an associated service account."
+        },
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Response format containing the newly created agent,\nin addition to the standard metadata object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "PostGovernanceAgentDetailResponse",
+                  "description": "Response format containing the newly created agent,\nin addition to the standard metadata object.",
+                  "properties": {
+                    "meta": {
+                      "type": "object",
+                      "description": "Additional contextual information about the api response",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 50,
+                          "description": "A human readable identifier denoting the resource type",
+                          "example": "policy"
+                        },
+                        "pk": {
+                          "type": "string",
+                          "maxLength": 50,
+                          "description": "The data property which holds the resource identifier",
+                          "nullable": true,
+                          "example": "64a7f1e5c9e77b0012345678"
+                        },
+                        "page": {
+                          "type": "object",
+                          "description": "Cursors to adjacent pages, null for a single resource",
+                          "properties": {
+                            "next": {
+                              "type": "string",
+                              "maxLength": 256,
+                              "description": "Cursor to the next page of results",
+                              "nullable": true
+                            },
+                            "previous": {
+                              "type": "string",
+                              "maxLength": 256,
+                              "description": "Cursor to the previous page of results",
+                              "nullable": true
+                            }
+                          }
+                        },
+                        "links": {
+                          "type": "object",
+                          "additionalProperties": true,
+                          "description": "Uri templates for this and related resources",
+                          "properties": {
+                            "self": {
+                              "type": "object",
+                              "additionalProperties": true,
+                              "description": "Uri templates for the resource this response carries",
+                              "properties": {
+                                "list": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "get"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for retrieving a list of the resource type",
+                                      "example": "https://api.mezmo.com/v3/governance/resource"
+                                    }
+                                  }
+                                },
+                                "detail": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "get"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for retrieving a single detail representation \nof the resource type",
+                                      "example": "https://api.mezmo.com/v3/governance/resource/{resource_id}"
+                                    }
+                                  }
+                                },
+                                "update": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "patch"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for partially updating an individual resource",
+                                      "example": "https://api.mezmo.com/v3/governance/resource/{resource_id}"
+                                    }
+                                  }
+                                },
+                                "replace": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "put"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for fully replacing or updating an individual resource",
+                                      "example": "https://api.mezmo.com/v3/governance/resource/{resource_id}"
+                                    }
+                                  }
+                                },
+                                "create": {
+                                  "nullable": true,
+                                  "additionalProperties": false,
+                                  "type": "object",
+                                  "properties": {
+                                    "method": {
+                                      "enum": [
+                                        "acl",
+                                        "bind",
+                                        "checkout",
+                                        "connect",
+                                        "copy",
+                                        "delete",
+                                        "get",
+                                        "head",
+                                        "link",
+                                        "lock",
+                                        "m-search",
+                                        "merge",
+                                        "mkactivity",
+                                        "mkcalendar",
+                                        "mkcol",
+                                        "move",
+                                        "notify",
+                                        "options",
+                                        "patch",
+                                        "post",
+                                        "propfind",
+                                        "proppatch",
+                                        "purge",
+                                        "put",
+                                        "query",
+                                        "rebind",
+                                        "report",
+                                        "search",
+                                        "source",
+                                        "subscribe",
+                                        "trace",
+                                        "unbind",
+                                        "unlink",
+                                        "unlock",
+                                        "unsubscribe"
+                                      ],
+                                      "type": "string",
+                                      "example": "post"
+                                    },
+                                    "uri": {
+                                      "type": "string",
+                                      "format": "uri-template",
+                                      "maxLength": 250,
+                                      "description": "A uri template for creating a new instance of a specific resource",
+                                      "example": "https://api.mezmo.com/v3/governance/resource"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "related": {
+                              "type": "object",
+                              "additionalProperties": true,
+                              "description": "Additional URI templates for interacting with resources \nwhich are tightly related"
+                            }
+                          },
+                          "required": [
+                            "self"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "pk",
+                        "page",
+                        "links"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "title": "Agent",
+                      "description": "Represents a runtime agent identity registered with an associated service account.",
+                      "properties": {
+                        "access_key": {
+                          "type": "string",
+                          "maxLength": 60,
+                          "description": "The newly created public key which can be used to make\nauthenticated API requests. Be sure to save this key, as\nit is not stored and will never be presented again."
+                        },
+                        "agent_id": {
+                          "type": "string",
+                          "maxLength": 50,
+                          "description": "The primary identifier of the registered agent.",
+                          "example": "64a7f1e5c9e77b0012345678"
+                        },
+                        "service_account_id": {
+                          "type": "string",
+                          "maxLength": 50,
+                          "description": "A value that uniquely identifies the service account an agentis associated with.",
+                          "example": "64a7f1e5c9e77b0012345678"
+                        },
+                        "account": {
+                          "type": "string",
+                          "maxLength": 10,
+                          "description": "A value that uniquely identifies the account an agentis associated with.",
+                          "example": "64a7f1e5c9"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 128,
+                          "description": "A user-friendly name of the registered agent.",
+                          "example": "Aura Investigator Agent"
+                        },
+                        "description": {
+                          "type": "string",
+                          "nullable": true,
+                          "maxLength": 512,
+                          "description": "Optional additional details about the agent.",
+                          "example": "PoC registration for AURA runtime"
+                        },
+                        "version": {
+                          "type": "string",
+                          "maxLength": 25,
+                          "description": "The version of the registered agent instance.",
+                          "example": "0.1.0"
+                        },
+                        "instance_id": {
+                          "type": "string",
+                          "maxLength": 256,
+                          "description": "A unique identifier for the running agent instance.",
+                          "example": "aura-instance-ab12cd34"
+                        },
+                        "runtime_name": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 128,
+                          "description": "The name of the runtime agent.",
+                          "example": "aura"
+                        },
+                        "endpoint_url": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "maxLength": 250,
+                          "description": "Optional base URL where the agent instance can be reached.",
+                          "example": "https://example.com/agent"
+                        },
+                        "healthcheck_url": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "maxLength": 250,
+                          "description": "Optional URL used to check health of the agent instance.",
+                          "example": "https://example.com/agent/health"
+                        },
+                        "documentation_url": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "maxLength": 250,
+                          "description": "Optional URL to documentation for this agent runtime.",
+                          "example": "https://example.com/docs"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "active",
+                            "deactivated"
+                          ],
+                          "description": "Indicates whether the registered agent is active or deactivated."
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "maxLength": 64,
+                          "format": "date-time",
+                          "description": "Timestamp when the agent record was created.",
+                          "example": "1970-01-01T00:00:00.000Z"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "maxLength": 64,
+                          "format": "date-time",
+                          "nullable": true,
+                          "description": "Timestamp when the agent record was last modified.",
+                          "example": "1970-01-01T00:00:00.000Z"
+                        }
+                      },
+                      "required": [
+                        "access_key",
+                        "agent_id",
+                        "service_account_id",
+                        "account",
+                        "name",
+                        "version",
+                        "instance_id",
+                        "runtime_name",
+                        "status",
+                        "created_at",
+                        "updated_at"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "meta",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A normalized representation of an error that is returned from an http request\nin response to failed input validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/validation-error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "A normalized representation of an error that is returned from an http request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/http-error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AccessToken": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      },
+      "AccountHeader": {
+        "type": "apiKey",
+        "name": "X-Auth-Account-ID",
+        "in": "header"
+      },
+      "AccountShortHeader": {
+        "type": "apiKey",
+        "name": "X-Auth-Account-Short-ID",
+        "in": "header"
+      },
+      "SubjectHeader": {
+        "type": "apiKey",
+        "name": "X-Auth-Subject-ID",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "agent": {
+        "type": "object",
+        "title": "Agent",
+        "description": "Represents a runtime agent identity registered with an associated service account.",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "The primary identifier of the registered agent.",
+            "example": "64a7f1e5c9e77b0012345678"
+          },
+          "service_account_id": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "A value that uniquely identifies the service account an agentis associated with.",
+            "example": "64a7f1e5c9e77b0012345678"
+          },
+          "account": {
+            "type": "string",
+            "maxLength": 10,
+            "description": "A value that uniquely identifies the account an agentis associated with.",
+            "example": "64a7f1e5c9"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 128,
+            "description": "A user-friendly name of the registered agent.",
+            "example": "Aura Investigator Agent"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 512,
+            "description": "Optional additional details about the agent.",
+            "example": "PoC registration for AURA runtime"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 25,
+            "description": "The version of the registered agent instance.",
+            "example": "0.1.0"
+          },
+          "instance_id": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "A unique identifier for the running agent instance.",
+            "example": "aura-instance-ab12cd34"
+          },
+          "runtime_name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 128,
+            "description": "The name of the runtime agent.",
+            "example": "aura"
+          },
+          "endpoint_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "maxLength": 250,
+            "description": "Optional base URL where the agent instance can be reached.",
+            "example": "https://example.com/agent"
+          },
+          "healthcheck_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "maxLength": 250,
+            "description": "Optional URL used to check health of the agent instance.",
+            "example": "https://example.com/agent/health"
+          },
+          "documentation_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "maxLength": 250,
+            "description": "Optional URL to documentation for this agent runtime.",
+            "example": "https://example.com/docs"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "deactivated"
+            ],
+            "description": "Indicates whether the registered agent is active or deactivated."
+          },
+          "created_at": {
+            "type": "string",
+            "maxLength": 64,
+            "format": "date-time",
+            "description": "Timestamp when the agent record was created.",
+            "example": "1970-01-01T00:00:00.000Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "maxLength": 64,
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the agent record was last modified.",
+            "example": "1970-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "agent_id",
+          "service_account_id",
+          "account",
+          "name",
+          "version",
+          "instance_id",
+          "runtime_name",
+          "status",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "http-error": {
+        "type": "object",
+        "title": "HTTP Error",
+        "description": "A normalized representation of an error that is returned from an http request",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "minimum": 300,
+            "maximum": 599,
+            "format": "int32",
+            "description": "The HTTP status code the error is associated with"
+          },
+          "context": {
+            "type": "string",
+            "description": "The portion of the inbound request which triggered the validation failure",
+            "enum": [
+              "body",
+              "querystring",
+              "params",
+              "headers"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "A textual classifier of the error or failure"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "A message describing the nature of the error or failure"
+          },
+          "errors": {
+            "type": "array",
+            "maxItems": 200,
+            "description": "List of metadata objects describing validation failures or  contextual information",
+            "items": {
+              "$ref": "#/components/schemas/http-error-item"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "message"
+        ]
+      },
+      "http-error-item": {
+        "type": "object",
+        "title": "HTTP Error Item",
+        "additionalProperties": true,
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "An indication of the type of rule or error that caused the request to fail"
+          },
+          "instance_path": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true,
+            "default": null,
+            "description": "JSON Pointer to the location in the data instance"
+          },
+          "schema_path": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true,
+            "default": null,
+            "description": "JSON Pointer to the location of the failing keyword in the schema"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional information about the error that can be used to generate error messages"
+          },
+          "property_name": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "default": null,
+            "description": "Set for errors in `propertyNames` keyword schema"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "A message describing the nature of the error or failure"
+          }
+        },
+        "required": [
+          "keyword",
+          "params",
+          "message"
+        ]
+      },
+      "validation-error": {
+        "type": "object",
+        "title": "Validation Error",
+        "description": "A normalized representation of an error that is returned from an http request\nin response to failed input validation",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "minimum": 300,
+            "maximum": 599,
+            "format": "int32",
+            "description": "The HTTP status code the error is associated with"
+          },
+          "context": {
+            "type": "string",
+            "description": "The portion of the inbound request which triggered the validation failure",
+            "enum": [
+              "body",
+              "querystring",
+              "params",
+              "headers"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "A textual classifier of the error or failure"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "A message describing the nature of the error or failure"
+          },
+          "errors": {
+            "type": "array",
+            "maxItems": 200,
+            "description": "List of metadata objects describing validation failures or  contextual information",
+            "items": {
+              "$ref": "#/components/schemas/http-error-item"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "message"
+        ]
+      }
+    }
+  }
+}

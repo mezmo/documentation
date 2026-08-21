@@ -22,6 +22,8 @@ security:
 tags:
   - name: Account
     description: Perform account level actions
+  - name: agent
+    description: Agent management API
   - name: Alerting
     description: API to control alerts on pipelines
   - name: Archiving
@@ -349,6 +351,934 @@ paths:
       responses:
         '200':
           description: Default Response
+  /v3/governance/agent:
+    get:
+      operationId: getGovernanceAgentList
+      summary: Retrieve all agents
+      tags:
+        - agent
+      description: Retrieve all runtime agents under the account of the requester.
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: |-
+            Response format containing a list of agents for a specific account,
+            in addition to the standard metadata object.
+          content:
+            application/json:
+              schema:
+                type: object
+                title: GetGovernanceAgentListResponse
+                description: |-
+                  Response format containing a list of agents for a specific account,
+                  in addition to the standard metadata object.
+                properties:
+                  meta:
+                    type: object
+                    description: Additional contextual information about the api response
+                    properties:
+                      type:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                        description: A human readable identifier denoting the resource type
+                        example: policy
+                      pk:
+                        type: string
+                        maxLength: 50
+                        description: The data property which holds the resource identifier
+                        nullable: true
+                        example: 64a7f1e5c9e77b0012345678
+                      page:
+                        type: object
+                        description: Cursors to adjacent pages, null for a single resource
+                        properties:
+                          next:
+                            type: string
+                            maxLength: 256
+                            description: Cursor to the next page of results
+                            nullable: true
+                          previous:
+                            type: string
+                            maxLength: 256
+                            description: Cursor to the previous page of results
+                            nullable: true
+                      links:
+                        type: object
+                        additionalProperties: true
+                        description: Uri templates for this and related resources
+                        properties:
+                          self:
+                            type: object
+                            additionalProperties: true
+                            description: Uri templates for the resource this response carries
+                            properties:
+                              list:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: get
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: A uri template for retrieving a list of the resource type
+                                    example: https://api.mezmo.com/v3/governance/resource
+                              detail:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: get
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: |-
+                                      A uri template for retrieving a single detail representation 
+                                      of the resource type
+                                    example: https://api.mezmo.com/v3/governance/resource/{resource_id}
+                              update:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: patch
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: A uri template for partially updating an individual resource
+                                    example: https://api.mezmo.com/v3/governance/resource/{resource_id}
+                              replace:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: put
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: >-
+                                      A uri template for fully replacing or updating an individual
+                                      resource
+                                    example: https://api.mezmo.com/v3/governance/resource/{resource_id}
+                              create:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: post
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: >-
+                                      A uri template for creating a new instance of a specific
+                                      resource
+                                    example: https://api.mezmo.com/v3/governance/resource
+                          related:
+                            type: object
+                            additionalProperties: true
+                            description: |-
+                              Additional URI templates for interacting with resources 
+                              which are tightly related
+                        required:
+                          - self
+                    required:
+                      - type
+                      - pk
+                      - page
+                      - links
+                  data:
+                    type: array
+                    maxItems: 1000
+                    items:
+                      $ref: '#/components/schemas/agent'
+                required:
+                  - meta
+                  - data
+        '400':
+          description: |-
+            A normalized representation of an error that is returned from an http request
+            in response to failed input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/validation-error'
+        '401':
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        '429':
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        '500':
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        4XX:
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        5XX:
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+    post:
+      operationId: postGovernanceAgentRegister
+      summary: Register a new runtime agent
+      tags:
+        - agent
+      description: |-
+        Creates a standalone agent record with an associated
+        service account and access key.
+        The returned access key is shown once and should be persisted by the runtime.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Agent
+              description: Represents a runtime agent identity registered with an associated service account.
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 128
+                  description: A user-friendly name of the registered agent.
+                  example: Aura Investigator Agent
+                description:
+                  type: string
+                  nullable: true
+                  maxLength: 512
+                  description: Optional additional details about the agent.
+                  example: PoC registration for AURA runtime
+                version:
+                  type: string
+                  maxLength: 25
+                  description: The version of the registered agent instance.
+                  example: 0.1.0
+                instance_id:
+                  type: string
+                  maxLength: 256
+                  description: A unique identifier for the running agent instance.
+                  example: aura-instance-ab12cd34
+                runtime_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 128
+                  description: The name of the runtime agent.
+                  example: aura
+                endpoint_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                  maxLength: 250
+                  description: Optional base URL where the agent instance can be reached.
+                  example: https://example.com/agent
+                healthcheck_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                  maxLength: 250
+                  description: Optional URL used to check health of the agent instance.
+                  example: https://example.com/agent/health
+                documentation_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                  maxLength: 250
+                  description: Optional URL to documentation for this agent runtime.
+                  example: https://example.com/docs
+              required:
+                - name
+                - version
+                - instance_id
+                - runtime_name
+        description: Represents a runtime agent identity registered with an associated service account.
+      security:
+        - AccessToken: []
+      responses:
+        '201':
+          description: |-
+            Response format containing the newly created agent,
+            in addition to the standard metadata object.
+          content:
+            application/json:
+              schema:
+                type: object
+                title: PostGovernanceAgentDetailResponse
+                description: |-
+                  Response format containing the newly created agent,
+                  in addition to the standard metadata object.
+                properties:
+                  meta:
+                    type: object
+                    description: Additional contextual information about the api response
+                    properties:
+                      type:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                        description: A human readable identifier denoting the resource type
+                        example: policy
+                      pk:
+                        type: string
+                        maxLength: 50
+                        description: The data property which holds the resource identifier
+                        nullable: true
+                        example: 64a7f1e5c9e77b0012345678
+                      page:
+                        type: object
+                        description: Cursors to adjacent pages, null for a single resource
+                        properties:
+                          next:
+                            type: string
+                            maxLength: 256
+                            description: Cursor to the next page of results
+                            nullable: true
+                          previous:
+                            type: string
+                            maxLength: 256
+                            description: Cursor to the previous page of results
+                            nullable: true
+                      links:
+                        type: object
+                        additionalProperties: true
+                        description: Uri templates for this and related resources
+                        properties:
+                          self:
+                            type: object
+                            additionalProperties: true
+                            description: Uri templates for the resource this response carries
+                            properties:
+                              list:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: get
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: A uri template for retrieving a list of the resource type
+                                    example: https://api.mezmo.com/v3/governance/resource
+                              detail:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: get
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: |-
+                                      A uri template for retrieving a single detail representation 
+                                      of the resource type
+                                    example: https://api.mezmo.com/v3/governance/resource/{resource_id}
+                              update:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: patch
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: A uri template for partially updating an individual resource
+                                    example: https://api.mezmo.com/v3/governance/resource/{resource_id}
+                              replace:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: put
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: >-
+                                      A uri template for fully replacing or updating an individual
+                                      resource
+                                    example: https://api.mezmo.com/v3/governance/resource/{resource_id}
+                              create:
+                                nullable: true
+                                additionalProperties: false
+                                type: object
+                                properties:
+                                  method:
+                                    enum:
+                                      - acl
+                                      - bind
+                                      - checkout
+                                      - connect
+                                      - copy
+                                      - delete
+                                      - get
+                                      - head
+                                      - link
+                                      - lock
+                                      - m-search
+                                      - merge
+                                      - mkactivity
+                                      - mkcalendar
+                                      - mkcol
+                                      - move
+                                      - notify
+                                      - options
+                                      - patch
+                                      - post
+                                      - propfind
+                                      - proppatch
+                                      - purge
+                                      - put
+                                      - query
+                                      - rebind
+                                      - report
+                                      - search
+                                      - source
+                                      - subscribe
+                                      - trace
+                                      - unbind
+                                      - unlink
+                                      - unlock
+                                      - unsubscribe
+                                    type: string
+                                    example: post
+                                  uri:
+                                    type: string
+                                    format: uri-template
+                                    maxLength: 250
+                                    description: >-
+                                      A uri template for creating a new instance of a specific
+                                      resource
+                                    example: https://api.mezmo.com/v3/governance/resource
+                          related:
+                            type: object
+                            additionalProperties: true
+                            description: |-
+                              Additional URI templates for interacting with resources 
+                              which are tightly related
+                        required:
+                          - self
+                    required:
+                      - type
+                      - pk
+                      - page
+                      - links
+                  data:
+                    type: object
+                    title: Agent
+                    description: >-
+                      Represents a runtime agent identity registered with an associated service
+                      account.
+                    properties:
+                      access_key:
+                        type: string
+                        maxLength: 60
+                        description: |-
+                          The newly created public key which can be used to make
+                          authenticated API requests. Be sure to save this key, as
+                          it is not stored and will never be presented again.
+                      agent_id:
+                        type: string
+                        maxLength: 50
+                        description: The primary identifier of the registered agent.
+                        example: 64a7f1e5c9e77b0012345678
+                      service_account_id:
+                        type: string
+                        maxLength: 50
+                        description: >-
+                          A value that uniquely identifies the service account an agentis associated
+                          with.
+                        example: 64a7f1e5c9e77b0012345678
+                      account:
+                        type: string
+                        maxLength: 10
+                        description: A value that uniquely identifies the account an agentis associated with.
+                        example: 64a7f1e5c9
+                      name:
+                        type: string
+                        minLength: 2
+                        maxLength: 128
+                        description: A user-friendly name of the registered agent.
+                        example: Aura Investigator Agent
+                      description:
+                        type: string
+                        nullable: true
+                        maxLength: 512
+                        description: Optional additional details about the agent.
+                        example: PoC registration for AURA runtime
+                      version:
+                        type: string
+                        maxLength: 25
+                        description: The version of the registered agent instance.
+                        example: 0.1.0
+                      instance_id:
+                        type: string
+                        maxLength: 256
+                        description: A unique identifier for the running agent instance.
+                        example: aura-instance-ab12cd34
+                      runtime_name:
+                        type: string
+                        minLength: 2
+                        maxLength: 128
+                        description: The name of the runtime agent.
+                        example: aura
+                      endpoint_url:
+                        type: string
+                        format: uri
+                        nullable: true
+                        maxLength: 250
+                        description: Optional base URL where the agent instance can be reached.
+                        example: https://example.com/agent
+                      healthcheck_url:
+                        type: string
+                        format: uri
+                        nullable: true
+                        maxLength: 250
+                        description: Optional URL used to check health of the agent instance.
+                        example: https://example.com/agent/health
+                      documentation_url:
+                        type: string
+                        format: uri
+                        nullable: true
+                        maxLength: 250
+                        description: Optional URL to documentation for this agent runtime.
+                        example: https://example.com/docs
+                      status:
+                        type: string
+                        enum:
+                          - active
+                          - deactivated
+                        description: Indicates whether the registered agent is active or deactivated.
+                      created_at:
+                        type: string
+                        maxLength: 64
+                        format: date-time
+                        description: Timestamp when the agent record was created.
+                        example: '1970-01-01T00:00:00.000Z'
+                      updated_at:
+                        type: string
+                        maxLength: 64
+                        format: date-time
+                        nullable: true
+                        description: Timestamp when the agent record was last modified.
+                        example: '1970-01-01T00:00:00.000Z'
+                    required:
+                      - access_key
+                      - agent_id
+                      - service_account_id
+                      - account
+                      - name
+                      - version
+                      - instance_id
+                      - runtime_name
+                      - status
+                      - created_at
+                      - updated_at
+                required:
+                  - meta
+                  - data
+        '400':
+          description: |-
+            A normalized representation of an error that is returned from an http request
+            in response to failed input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/validation-error'
+        '401':
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        '429':
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        '500':
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        4XX:
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
+        5XX:
+          description: A normalized representation of an error that is returned from an http request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-error'
   /v3/pipeline/{pipeline_id}/{component_kind}/{component_id}/alert/{alert_id}:
     delete:
       summary: Delete component alert
@@ -8756,6 +9686,32 @@ paths:
       responses:
         '200':
           description: Default Response
+  /v3/pipeline/to-manifest/{pipeline_id}:
+    get:
+      summary: Export pipeline to manifest
+      tags:
+        - Pipeline Export
+      description: Export a SaaS pipeline to a portable YAML or JSON manifest. Requires pipeline:read.
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: pipeline_id
+          required: true
+        - schema:
+            type: string
+            enum:
+              - yaml
+              - json
+            default: yaml
+          in: query
+          name: format
+          required: false
+          description: The manifest output format
+      responses:
+        '200':
+          description: Default Response
   /v3/pipeline/{pipeline_id}:
     delete:
       summary: Deletes a pipeline
@@ -8916,6 +9872,71 @@ paths:
           in: query
           name: page_index
           required: true
+      responses:
+        '200':
+          description: Default Response
+  /v3/pipeline/from-manifest/prepare:
+    post:
+      summary: Inspect a manifest's required secrets
+      tags:
+        - Pipeline Management
+      description: >-
+        Inspect a manifest and report the secrets that must be supplied on import. Creates nothing.
+        Requires pipeline:write.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                manifest:
+                  type: string
+                  minLength: 1
+                  maxLength: 1048576
+              required:
+                - manifest
+        required: true
+      responses:
+        '200':
+          description: Default Response
+  /v3/pipeline/from-manifest:
+    post:
+      summary: Import a manifest as a new pipeline
+      tags:
+        - Pipeline Management
+      description: Import a manifest as a new unpublished draft pipeline. Requires pipeline:write.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                manifest:
+                  type: string
+                  minLength: 1
+                  maxLength: 1048576
+                required_secrets:
+                  type: array
+                  maxItems: 100
+                  items:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        pattern: ^[A-Z0-9_]{1,128}$
+                      value:
+                        type: string
+                        minLength: 1
+                        maxLength: 65536
+                    required:
+                      - name
+                      - value
+              required:
+                - manifest
+        required: true
       responses:
         '200':
           description: Default Response
@@ -9094,7 +10115,6 @@ paths:
                     enum:
                       - DEMO
                       - OTEL
-                      - OTELLOGS
                   minItems: 1
                 metadata:
                   type: object
@@ -59435,6 +60455,18 @@ components:
         curl https://api.logdna.com/v1/config/view -u INSERT_API_KEY:
 
         ```
+    AccountHeader:
+      type: apiKey
+      name: X-Auth-Account-ID
+      in: header
+    AccountShortHeader:
+      type: apiKey
+      name: X-Auth-Account-Short-ID
+      in: header
+    SubjectHeader:
+      type: apiKey
+      name: X-Auth-Subject-ID
+      in: header
   schemas:
     alert-config:
       type: object
@@ -63885,6 +64917,105 @@ components:
         - keyword
         - params
         - message
+    agent:
+      type: object
+      title: Agent
+      description: Represents a runtime agent identity registered with an associated service account.
+      properties:
+        agent_id:
+          type: string
+          maxLength: 50
+          description: The primary identifier of the registered agent.
+          example: 64a7f1e5c9e77b0012345678
+        service_account_id:
+          type: string
+          maxLength: 50
+          description: A value that uniquely identifies the service account an agentis associated with.
+          example: 64a7f1e5c9e77b0012345678
+        account:
+          type: string
+          maxLength: 10
+          description: A value that uniquely identifies the account an agentis associated with.
+          example: 64a7f1e5c9
+        name:
+          type: string
+          minLength: 2
+          maxLength: 128
+          description: A user-friendly name of the registered agent.
+          example: Aura Investigator Agent
+        description:
+          type: string
+          nullable: true
+          maxLength: 512
+          description: Optional additional details about the agent.
+          example: PoC registration for AURA runtime
+        version:
+          type: string
+          maxLength: 25
+          description: The version of the registered agent instance.
+          example: 0.1.0
+        instance_id:
+          type: string
+          maxLength: 256
+          description: A unique identifier for the running agent instance.
+          example: aura-instance-ab12cd34
+        runtime_name:
+          type: string
+          minLength: 2
+          maxLength: 128
+          description: The name of the runtime agent.
+          example: aura
+        endpoint_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 250
+          description: Optional base URL where the agent instance can be reached.
+          example: https://example.com/agent
+        healthcheck_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 250
+          description: Optional URL used to check health of the agent instance.
+          example: https://example.com/agent/health
+        documentation_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 250
+          description: Optional URL to documentation for this agent runtime.
+          example: https://example.com/docs
+        status:
+          type: string
+          enum:
+            - active
+            - deactivated
+          description: Indicates whether the registered agent is active or deactivated.
+        created_at:
+          type: string
+          maxLength: 64
+          format: date-time
+          description: Timestamp when the agent record was created.
+          example: '1970-01-01T00:00:00.000Z'
+        updated_at:
+          type: string
+          maxLength: 64
+          format: date-time
+          nullable: true
+          description: Timestamp when the agent record was last modified.
+          example: '1970-01-01T00:00:00.000Z'
+      required:
+        - agent_id
+        - service_account_id
+        - account
+        - name
+        - version
+        - instance_id
+        - runtime_name
+        - status
+        - created_at
+        - updated_at
   responses:
     streamErrResponse401:
       description: Not Authorized
