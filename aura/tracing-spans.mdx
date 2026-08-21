@@ -8,7 +8,10 @@ description: "Enable OpenTelemetry, understand AURA's span layout, and interpret
 OpenTelemetry support is enabled by default via the `otel` feature in both
 `aura` and `aura-web-server`. Configure your OTLP endpoint using standard
 environment variables (for example `OTEL_EXPORTER_OTLP_ENDPOINT`) to export
-traces — no endpoint set means no OTel layer is installed.
+traces — no endpoint set means no OTel layer is installed. Before you set an
+endpoint, review [Content recording](#content-recording) and [Security and Data
+Handling](/aura/security), because exported spans can include prompt, response,
+and tool content.
 
 AURA emits spans using the [OpenInference](https://github.com/Arize-ai/openinference/tree/main/spec)
 semantic convention (`llm.*`, `tool.*`, `input.*`, `output.*`) rather than the
@@ -17,6 +20,20 @@ libraries (Rig.rs) are automatically translated to OpenInference equivalents
 at export time. This makes AURA traces natively compatible with
 [Phoenix](https://github.com/Arize-ai/phoenix) and other OpenInference-aware
 observability tools.
+
+Set `PHOENIX_PROJECT_NAME` to choose which Phoenix project receives your
+traces. It sets the resource attribute `openinference.project.name`, which is
+the only attribute Phoenix uses to route a trace to a project; Phoenix ignores
+`service.name` and `OTEL_SERVICE_NAME` for routing. When you leave
+`PHOENIX_PROJECT_NAME` unset, AURA sets `openinference.project.name` to the
+service name instead (`OTEL_SERVICE_NAME`, then `aura`), so your traces are
+grouped under a project of that name rather than one you chose. In a
+multi-replica deployment, set the same `PHOENIX_PROJECT_NAME` value on every
+replica or pod in an environment so their traces group into one Phoenix
+project; do not template it from a per-pod value such as the pod name or
+hostname, or each pod's traces land in a separate project. See the [CLI
+reference](/aura/cli-reference) for the full OpenTelemetry environment-variable
+table.
 
 ## Trace structure
 
@@ -38,7 +55,7 @@ chat_completions (CHAIN)
 ### Single-agent mode
 
 ```text
-agent.stream (AGENT, ROOT)
+agent.stream (LLM, ROOT)
   └── agent.turn (LLM)
       ├── execute_tool (TOOL)
       │   └── mcp.tool_call (TOOL)
@@ -49,21 +66,48 @@ agent.stream (AGENT, ROOT)
 ### Orchestration mode
 
 ```text
-agent.stream (AGENT, ROOT)
+agent.stream (LLM, ROOT)
   └── orchestration (CHAIN)
-        ├── orchestration.planning (CHAIN)
+        ├── orchestration.planning (LLM)
         │   └── agent.turn (LLM) → execute_tool → mcp.tool_call
         └── orchestration.iteration (CHAIN)
-            └── orchestration.worker (AGENT)
+            └── orchestration.worker (LLM)
                 └── agent.turn (LLM) → execute_tool → mcp.tool_call
 ```
 
+RAG-enabled agents emit an additional `vector.search (RETRIEVER)` span under
+`execute_tool`, alongside `mcp.tool_call`, wherever the agent calls a
+vector-search tool.
+
 ## Span attributes
+
+*When `OTEL_RECORD_CONTENT=true`, AURA also records the assembled system prompt on the agent entry-point spans (`agent.stream`, `agent.prompt`, `agent.chat`) and on the `orchestration.planning` and `orchestration.worker` spans. See [Content recording](#content-recording).*
 
 ### Agent root (`agent.stream`)
 
 `user.id`, `session.id`, `metadata`, `input.value`, `output.value`,
-`llm.token_count.prompt`, `llm.token_count.completion`, `llm.token_count.total`
+`aura.version`, `aura.mode`.
+
+`aura.version` and `aura.mode` are stamped on the streaming root so you can
+filter traces by release and by serving path. `service.version` is set on the
+tracer resource.
+
+### Agent and LLM spans
+
+AURA emits the following OpenInference attributes on the agent and LLM spans so
+Phoenix renders them:
+
+- `llm.provider` is recorded beside `llm.system`. Phoenix's pricing table
+  matches on provider and model together.
+- `agent.name` is recorded on the `agent.turn` span, translated from
+  `gen_ai.agent.name`, whenever the agent, coordinator, or worker is built with
+  a name. It is what stops Phoenix from showing "Unnamed Agent".
+- `llm.invocation_parameters` comes from the effective LLM config.
+- `llm.tools.{i}.tool.json_schema` holds the MCP tool schemas each agent
+  advertises, filtered per worker.
+- `user.id` comes from the request `user` field, and `metadata` comes from the
+  request metadata map. See the [web server reference](/aura/web-server-reference)
+  for those request fields.
 
 ### Orchestration spans
 
@@ -72,10 +116,26 @@ agent.stream (AGENT, ROOT)
 | `orchestration` | `orchestration.goal`, `orchestration.max_iterations`, `orchestration.routing` (direct/clarification/orchestrated) |
 | `orchestration.planning` | `orchestration.phase` |
 | `orchestration.iteration` | `orchestration.iteration`, `orchestration.task_count`, `orchestration.quality_score`, `orchestration.will_replan` |
-| `orchestration.worker` | `orchestration.task_id`, `orchestration.worker`, `orchestration.task` |
+| `orchestration.worker` | `orchestration.task_id`, `orchestration.worker`, `orchestration.task`, `llm.prompt_template.template`, `llm.prompt_template.variables` |
 
-Token usage (`llm.token_count.*`) is recorded on all orchestration phase
-spans (planning, worker).
+Per-turn prompt and completion token counts (`llm.token_count.prompt` and
+`llm.token_count.completion`) live on each `agent.turn` span, recorded by Rig.
+From those turn counts:
+
+- Phoenix rolls the turn counts up as the single cost anchor, so every aggregate
+  (per worker, per phase, per trace) is computed from the turns.
+- AURA's agent-level spans carry no token counts, so they price at zero and
+  leave the `agent.turn` totals intact.
+- Per-worker LLM overrides price at their own rate because provider and model
+  are stamped on each worker's turn spans, through the existing
+  `[orchestration.worker.<name>.llm]` config; no new config is needed.
+
+### Retriever spans
+
+`vector.search` spans export as RETRIEVER kind and carry
+`retrieval.documents.{i}.*` attributes: the documents returned by a vector
+search. Their content follows the `OTEL_RECORD_CONTENT` gate like other recorded
+content.
 
 ### Tool spans (`execute_tool`)
 
@@ -97,12 +157,25 @@ calls carry no `decision_id` attribute.
 
 | Kind | Spans |
 |------|-------|
-| **LLM** | `chat`, `chat_streaming`, `agent.turn` |
+| **LLM** | `chat`, `chat_streaming`, `agent.turn`, `agent.stream`, `agent.prompt`, `agent.chat`, `orchestration.planning`, `orchestration.worker` |
 | **TOOL** | `execute_tool`, `mcp.tool_call` |
-| **AGENT** | `agent.stream`, `agent.prompt`, `agent.chat`, `orchestration.worker` |
-| **CHAIN** | `chat_completions`, `streaming_completion`, `orchestration`, `orchestration.planning`, `orchestration.iteration` |
+| **RETRIEVER** | `vector.search` |
+| **CHAIN** | `chat_completions`, `streaming_completion`, `orchestration`, `orchestration.iteration` |
+
+Each span's kind follows from its span name. The agent-level spans now map to
+LLM so Phoenix renders their tools and invocation parameters, though they carry
+no token counts (see the cost note above).
 
 `chat`, `agent.prompt`, and `agent.chat` are non-streaming entry points; the trace diagrams above cover the streaming path, which is the one AURA's HTTP/CLI backends use.
+
+<Warning title="Breaking change: token-count attributes removed">
+`llm.token_count.total` and `llm.token_count.tool_completion` are no longer
+emitted on any AURA-owned span. The per-turn counts `llm.token_count.prompt`
+and `llm.token_count.completion` on each `agent.turn` span replace them. If you
+have dashboards or alerts keyed on those two attributes on AURA spans, point
+them at `llm.token_count.prompt` and `llm.token_count.completion` on
+`agent.turn` before upgrading.
+</Warning>
 
 ## Span parenting
 
@@ -118,13 +191,35 @@ calls carry no `decision_id` attribute.
 
 ## Content recording
 
-When `OTEL_RECORD_CONTENT=true`, prompt/completion text and tool
-arguments/results are recorded as span attributes, truncated to
-`OTEL_CONTENT_MAX_LENGTH` (default 1000 bytes, rounded to a UTF-8 boundary).
+`OTEL_RECORD_CONTENT` governs only AURA-owned spans. When `false` (the default),
+it omits prompt and completion text, and tool arguments and results. When `true`,
+it includes them, along with the assembled system prompt (the preamble, which
+includes the orchestration instructions and the skills catalog). AURA truncates
+all of this content to `OTEL_CONTENT_MAX_LENGTH` (default 1000 bytes, rounded down
+to the nearest UTF-8 boundary). At export, the recorded system prompt appears as
+leading `system` entries in the input messages (`llm.input_messages`) in Phoenix
+and other OpenInference viewers. AURA translates the raw `gen_ai.system_instructions`
+key into those leading `system` entries rather than exporting it directly.
+
+Rig-owned spans (`chat`, `chat_streaming`, `agent.turn`, and `execute_tool`)
+record content through `gen_ai.*` attributes. The OpenInference exporter
+translates and exports these attributes regardless of `OTEL_RECORD_CONTENT`.
+Content is truncated to `OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT` (default 65,536
+bytes, rounded down to the nearest UTF-8 boundary), not `OTEL_CONTENT_MAX_LENGTH`. Because of this,
+`OTEL_RECORD_CONTENT=false` is not a complete content-suppression control. See [Security and Data Handling](/aura/security)
+before you enable OTLP export.
+
+On worker spans, `llm.prompt_template.template` is static and always recorded.
+`llm.prompt_template.variables` carries request content, so it follows the
+`OTEL_RECORD_CONTENT` gate and the same truncation as other recorded content.
+
+## Error spans
+
+Every error carries an `exception` span event with an `exception.message`
+attribute, which is the format Phoenix's exception view expects.
 
 ## Known limitations
 
-- **Tool error propagation**: Tool errors are only recorded on the
-  `mcp.tool_call` child span, not on Rig's
-  `execute_tool` parent. This is intentional — `mcp.tool_call` is the
-  canonical TOOL span for Phoenix.
+Tool errors are only recorded on the `mcp.tool_call` child span, not on Rig's
+`execute_tool` parent. This is intentional: `mcp.tool_call` is the canonical
+TOOL span for Phoenix.
