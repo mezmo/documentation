@@ -122,7 +122,8 @@ wire shape with `kind` tags for `scope` and `origin`:
   },
   "origin": {
     "kind": "config_gate",
-    "matched_pattern": "restart_*"
+    "matched_pattern": "restart_*",
+    "agent_name": "operations"
   },
   "items": [
     {
@@ -144,28 +145,30 @@ Fields:
 | `decision_id` | Unique id for this approval decision. |
 | `request_id` | Aura request id for the chat completion. |
 | `scope` | Which agent surface is asking, independent of why. `kind = "single"` for a single-agent run or `kind = "worker"` for an orchestration worker. Both HITL origins carry a scope. |
-| `origin` | Why approval was requested. `kind = "config_gate"`: a configured glob matched the tool call; carries the matched glob. `kind = "agent_requested"`: the agent called `request_approval`; carries `reason` and `agent_name` (the calling config's `[agent].name` — the coordinator's name in orchestration mode). The per-worker identity is always in `scope`, not `origin`. |
+| `origin` | Why approval was requested. Both kinds carry `agent_name`, the calling config's `[agent].name`. `kind = "config_gate"` (a configured glob matched the tool call) also carries the matched glob as `matched_pattern`; `kind = "agent_requested"` (the agent called `request_approval`) also carries `reason`. |
 | `items` | Tool call payloads awaiting approval. One item per request. |
+
+`agent_name` is the calling config's `[agent].name`. In orchestration mode, a named worker's `agent_name` is that worker's own name, matching `scope.worker`; a generic, unnamed worker keeps the base agent's name.
 
 ### Agent-requested origin
 
-An `agent_requested` origin carries `agent_name` next to `reason`. The example
-below shows just the `origin` object; the full request shape is the primary
-example above, which uses a `config_gate` origin.
+The `agent_requested` origin carries the same `agent_name` value shown in the
+primary example above; `reason` is what distinguishes it from `config_gate`.
+The object below shows only the fields specific to `agent_requested`; the full
+request shape is the primary example above, which uses a `config_gate` origin.
 
 ```json
 {
   "kind": "agent_requested",
   "reason": "Deleting a production deployment is destructive and needs a human decision.",
-  "agent_name": "SRE Orchestrator"
+  "agent_name": "operations"
 }
 ```
 
-`agent_name` appears only on `agent_requested` origins; `config_gate` origins
-are unchanged. The field is additive, so a consumer sees `agent_name` absent or
-empty only in approval records written before Aura added this field.
-Both routes surface the same `origin`, so `agent_name` also appears on the SSE
-`aura.approval_requested` and `aura.approval_pending` events.
+`agent_name` is additive, so a consumer sees it absent or empty only in approval
+records written before Aura added the field. Both routes surface the same
+`origin`, so `agent_name` also appears on the SSE `aura.approval_requested` and
+`aura.approval_pending` events.
 
 ## Webhook response
 

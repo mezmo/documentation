@@ -379,6 +379,8 @@ data: {"agent_id":"main","tokens_intercepted":15840,"tokens_extracted":1200,"ses
 
 Emitted once per agent that used scratchpad. It fires for both single-agent and orchestration worker contexts (in the latter, `agent_id` is the worker name). `tokens_intercepted` is the total tool output diverted to disk; `tokens_extracted` is what the agent pulled back into context via the scratchpad exploration tools.
 
+See [the origin fields](/aura/hitl#webhook-request) on the HITL page for what `origin.kind` and `agent_name` mean.
+
 **Approval requested** (HITL approval request raised):
 ```
 event: aura.approval_requested
@@ -390,7 +392,8 @@ data:
   "tool_name": "restart_deployment",
   "origin": {
     "kind": "config_gate",
-    "matched_pattern": "restart_*"
+    "matched_pattern": "restart_*",
+    "agent_name": "operations"
   },
   "scope": {
     "kind": "worker",
@@ -414,7 +417,8 @@ data:
   "arguments": {"namespace": "prod", "deployment": "api"},
   "origin": {
     "kind": "config_gate",
-    "matched_pattern": "restart_*"
+    "matched_pattern": "restart_*",
+    "agent_name": "operations"
   },
   "scope": {
     "kind": "worker",
