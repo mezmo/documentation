@@ -1,0 +1,91 @@
+---
+title: "AI Governance Policies"
+description: "Control whether AI agent tool calls run, wait for approval, or are refused, using rule-based AI governance policies."
+---
+
+An AI Governance policy is a versioned set of bounded rules. For every AI agent tool call, a policy decides one of three outcomes: the call runs (**Allow**), waits for a person to approve it (**Require Approval**), or is refused (**Deny**). Policies live in the **Governance** area of the Mezmo web app, under **Policies**, alongside the **Agents** registry.
+
+<Note>
+AI Governance is available when the feature is enabled for your account. If it is not enabled, you will not see the **Governance** area.
+</Note>
+
+## How a Policy Evaluates a Tool Call
+
+When an AI agent makes a tool call, the policy checks the call against each of its rules. Each matching rule yields an outcome: **Allow**, **Require Approval**, or **Deny**. A call that no rule permits goes to the policy's **fallthrough**. A policy with no rules sends every call to the fallthrough.
+
+Mezmo evaluates rules server-side, compiling each policy to AWS Cedar. To see the compiled preview for a policy, turn on the **View Compiled Rule** toggle.
+
+## The Policies List
+
+The **Policies** page lists every policy in your account. Each row describes one policy.
+
+| Column | Description |
+| ---- | ---- |
+| **Policy** | The policy name. |
+| **Rules** | The number of rules in the policy. |
+| **Fallthrough** | The outcome applied to calls that no rule permits. |
+| **Findings** | A warning indicator, shown when the policy has any warnings. |
+| **Created** | When the policy was created. |
+
+When no policies exist, the page prompts you to create one with **New Policy**.
+
+## Create a Policy
+
+Before you begin, the AI Governance feature must be enabled for your account.
+
+1. Open **Governance** > **Policies**, then click **New Policy**.
+2. On the **Basics** step, enter a **Policy Name** and an optional **Description**.
+3. On the **Rules** step, click **Add Rule** to add one or more rules, or leave the list empty. For each rule, set what to match on, the rule outcome, and any argument constraints. See [Rule Fields and Limits](#rule-fields-and-limits) for the detail.
+4. On the **Fallthrough** step, choose what happens to a call that no rule permits.
+5. On the **Review** step, review the findings and the summary, then click **Create Policy**.
+
+The new policy appears in the **Policies** list.
+
+## Rule Fields and Limits
+
+### Basics
+
+| Field | Description |
+| ---- | ---- |
+| **Policy Name** | Required. Must be unique in your account. 2 to 128 characters. |
+| **Description** | Optional. 2 to 512 characters. |
+
+### Rule Matching
+
+The **Match On** setting determines what part of a tool call a rule applies to. Choose **Tool Name**, **Tool Namespace**, or **Tool-Call Argument**.
+
+For **Tool Name** or **Tool Namespace**, provide a value and set the **Matches** or **Does Not Match** toggle.
+
+For **Tool-Call Argument**, provide the following:
+
+| Field | Description |
+| ---- | ---- |
+| **Argument Name** | Letters, digits, and underscores. Must start with a letter or an underscore. Up to 64 characters. |
+| **Comparison Operator** | One of **is**, **is not**, **greater than**, **at least**, **less than**, or **at most**. |
+| **Value** | Up to 512 characters. |
+
+You can also add optional **Argument Constraints**: additional argument-name and value pairs that the call must also match exactly (equality only), up to 25 per rule.
+
+A policy can hold up to 250 rules.
+
+### Rule Outcome
+
+**Outcome When This Rule Matches** is required. Choose **Allow**, **Require Approval**, or **Deny**.
+
+When the outcome is **Require Approval** or **Deny**, you can set an optional **Code** and an optional **Message Shown to the Caller**. Both are returned to the caller, so the team that built the calling AI agent can handle the approval or refusal.
+
+| Field | Description |
+| ---- | ---- |
+| **Code** | Optional. A machine-stable identifier, up to 35 characters. |
+| **Message Shown to the Caller** | Optional. Up to 256 characters. |
+
+### Fallthrough
+
+The fallthrough decides what happens to a call that no rule permits. Choose **Deny Outright** or **Send for Approval**. There is no Allow option for the fallthrough.
+
+You can also set an optional **Code**, which defaults to `NO_MATCHING_RULE`, and an optional **Message Shown to the Caller**. If you don't set one, Mezmo provides a default message.
+
+## Related Topics
+
+- [Mezmo MCP](/docs/mezmo-mcp)
+- [Use the Mezmo Assistant](/docs/use-ai-assistant)

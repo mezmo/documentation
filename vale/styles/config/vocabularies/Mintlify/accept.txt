@@ -59,6 +59,7 @@ explorable
 extensionless
 failover
 failsafe
+fallthrough
 Fastly
 firehose
 Fluentd
