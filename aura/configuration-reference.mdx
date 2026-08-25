@@ -16,6 +16,8 @@ cargo run -p aura-web-server -- --config your-config.toml   # exits on parse err
 cargo run -p aura-cli -- --config your-config.toml           # exits on parse error before REPL
 ```
 
+When `memory_dir` is set, startup validation also checks that the directory is writable. The web server and the CLI create the configured path if it does not exist, then verify they can write to it. If the path cannot be created or written to, Aura exits with a permission error that names the configured path and the underlying operating-system error, before binding to any port or entering the REPL.
+
 ## Environment Variable Interpolation
 
 Any string value in the config can reference an environment variable using `{{ env.VAR_NAME }}`. An optional `| default: 'value'` fallback prevents a hard error when the variable is unset.
@@ -31,7 +33,7 @@ Authorization = "Bearer {{ env.GITHUB_PERSONAL_ACCESS_TOKEN | default: '' }}"
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `memory_dir` | string | — | Base directory for scratchpad storage and orchestration artifact persistence. Required when scratchpad is enabled. |
+| `memory_dir` | string | — | Base directory for scratchpad storage and orchestration artifact persistence. Must be writable: Aura creates the path at startup if it doesn't exist, verifies it can write to the path, and exits if the path can't be created or written to. Required when scratchpad is enabled. |
 
 ```toml
 memory_dir = "/tmp/aura-sessions"
