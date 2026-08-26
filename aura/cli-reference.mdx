@@ -464,9 +464,13 @@ server):
 Toggle with `/stream` to see raw SSE events in real time. Supported event types:
 
 - `aura.tool_requested` / `aura.tool_start` / `aura.tool_complete`
-- `aura.usage` / `aura.tool_usage`
+- `aura.usage` / `aura.tool_usage` / `aura.context_usage`
 - `aura.progress` / `aura.session_info` / `aura.reasoning`
 - `aura.orchestrator.*` — multi-agent orchestration events
+
+Most of the optional `aura.*` events (including `aura.context_usage` and `aura.usage`) require `AURA_CUSTOM_EVENTS=true` to appear; `aura.reasoning` additionally requires `AURA_EMIT_REASONING=true`. See the [Streaming API Guide](/aura/streaming-api-guide) for details.
+
+The CLI computes its "Context left" status-bar indicator and auto-compaction from `aura.context_usage`. Only the conversation-level agent (`agent_id: "main"`) drives the status bar, so worker `aura.context_usage` does not affect it. During orchestration, the indicator reflects the coordinator's occupancy. See the [Streaming API Guide](/aura/streaming-api-guide) for the formula.
 
 See the [Streaming API Guide](/aura/streaming-api-guide) for the full event reference.
 

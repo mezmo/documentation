@@ -143,6 +143,7 @@ AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server
 | `aura.worker_phase` | Worker phase transitions in multi-agent mode (planning/executing/analyzing) | ✅ Implemented |
 | `aura.tool_usage` | Usage snapshot after tool execution (associates tool IDs with token counts) | ✅ Implemented |
 | `aura.usage` | Final token usage emitted at stream end (prompt/completion/total) | ✅ Implemented |
+| `aura.context_usage` | Per-agent context-window occupancy derived from the provider's final-turn usage (not a local tokenizer) | ✅ Implemented |
 | `aura.scratchpad_usage` | Per-agent scratchpad usage summary (single-agent or worker), emitted when an agent finishes with scratchpad activity | ✅ Implemented |
 | `aura.approval_requested` | HITL approval request raised for a gated tool or `request_approval` call | ✅ Implemented for webhook and conversational routes |
 | `aura.approval_pending` | HITL approval is waiting for an attended decision | ✅ Implemented for conversational route |
@@ -369,7 +370,30 @@ data:
 }
 ```
 
-Use `prompt_tokens` with `model_context_limit` from `aura.session_info` to calculate context window fill percentage: `(prompt_tokens / model_context_limit) * 100`. No `agent_id` field (only `CorrelationContext`).
+`aura.usage` is cumulative provider-billed token accounting for cost: input plus output tokens summed across every LLM turn in the request. It reports these tokens identically in single-agent and orchestration modes. The payload carries only `CorrelationContext` (no `agent_id`). To compute context-window fill, use `aura.context_usage`.
+
+**Context usage** (per-agent context-window occupancy, derived from the provider's final-turn usage):
+```
+event: aura.context_usage
+data:
+```
+```json
+{
+  "context_tokens": 18450,
+  "response_tokens": 512,
+  "context_window": 200000,
+  "agent_id": "main",
+  "session_id": "sess_xyz"
+}
+```
+
+`context_tokens` (u64) is the provider's final-turn input token count, and `response_tokens` (u64) is the provider's final-turn output token count. `context_window` (u64, optional) is the model's context-window limit; it is omitted when the limit is unknown or unset. The event also carries the shared `AgentContext` fields `agent_id` (required; `"main"` for single-agent) and `agent_name` (optional), plus the `CorrelationContext` fields `session_id` and `trace_id` (optional). `parent_agent_id` belongs to the `AgentContext` type, but `aura.context_usage` leaves it unset.
+
+Note: Requires `AURA_CUSTOM_EVENTS=true`. `context_window` is omitted when the limit is unknown or unset, so treat its absence as unknown and fall back to `model_context_limit` from `aura.session_info` rather than reading it as zero. `aura.session_info` is emitted once at stream start and reports the default (coordinator) agent's `model_context_limit`; it carries no `agent_id`. In orchestration mode, a worker can run a model with a different context window (configured per `[orchestration.worker.<name>.llm]`). This fallback is reliable for the single-agent and coordinator case, but it may not match a worker's actual window.
+
+Compute context-window fill as `(context_tokens + response_tokens) / context_window * 100`. The numerator sums `context_tokens` and `response_tokens` because the just-generated response tokens join the context for the next turn and count toward occupancy; this matches how the Aura CLI computes its "Context left" indicator. Use these two fields as the numerator, not `prompt_tokens` from `aura.usage`.
+
+In single-agent mode the server emits exactly one `aura.context_usage` event, with `agent_id: "main"`. In orchestration mode it emits one event per worker task execution, with `agent_id` set to the worker name, so a worker that runs several tasks emits several events; it also emits one event per coordinator planning or routing cycle, each with `agent_id: "main"`. Unlike the `aura.orchestrator.*` events, which label the coordinator `agent_id: "coordinator"`, this event uses `agent_id: "main"` for the coordinator so clients track one conversation context across both modes. Because the coordinator reuses the single-agent `agent_id: "main"`, this event alone cannot tell a coordinator's occupancy apart from a single-agent session's. Resolve this from session context: if you have observed any `aura.orchestrator.*` event (or queried `/aura/info`) for the session, the session is orchestrated and an `agent_id: "main"` `aura.context_usage` event is the coordinator's; otherwise it is the single agent's.
 
 **Scratchpad usage** (per-agent report when an agent finishes with scratchpad activity):
 ```
@@ -486,7 +510,7 @@ Most custom events include correlation fields for tracing:
 |-------|-------------|
 | `session_id` | Chat session ID (from request metadata) |
 | `trace_id` | OTEL trace ID (when available) |
-| `agent_id` | Agent identifier (`main` for single-agent) |
+| `agent_id` | Agent identifier (`main` for single-agent; `aura.context_usage` also uses `main` for the orchestration coordinator, see [Custom Event Types](#custom-event-types)) |
 
 Approval lifecycle events carry `decision_id` and HITL `scope` instead of the shared `AgentContext` / `CorrelationContext` fields. Use `decision_id` to correlate `aura.approval_requested` with `aura.approval_completed`, and inspect `scope` for the requesting surface (`single`, `worker`, or future `coordinator`).
 
@@ -773,6 +797,8 @@ data:
 Fires before the post-execute coordinator call. Bookends with `iteration_complete`, which fires after the coordinator's routing decision.
 
 Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish — see the [Custom Event Types](#custom-event-types) section above. This is a base `aura.*` event (not orchestration-specific) so the same event fires for single-agent deployments and workers alike.
+
+Note: `aura.context_usage` is likewise a base `aura.*` event (not orchestration-specific), including its per-mode emission counts and `agent_id` disambiguation; see the [Custom Event Types](#custom-event-types) section above.
 
 ### Orchestration Correlation
 
