@@ -87,7 +87,7 @@ The [AURA CLI](/aura/cli-reference) is the reference client implementation. `--e
 
 ## Backend symmetry
 
-Both halves of the system gate this independently — **and both must opt in for local tools to fire**, in HTTP mode and standalone mode alike. Standalone is not a special case: it uses the same handler path as `aura-web-server`, so the agent's `[agent].enable_client_tools = true` is required there too.
+Both halves of the system gate this independently — **and both must opt in for local tools to fire**, in HTTP mode and standalone mode alike. Standalone is not a special case: it uses the same handler path as [`aura webserver`](/aura/web-server-reference), so the agent's `[agent].enable_client_tools = true` is required there too.
 
 | Mode                                 | TOML side (`[agent].enable_client_tools`) | Client side (`--enable-client-tools`) | Effective                                                                                        |
 | ------------------------------------ | ----------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------ |
