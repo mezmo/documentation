@@ -621,6 +621,27 @@ per_call_timeout_secs = 120
 stream_inactivity_timeout_secs = 60
 ```
 
+### `[orchestration.retry]`
+
+Tunes exponential backoff when the coordinator's planning call fails with a transient provider error. Aura sends the same planning prompt again after a backoff delay instead of failing the task. Retries apply only to the coordinator planning call in orchestration mode.
+
+Transient errors include provider rate-limiting (HTTP 429), server errors (500, 502, 503, 504, and 529), request timeout (408), and connection-level failures such as connection refused, connection reset, or DNS failure. Non-transient errors such as authentication (401) or not-found (404) return immediately without retrying.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `base_delay_ms` | integer | `500` | Delay in milliseconds before the first retry; doubles on each subsequent retry. |
+| `max_delay_ms` | integer | `5000` | Upper bound (cap) in milliseconds on any single backoff delay. |
+| `max_retries` | integer | `3` | Number of transient retries after the initial planning call; set to `0` to disable retries. |
+
+Retry N waits `base_delay_ms * 2^(N-1)`, capped at `max_delay_ms`, so with the defaults the three retries wait 500 ms, 1000 ms, and 2000 ms. Values are not range-validated; the cap wins when `max_delay_ms` is below `base_delay_ms`.
+
+```toml
+[orchestration.retry]
+base_delay_ms = 500
+max_delay_ms = 5000
+max_retries = 3
+```
+
 ### `[orchestration.artifacts]`
 
 Controls persistence and artifact promotion.
