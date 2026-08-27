@@ -41,7 +41,7 @@ aura --api-url "https://api.example.com" \
 Standalone mode is enabled by default. The CLI loads agent configs directly and runs without an HTTP server. When `--api-url` is not set, standalone mode activates automatically:
 
 ```bash
-# Uses config.toml in the current directory by default
+# When --config is omitted, AURA searches a fixed order of locations for a config
 aura
 
 # Single TOML config file
@@ -57,6 +57,8 @@ aura --config agent.toml --query "hello"
 aura --config configs/ --model "Math Agent"
 ```
 
+When you omit `--config`, the CLI resolves the agent config through an ordered search — see [Finding the agent config](#finding-the-agent-config).
+
 In standalone mode, the CLI builds agents in-process. MCP tools from the TOML config are available. CLI local tools (Shell, Read, Update, ...) become available when **both** sides opt in — pass `--enable-client-tools` and set `[agent].enable_client_tools = true` in the loaded TOML config (single-agent configs only; orchestrated configs drop client tools). See [Client-Side Tools](#client-side-tools) for details. The `/model` command works identically — it lists all loaded configs and lets you switch between them.
 
 ---
@@ -66,8 +68,9 @@ In standalone mode, the CLI builds agents in-process. MCP tools from the TOML co
 New to AURA? `aura init` walks you through creating a ready-to-run `config.toml` — no hand-editing TOML required.
 
 ```bash
-aura init                 # interactive; writes ./config.toml
+aura init                 # interactive; asks where to save the config
 aura init -o my.toml      # choose the output path
+aura init --global        # write to the global agents directory
 ```
 
 It will:
@@ -76,7 +79,10 @@ It will:
 - **Pick a provider** from a validated list (openai, anthropic, bedrock, gemini, ollama, openrouter).
 - **Handle the API key**: if the provider's conventional env var is already set it asks whether to use it; otherwise it prompts for the key (input is masked). The generated config references the key by its native env var (`api_key = "{{ env.OPENAI_API_KEY }}"`) — secrets are never written into `config.toml`.
 - **Verify & list models**: it queries the provider's live model list and shows a short, curated shortlist (newest per family — pick by number, accept the default, or type any id). For Ollama it lists whatever you have installed.
-- **Write** `config.toml`, plus a `.env` **only when you enter a new key** that isn't already in your environment. The `.env` holds a secret — add it to your `.gitignore`.
+- **Choose a location**: it asks whether the config should live locally (`./config.toml`) or globally (`~/.aura/agents/<name>.toml`). Choosing global also asks for the agent name, which becomes both the filename and `[agent].name`, so a second global install lands beside the first rather than overwriting it. Skip the prompt with `--global` or `--output`.
+- **Write** the config, plus a `.env` **only when you enter a new key** that isn't already in your environment. The `.env` goes in the same directory as the config. For a local config, the `.env` lands in your project directory, so add it to your `.gitignore`. For a global config, it lands in `~/.aura/agents/`, which sits outside any repo, so the `.gitignore` advice doesn't apply there. Every globally installed agent shares that one `~/.aura/agents/.env`, because each config references its key by env-var name (`{{ env.OPENAI_API_KEY }}`) and two agents on the same provider read the same variable.
+
+<Note>When a later `aura init --global` supplies a different value for a variable already in `~/.aura/agents/.env`, it warns before replacing it, since replacing re-points every agent that references that variable. Pass `--api-key-env` to give the new agent its own variable instead. Agents for different providers use different variables (`OPENAI_API_KEY` versus `ANTHROPIC_API_KEY`), so this collision is uncommon.</Note>
 
 `aura` loads `.env` automatically at startup, so a config generated here runs as-is.
 
@@ -84,7 +90,7 @@ It will:
 
 | Flag | Description |
 |------|-------------|
-| `-o, --output <PATH>` | Output config path (default `config.toml`). |
+| `-o, --output <PATH>` | Output config path. If omitted, `aura init` prompts for a local or global location; non-interactive runs default to `./config.toml`. |
 | `--provider <P>` | Provider: openai, anthropic, bedrock, gemini, ollama, openrouter. |
 | `--model <ID>` | Model id (skips the model picker). |
 | `--api-key-env <VAR>` | Env var to read the key from (default per provider). |
@@ -93,6 +99,7 @@ It will:
 | `--name <NAME>` | Agent name written to the config (default `assistant`). |
 | `--offline` | Skip live model-list verification. |
 | `--non-interactive` | Fail on missing values instead of prompting (automatic when stdin isn't a TTY). |
+| `--global` | Write the config to the global agents directory (`~/.aura/agents/<name>.toml`) instead of prompting for a location. Conflicts with `--output`. |
 | `--force` | Overwrite an existing config without asking. |
 
 For scripted/CI use, supply the required values as flags:
@@ -100,6 +107,41 @@ For scripted/CI use, supply the required values as flags:
 ```bash
 aura init --provider openai --model gpt-4o --non-interactive
 ```
+
+A non-interactive run without `--global` always writes `./config.toml` and never depends on `$HOME`.
+
+---
+
+## Finding the agent config
+
+This section is about where AURA looks for the *agent* config — the `config.toml` that defines your agents and their providers. That is a different file from the CLI preferences file (`cli.toml`) covered under [Configuration File](#configuration-file). The config discovery order matters most once you install global agents: a stray local `config.toml` can hide them.
+
+When you omit `--config`, the CLI resolves the agent config by checking these locations in order, and the first match wins:
+
+1. **`--config <path>` or the `AURA_CONFIG` env var** — a file or directory, used exactly as given. A path that does not exist is an error; the CLI does not fall through to a global config.
+2. **`./config.toml`** — the current directory only. Parent directories are not searched.
+3. **`~/.aura/agents/`** — every `*.toml` in the directory loads at once, so `/model` switches between all globally installed agents. Skipped when it holds no `.toml` file.
+4. **`~/.aura/agent.toml`** — a single global config.
+
+`~/.aura/config.toml` is deliberately not searched: that name is the legacy CLI preferences file (see the note under [Configuration File](#configuration-file)).
+
+<Note>The first location that matches supplies **every** agent — the search does not merge locations. A local `./config.toml` therefore hides your global agents entirely, and they won't appear in `/model`. To use your global agents from such a directory, point the CLI at them explicitly with `--config`.</Note>
+
+```bash
+# Load the global agents even when a local ./config.toml exists
+aura --config ~/.aura/agents/
+```
+
+When `--config` is absent, the CLI reads `AURA_CONFIG`, so exporting it has the same effect as passing the flag:
+
+```bash
+export AURA_CONFIG=~/.aura/agents/
+aura
+```
+
+If none of these locations yields a config, the CLI exits and reports each location it searched, so you can see where to place the file.
+
+A `.env` file beside the resolved config is loaded in addition to any `.env` in the current directory, so a global config can carry its own provider keys. When the resolved config is the `~/.aura/agents/` directory, that `.env` is the shared `~/.aura/agents/.env`.
 
 ---
 
@@ -152,6 +194,7 @@ cargo build -p aura-cli --no-default-features
 | `AURA_API_URL`                        | Base API URL (paths like `/v1/chat/completions` are appended automatically)                                                                                         | `http://localhost:8080`                               |
 | `AURA_API_KEY`                        | Bearer token for authentication                                                                                                                                     | _(none)_                                              |
 | `AURA_MODEL`                          | Model name to use (in standalone mode, selects agent by name/alias)                                                                                                 | _(none — omitted from request, server picks default)_ |
+| `AURA_CONFIG`                         | Path to the agent config file or directory to load, equivalent to `--config` (see [Finding the agent config](#finding-the-agent-config)). A path that does not exist is an error. | _(none)_                                 |
 | `AURA_EXTRA_HEADERS`                  | Additional HTTP headers as comma-separated `key:value` pairs (e.g. `x-chat-session-id:foo,authorization:Bearer …`); overrides the auto-injected `x-chat-session-id` | _(none)_                                              |
 | `AURA_ENABLE_FINAL_RESPONSE_SUMMARY`  | Generate a one-line LLM-based title for each final response (adds an extra round-trip per turn). Set to `true` or `1` to enable.                                    | `false`                                               |
 | `AURA_ENABLE_CLIENT_TOOLS`            | Advertise CLI local tools to the model and execute them locally (see [Client-Side Tools](#client-side-tools))                                                       | `false`                                               |
@@ -177,16 +220,16 @@ aura [OPTIONS]
 | `--enable-client-tools[=<bool>]`           | `AURA_ENABLE_CLIENT_TOOLS`           | Advertise CLI local tools to the model (default: disabled — see [Client-Side Tools](#client-side-tools)) |
 | `--enable-final-response-summary[=<bool>]` | `AURA_ENABLE_FINAL_RESPONSE_SUMMARY` | Generate a one-line LLM title for each final response (adds an extra round-trip per turn; default: disabled) |
 | `--standalone`                             | —                                    | Force standalone mode (default when `--api-url` is absent; mutually exclusive with `--api-url` flag, but overrides `AURA_API_URL` env var) |
-| `--config <PATH>`                          | —                                    | Path to TOML agent config file or directory (standalone mode; defaults to `config.toml`)                 |
+| `--config <PATH>`                          | `AURA_CONFIG`                        | Path to a TOML agent config file or directory (standalone mode). When omitted, the CLI searches for a config (see [Finding the agent config](#finding-the-agent-config)) |
 | `--log-file <PATH>`                        | `AURA_LOG_FILE`                      | Append diagnostic tracing logs to this file. Omit for no logging (see [Logging](#logging))               |
 
-**Precedence:** CLI flags > environment variables > project `cli.toml` > global `cli.toml` > defaults.
+**Precedence** (for settings also configurable in `cli.toml`, such as `--model`, `--log-file`, and `--enable-client-tools`): CLI flags > environment variables > project `cli.toml` > global `cli.toml` > defaults. Agent-config resolution (`--config` / `AURA_CONFIG`) follows its own search order — see [Finding the agent config](#finding-the-agent-config).
 
 ---
 
 ## Configuration File
 
-The CLI looks for a TOML preferences file in two places, with the project file
+This section covers the CLI *preferences* file (`cli.toml`), which is distinct from the agent `config.toml` that defines your agents — for that, see [Finding the agent config](#finding-the-agent-config). The CLI looks for a TOML preferences file in two places, with the project file
 overriding the global one on a per-field basis:
 
 | File                              | Purpose                                                  |

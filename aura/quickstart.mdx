@@ -29,12 +29,12 @@ export PATH="$HOME/.local/bin:$PATH"
 aura init
 ```
 
-The wizard asks a few questions, then writes a ready-to-run `config.toml` in the current directory:
+The wizard asks a few questions — including where to save the config — then writes a ready-to-run `config.toml`:
 
 - **Provider.** It first checks your environment for a conventional API key (e.g. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) and suggests the matching provider as the default.
 - **API key.** If that variable is already set, it asks whether to use it. Otherwise it prompts for the key with masked input.
 - **Model.** It queries the provider's live model list and offers a short, curated shortlist. Pick by number, accept the default, or type any model id.
-- **Output.** It writes `config.toml`, plus a `.env` only when you entered a key that wasn't already in your environment.
+- **Output.** It asks where to save the config, defaulting to a local `config.toml` in the current directory, and writes a `.env` alongside it only when you entered a key that wasn't already in your environment. Choosing global lets an agent live outside any project directory — see [Finding the agent config](/aura/cli-reference#finding-the-agent-config) for how the CLI chooses between local and global configs.
 
 Your key never lands in `config.toml`. The generated file references it as `api_key = "{{ env.OPENAI_API_KEY }}"` instead. If a `.env` was written, add it to your `.gitignore`.
 
@@ -111,6 +111,10 @@ The install directory isn't on your `PATH`. Run `export PATH="$HOME/.local/bin:$
 ### `aura init` can't list models
 
 `aura init` fetches the provider's model list to confirm your key works and to build the shortlist it offers you. If that request fails, because you're offline or the key was rejected, it warns and continues, allowing you to type the model id yourself. Pass `--offline` to skip the request entirely. AWS Bedrock has no model-list endpoint, so it's always skipped.
+
+### My global agents aren't showing up
+
+A local `./config.toml` shadows your global agents, so they won't appear in `/model`. Reach them from that directory by pointing the CLI at them explicitly: `aura --config ~/.aura/agents/`. See [Finding the agent config](/aura/cli-reference#finding-the-agent-config) for the full search order.
 
 ### Workers say they have no tools
 
