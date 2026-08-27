@@ -1,23 +1,53 @@
 ---
 title: "NXLog"
-description: "Configure NXLog on Windows to ingest Windows event and file logs into Mezmo using your syslog port and security certificate."
+description: "Configure NXLog on Windows to forward Windows event and file logs to an OpenTelemetry Collector, which relays them to the Mezmo OTEL Source."
 ---
 
-NXLog is the workhorse of Windows logging plugins. You can use our configuration file for NXLog to set up the ingestion of Windows events logs to Mezmo.
+NXLog is the workhorse of Windows logging plugins. Mezmo ingests NXLog data by placing an OpenTelemetry (OTel) Collector between your Windows hosts and Mezmo. NXLog forwards Syslog-formatted events to the Collector's `syslog` receiver over TLS, and the Collector relays them to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) with the `otlphttp` exporter.
 
-## Set Up NXLog Log Ingestion
+```
+NXLog (om_ssl output)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+```
 
-Follow the instructions in the Mezmo Web App to set up NXLog log ingestion using your Mezmo syslog port and security certificate
+## Set Up the OpenTelemetry Collector
 
-1. Log in to the [Mezmo Web App](http://app.mezmo.com).
-2. In the bottom section of the left-hand navigation, click **Help**.
-3. Select **Add Log Sources**. 
-4. Under **Via platform**, click **NXLog**.
-5. Follow the instructions to set up NXLog log ingestion.
+1. Log in to the [Mezmo Web App](https://app.mezmo.com), create (or open) a Pipeline, and add an [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source). Note the ingestion key — you'll use it as `apikey`.
+2. Download the `otelcol-contrib` distribution, which includes the `syslog` receiver, from [the OpenTelemetry website](https://github.com/open-telemetry/opentelemetry-collector-releases).
+3. Create a `config.yaml`:
 
-You can also get [a copy of the NXLog configuration file](https://github.com/logdna/logdna-nxlog) from our GitHub repository.
+```yaml
+receivers:
+  syslog:
+    protocol: rfc5424
+    tcp:
+      listen_address: "0.0.0.0:CUSTOM_PORT"
+      tls:
+        cert_file: /path/to/cert.pem
+        key_file: /path/to/key.pem
 
-## Example NXLog Configuration File
+exporters:
+  otlphttp/mezmo:
+    endpoint: "https://logs.mezmo.com/otel"
+    compression: gzip
+    headers:
+      apikey: "<YOUR_INGESTION_KEY>"
+
+service:
+  pipelines:
+    logs:
+      receivers: [syslog]
+      exporters: [otlphttp/mezmo]
+```
+
+4. Start the Collector:
+
+```bash
+./otelcol-contrib --config /path/to/config.yaml
+```
+
+## Configure NXLog
+
+Point NXLog's `om_ssl` output at the host and port where the Collector's `syslog` receiver is listening, using the same certificate you configured on the Collector.
 
 ```none
 Panic Soft
@@ -102,7 +132,7 @@ define LOGFOLDER C:\\ProgramData\\logs
 
 <Output out>
     Module om_ssl
-    Host syslog-a.logdna.com
+    Host <OTEL_COLLECTOR_HOST>
     Port CUSTOM_PORT
     CAFile %CERTDIR%\ca.pem
     Exec to_syslog_ietf();

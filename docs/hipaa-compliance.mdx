@@ -92,7 +92,7 @@ Mezmo lets you set granular permissions using [role based access control (RBAC)]
 
 #### Lock Down Your Logging Infrastructure
 
-Sending logs to Mezmo requires you to expose certain ports (e.g. 6514 for Syslog with TLS and 443 for HTTPS). When configuring your firewall, you should only allow outbound traffic from these ports to avoid exposing your systems to unnecessary risk. When using Mezmo on-premise, isolate your logging infrastructure from the public Internet as much as possible to avoid placing your logs in unnecessary risk. In addition, strictly limit system-level access to these systems to specific engineers or members of your operations team.
+Sending logs to Mezmo requires you to expose certain ports. Mezmo's [Syslog ingestion integrations](/docs/ingestion-integrations/syslog) now recommend forwarding Syslog through an OpenTelemetry Collector to Mezmo's OTEL Source over HTTPS (443) rather than exposing a direct Syslog port (e.g. 6514) to Mezmo. When configuring your firewall, you should only allow outbound traffic from the ports your logging infrastructure actually uses to avoid exposing your systems to unnecessary risk. When using Mezmo on-premise, isolate your logging infrastructure from the public Internet as much as possible to avoid placing your logs in unnecessary risk. In addition, strictly limit system-level access to these systems to specific engineers or members of your operations team.
 
 ### Regularly Review Your Logs
 

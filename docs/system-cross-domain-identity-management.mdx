@@ -15,9 +15,13 @@ This feature is only available for customers on an Enterprise plan, and is restr
 
 Mezmo's implementation of SCIM allows you to map Groups in your IDP with Child Organizations in Mezmo.  It also maps users in your IDP to users in Mezmo.  Assignments of these users to groups in your IDP will be reflected by Mezmo assigning these users to the matching Org.
 
+<Note>
+The Groups on this page are identity-provider groups used to provision users into child organizations. They are unrelated to the RBAC access-control groups that have been removed from Mezmo.
+</Note>
+
 ### Automatic Role Assignment
 
-Users provisioned via SCIM are automatically assigned the Member role in their child organizations. This role provides basic access to logs and features.
+Users provisioned via SCIM are automatically assigned the Basic role in their child organizations. This role grants standard log and feature access.
 
 For more information about roles and permissions, see [Role-based Access Control](/docs/rbac).
 

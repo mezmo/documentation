@@ -6,14 +6,14 @@ description: "Complete TOML field reference for AURA — agent identity, LLM pro
 AURA is configured with a single TOML file. The file path defaults to `config.toml` in the working directory; override it with the `CONFIG_PATH` environment variable.
 
 ```bash
-CONFIG_PATH=configs/my-agent.toml cargo run --bin aura-web-server
+CONFIG_PATH=configs/my-agent.toml cargo run --bin aura -- webserver
 ```
 
 To validate a config file, start the web server or CLI against it — both validate immediately and exit with a clear error if parsing fails, before binding to any port or entering the REPL:
 
 ```bash
-cargo run -p aura-web-server -- --config your-config.toml   # exits on parse error before binding
-cargo run -p aura-cli -- --config your-config.toml           # exits on parse error before REPL
+cargo run --bin aura -- webserver --config your-config.toml   # exits on parse error before binding
+cargo run --bin aura -- --config your-config.toml             # exits on parse error before REPL
 ```
 
 ## Environment Variable Interpolation
@@ -47,6 +47,7 @@ Defines the agent identity, system prompt, and behavioral settings.
 |---|---|---|---|
 | `name` | string | *required* | Display name. Doubles as the model identifier clients send in requests. |
 | `alias` | string | — | Stable identifier for model selection. Clients send this as the `model` field. Useful when the name contains spaces. |
+| `description` | string | — | Optional one-line, human-readable summary of the agent. Use it to distinguish multiple loaded configs that would otherwise differ only by `name` or `alias`. Display-only. It appears in `/v1/models`, `/aura/info`, and the CLI `/model` picker, but is never part of runtime settings and never sent to the model. Omitted from `/v1/models` and `/aura/info` responses when unset. Not to be confused with the required per-worker `description` under `[orchestration]`, which guides planning and is not shown to people. It is free-form text with no enforced length limit; the CLI `/model` picker collapses whitespace and truncates it to fit the terminal. |
 | `system_prompt` | string | *required* | The agent's system prompt. Multi-line strings use TOML `"""..."""` syntax. |
 | `turn_depth` | integer | `5` | Max tool-call rounds per user turn. Acts as a failsafe to prevent models from spinning out in unbounded tool-call loops. |
 | `nudge_last_turn` | bool | `false` | Append a wrap-up warning to tool output on the final turn before `turn_depth` terminates the run (orchestration workers are told to call `submit_result`), rather than silently losing all gathered work. |
@@ -62,6 +63,7 @@ Defines the agent identity, system prompt, and behavioral settings.
 [agent]
 name = "DevOps Assistant"
 alias = "devops"
+description = "General-purpose assistant with tool access"
 system_prompt = """
 You are a DevOps assistant with access to GitHub.
 Help with code review, PR management, and repo exploration.
@@ -86,7 +88,7 @@ configs/
 ```
 
 ```bash
-CONFIG_PATH=configs/ cargo run --bin aura-web-server
+CONFIG_PATH=configs/ cargo run --bin aura -- webserver
 ```
 
 Each agent is identified by its `alias` (if set) or `name`. Clients discover available agents via `GET /v1/models` and select one by passing its identifier as the `model` field in chat completion requests — the same field tools like LibreChat, OpenWebUI, and CLI clients use to present a model picker.
@@ -101,6 +103,7 @@ Agent selection follows this order:
 [agent]
 name = "DevOps Assistant"
 alias = "devops"             # clients send "model": "devops"
+description = "DevOps assistant with GitHub access"
 system_prompt = "You are a DevOps expert."
 model_owner = "mezmo"        # override owned_by in /v1/models (defaults to LLM provider)
 ```
@@ -561,7 +564,7 @@ export AURA_SESSION_STORE_TASK_TTL_SECS=86400            # optional; 0 = no expi
 
 The server pings the backend at startup and fails fast if it is unreachable; `/health` reports the backend and its ping latency.
 
-The Redis backend requires building with the `session-store-redis` cargo feature (`cargo build --release --features aura-web-server/session-store-redis`). The in-memory backend is always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
+The Redis backend requires building with the `session-store-redis` cargo feature (`cargo build --release --features aura-cli/session-store-redis`). The in-memory backend is always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
 
 ---
 

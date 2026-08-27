@@ -190,7 +190,7 @@ uuid(s?)
 Valkey
 Vercel
 vrl
-walkthrough
+walkthrough(s?)
 webhook's
 webpage(s?)
 websocket(s?)

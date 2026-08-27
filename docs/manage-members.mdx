@@ -1,9 +1,9 @@
 ---
 title: "Manage Members"
-description: "Invite, edit, and remove members, assign roles and groups, and handle join requests for your Mezmo organization's team."
+description: "Invite, edit, and remove members, assign roles, and handle join requests for your Mezmo organization's team."
 ---
 
-Each Mezmo Organization allows for a certain number of users determined by your [plan](https://www.mezmo.com/pricing). Users who join your Mezmo Organization are called Members. Members of a Mezmo Organization are also called a Team.
+Each Mezmo Organization allows for a certain number of users determined by your [plan](https://www.mezmo.com/pricing). Users who join your Mezmo Organization are called Members, and collectively they are your Team.
 
 Organization administrators can:
 
@@ -13,13 +13,9 @@ Organization administrators can:
 - Decide how Mezmo users can discover and join your Organization
 - Toggle different methods of signing into your Organization
 
-## Manage Team
+## Members
 
-The Manage Team screen shows each Mezmo Organization member with their email, groups, and [role](/docs/rbac). You can also see how many people your plan lets you have on your team.
-
-<Frame caption="Members page showing a list of members in the organization along with filters and an Invite Members button.">
-  ![Image](/images/docs/ypj78yddwws4jqzr38yxcpy99duep5ba77cjf8cf9ws4kowon8a4o5xaogk0vngl.png)
-</Frame>
+The Members screen shows each Mezmo Organization member with their email and [roles](/docs/rbac). The **Roles** column shows a role-name badge for each role a member holds, and the owner shows an **Owner** badge. You can also see how many people your plan lets you have on your team.
 
 ## Invite Members
 
@@ -28,22 +24,19 @@ When you invite a member, Mezmo sends an email invitation to the address provide
 To add a member:
 
 1. Go to [Members](https://app.mezmo.com/manage/team) and click **Invite Member**.
-2. Enter the email address of the person who you want to add.
-3. Select the [role](/docs/rbac) that the member will be assigned to.
-4. Select the groups that the member will be assigned to. Members with no assigned groups will have access to all logs.
-5. Click **Invite Member** to send an email invitation to the member.
+2. Enter the email address.
+3. Select one or more [roles](/docs/rbac) from the roles selector. At least one role is required. The default role is **Basic**, and you can't select the **Owner** role.
+4. Click **Invite Member** to send the invitation.
 
 ## Edit a Member
 
-You can modify each member's groups and roles at any time, including while they have an outstanding invitation. You can't change a member's email address after their account has been created.
+The same modal handles inviting and editing members. Open the edit view from the inline **Edit** (pencil) action on the member row. You can edit a member at any time, including while they have an outstanding invitation.
 
-To edit a member's group, click the pencil icon in the **Groups** column. This opens a window where you can select the groups that the member will be assigned to.
-
-To edit a member's role, select the desired role from the drop-down in the Role column.
+The email address is read-only when editing. Change a member's roles through the roles selector. At least one role is required to save.
 
 ## Remove a Member
 
-To remove a member from your Organization, click the gray `X` next to the member's role. This won't delete the user's account, but will revoke their membership to your Organization.
+To remove a member from your Organization, click **Remove** on the member row. This won't delete the user's account, but it revokes their membership to your Organization.
 
 ## Manage Join Requests
 
