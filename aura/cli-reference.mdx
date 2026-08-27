@@ -23,7 +23,7 @@ The binary will be at `target/release/aura`.
 
 ### Run it
 
-#### HTTP mode (connect to an aura-web-server)
+#### HTTP mode (connect to a running `aura webserver`)
 
 ```bash
 # Using environment variables
@@ -57,7 +57,7 @@ aura --config agent.toml --query "hello"
 aura --config configs/ --model "Math Agent"
 ```
 
-In standalone mode, the CLI builds agents in-process using the same code paths as `aura-web-server`. MCP tools from the TOML config are available. CLI local tools (Shell, Read, Update, ...) become available when **both** sides opt in — pass `--enable-client-tools` and set `[agent].enable_client_tools = true` in the loaded TOML config (single-agent configs only; orchestrated configs drop client tools). See [Client-Side Tools](#client-side-tools) for details. The `/model` command works identically — it lists all loaded configs and lets you switch between them.
+In standalone mode, the CLI builds agents in-process. MCP tools from the TOML config are available. CLI local tools (Shell, Read, Update, ...) become available when **both** sides opt in — pass `--enable-client-tools` and set `[agent].enable_client_tools = true` in the loaded TOML config (single-agent configs only; orchestrated configs drop client tools). See [Client-Side Tools](#client-side-tools) for details. The `/model` command works identically — it lists all loaded configs and lets you switch between them.
 
 ---
 
@@ -78,7 +78,7 @@ It will:
 - **Verify & list models**: it queries the provider's live model list and shows a short, curated shortlist (newest per family — pick by number, accept the default, or type any id). For Ollama it lists whatever you have installed.
 - **Write** `config.toml`, plus a `.env` **only when you enter a new key** that isn't already in your environment. The `.env` holds a secret — add it to your `.gitignore`.
 
-`aura-web-server` and the standalone CLI load `.env` automatically at startup, so a config generated here runs as-is.
+`aura` loads `.env` automatically at startup, so a config generated here runs as-is.
 
 ### Flags
 
@@ -423,9 +423,8 @@ Three places can supply the path, in precedence order:
 | `cli.toml`      | `log_file = "/tmp/aura.log"`      |
 
 The file is opened in **append mode** and created if missing. The default
-filter mirrors `aura-web-server`'s verbose mode (info-level for aura crates
-and rig request handling); override it with `RUST_LOG` if you need different
-levels.
+filter is info-level for the aura crates and rig request handling; override it
+with `RUST_LOG` if you need different levels.
 
 <Warning>**Log rotation, truncation, and pruning are your responsibility.** The CLI appends indefinitely — it never truncates, rotates, or compresses the file. Use `logrotate`, a cron job, `truncate -s 0`, or a shell wrapper to keep the file from growing unbounded.</Warning>
 
@@ -434,9 +433,8 @@ levels.
 When running in standalone mode (the default when `--api-url` is absent), the
 CLI runs the agent in-process. Set `OTEL_EXPORTER_OTLP_ENDPOINT` and the CLI
 will install an OpenTelemetry layer alongside (or instead of) the file fmt
-layer — the same trace structure (`agent.stream` → `agent.turn` →
-`mcp.tool_call`, with `orchestration.*` between them in orchestration mode)
-that `aura-web-server` exports. See [Tracing & Span Layout](/aura/tracing-spans) for the full span reference.
+layer, emitting `agent.stream` → `agent.turn` → `mcp.tool_call`, with
+`orchestration.*` between them in orchestration mode. See [Tracing & Span Layout](/aura/tracing-spans) for the full span reference.
 
 The CLI omits the `chat_completions` / `streaming_completion` infrastructure
 spans because there is no HTTP layer in standalone mode — those live on a
@@ -459,8 +457,7 @@ exporter appends `/v1/traces` to
 `OTEL_EXPORTER_OTLP_ENDPOINT`, whereas `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`
 is used verbatim, with no path appended.
 
-Other relevant OTel env vars (read by the `aura` crate, unchanged from the
-server):
+Other relevant OTel env vars, read by the `aura` crate:
 
 | Variable                                | Purpose                                                                                              |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |

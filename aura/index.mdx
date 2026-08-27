@@ -3,3 +3,183 @@ title: "AURA: open source agent harness for production SRE work"
 sidebarTitle: "AURA Overview"
 description: "Scoped tools, approval gates, MCP-native connectivity, and a trace of every call."
 ---
+
+<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+  <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '999px', background: '#f3eefc', color: '#503A82', fontSize: '12px', fontWeight: 600 }}>
+    Open source · Apache-2.0
+  </span>
+</div>
+
+Written in Rust and licensed Apache 2.0, AURA takes an LLM plus the tools you already run and turns them into an agent that can work a live incident: reading cluster state, querying logs and metrics, checking your runbooks, and reporting what it found.
+
+You declare the agent in TOML. Workers are separate roles, each with its own prompt and tool list, so the worker that inspects a cluster is not the worker that changes it. Tools connect over MCP, so anything with an MCP server is reachable without writing an adapter.
+
+## What it does
+
+Model output alone does not make an agent you can point at production. The harness decides which tools each worker can reach, what pauses before a write, what happens when a tool call fails, what state survives across turns, and what record you have when the run is over. 
+
+You own the config and deployment, and the telemetry goes where you point it. Nothing has to route through a vendor for the agent to work.
+
+## Use cases
+
+<CardGroup cols={2}>
+  <Card title="Scope what the agent can reach" icon="bullseye" href="/aura/configuration-reference">
+    Every worker gets an explicit tool list, so read access and write access live in different roles across the agent.
+  </Card>
+
+  <Card title="Stop before a destructive call" icon="octagon-exclamation" href="/aura/hitl">
+    Approval gates name the mutating tools that need a human decision. Reads run straight through; writes wait for a yes.
+  </Card>
+
+  <Card title="Use the tools you already run" icon="plug" href="/aura/example-configs">
+    MCP servers over HTTP, SSE, and stdio: Kubernetes, Prometheus, Grafana, GitHub, Notion, AWS, Mezmo, and anything else.
+  </Card>
+
+  <Card title="See what the agent did" icon="eye" href="/aura/tracing-spans">
+    Every model call and tool call emits an OpenTelemetry span in OpenInference conventions, readable in any backend.
+  </Card>
+
+  <Card title="Answer from your runbooks" icon="book-open" href="/aura/skills">
+    RAG over in-memory, Qdrant, or Bedrock knowledge bases, plus skills that load task instructions only when needed.
+  </Card>
+
+  <Card title="Run it where your data lives" icon="server" href="/aura/ollama-guide">
+    OpenAI, Anthropic, Gemini, Bedrock, OpenRouter, or a local Ollama instance. Same config, different provider block.
+  </Card>
+</CardGroup>
+
+## Start here
+
+<CardGroup cols={3}>
+  <Card title="Local quickstart" icon="terminal" href="/aura/quickstart">
+    Install the binary, run `aura init`, connect an MCP server, and start asking questions.
+  </Card>
+
+  <Card title="Docker quickstart" icon="docker" href="/aura/quickstart-docker">
+    Bring up AURA and a demo environment with Compose, no local installs required.
+  </Card>
+
+  <Card title="Kubernetes quickstart" icon="cubes" href="/aura/quickstart-k8s-sre">
+    Run AURA as a long-lived in-cluster service with the Helm chart and a read-only Kubernetes MCP server.
+  </Card>
+</CardGroup>
+
+## Examples
+
+Each of these is a recorded run against a live environment. Where a video has a written walkthrough, the link goes straight to it.
+
+### Install and connect
+
+<CardGroup cols={2}>
+  <Card title="Install AURA and debug an incident" icon="circle-play" href="https://www.mezmo.com/videos/install-aura-debug-incidents-with-an-open-source-sre-agent">
+    Install on a desktop, run `aura init` against an Anthropic model, wire in a Grafana MCP server, and investigate.
+
+    <span style={{ color: '#503A82', fontWeight: 600 }}>Watch the walkthrough →</span>
+  </Card>
+
+  <Card title="Install in Kubernetes with Helm" icon="circle-play" href="https://www.mezmo.com/videos/install-an-ai-sre-agent-in-kubernetes-with-aura-and-helm">
+    Helm install AURA and the Kubernetes MCP server into a cluster, read-only through both RBAC and a startup flag.
+
+    <span style={{ color: '#503A82', fontWeight: 600 }}>Watch the walkthrough →</span>
+  </Card>
+
+  <Card title="Connect MCP servers and scope tools" icon="circle-play">
+    Add Mezmo, GitHub over HTTP streamable, and Grafana over stdio, then narrow which worker holds which tools.
+  </Card>
+
+  <Card title="Wire providers and pick a model" icon="circle-play">
+    Point AURA at OpenAI, Anthropic, Gemini, Bedrock, OpenRouter, or a local Ollama with one provider block.
+  </Card>
+</CardGroup>
+
+### Investigate an incident
+
+<CardGroup cols={2}>
+  <Card title="Find an unnoticed crash loop" icon="circle-play">
+    A one-sentence health check turns up a pod in CrashLoopBackOff with 788 restarts that nobody asked about.
+  </Card>
+
+  <Card title="Turn a Slack report into a root cause" icon="circle-play">
+    A coworker's message with no service name or time range. The log worker builds a window and traces checkout to payment.
+  </Card>
+
+  <Card title="Debug a Lambda timeout" icon="circle-play">
+    AURA connects through the AWS MCP proxy with existing CLI credentials, finds the log group, and verifies the timeout.
+  </Card>
+
+  <Card title="Debug in Dash0 with no custom adapter" icon="circle-play">
+    Two config sections point AURA at Dash0's hosted MCP server, read-only, with credentials in environment variables.
+  </Card>
+
+  <Card title="Debug Docker container permissions" icon="circle-play">
+    The agent doesn't know the stack runs on Compose. It opens with generic advice, then works down to the mount and owner.
+  </Card>
+
+  <Card title="Trace a request across services" icon="circle-play">
+    The tracing worker follows a slow request from the gateway through three services and back, no manual span-hunting.
+  </Card>
+</CardGroup>
+
+### Give it your runbooks
+
+<CardGroup cols={2}>
+  <Card title="Read Notion runbooks during an incident" icon="circle-play">
+    A read-only Notion key in `.env` and a runbook worker, so on-call guidance comes from your pages instead of the model.
+  </Card>
+
+  <Card title="Use GitHub as a runbook database" icon="circle-play">
+    A fine-grained token scoped to one repo, plus sources of truth and routing rules for a runbook engineer worker.
+  </Card>
+</CardGroup>
+
+### Keep it contained
+
+<CardGroup cols={2}>
+  <Card title="Add a human breakpoint" icon="circle-play">
+    Deny a `pods_delete` call and confirm nothing changed, then approve the same call and watch it run.
+  </Card>
+
+  <Card title="Run entirely inside AWS with Bedrock" icon="circle-play">
+    Bedrock as the provider, a managed knowledge base doing retrieval in-account, and every call landing in CloudTrail.
+  </Card>
+</CardGroup>
+
+### Let it run on its own
+
+<CardGroup cols={2}>
+  <Card title="Schedule a Kubernetes guardian" icon="circle-play">
+    A cron job starts a one-shot run with inspect access and exactly one mutation tool, bounded by prompt and by RBAC.
+  </Card>
+
+  <Card title="Fix a failed Argo CD deployment" icon="circle-play">
+    A sync-fail hook sends a symptom over A2A. AURA finds the version mismatch and edits the one config map it may touch.
+  </Card>
+
+  <Card title="Go from log line to merged fix" icon="circle-play">
+    A GitHub worker with a reduced tool list and an approval gate on issue creation, carrying a root cause into a PR.
+  </Card>
+
+  <Card title="Sweep for drift on a schedule" icon="circle-play">
+    A nightly run compares live cluster state against declared config and opens an issue for each drift it finds.
+  </Card>
+</CardGroup>
+
+## Join the project
+
+<CardGroup cols={2}>
+  <Card title="Join the AURA Slack" icon="slack" href="https://auracommunitygroup.slack.com/ssb/redirect">
+    Ask questions, share what you are running, and talk through an approach before you open a PR.
+  </Card>
+
+  <Card title="Get started on GitHub" icon="github" href="https://github.com/mezmo/aura">
+    Apache 2.0, written in Rust. Clone it, read the config examples, and open an issue when something does not fit.
+  </Card>
+
+  <Card title="Star the repo" icon="star" href="https://github.com/mezmo/aura">
+    Stars are how other SREs find the project. If AURA saved you an afternoon, a star is the cheapest way to say so.
+  </Card>
+
+  <Card title="Have a use case in mind?" icon="lightbulb" href="https://www.mezmo.com/video-topics/aura">
+    Tell us the tool, the failure you keep hitting, and what the agent should do. We build these into walkthroughs.
+  </Card>
+</CardGroup>
