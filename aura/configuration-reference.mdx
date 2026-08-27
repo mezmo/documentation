@@ -15,7 +15,7 @@ To validate a config file, start the web server or CLI against it — both valid
 
 ```bash
 cargo run --bin aura -- webserver --config your-config.toml   # exits on parse error before binding
-cargo run -p aura-cli -- --config your-config.toml           # exits on parse error before REPL
+cargo run --bin aura -- --config your-config.toml             # exits on parse error before REPL
 ```
 
 ## Environment Variable Interpolation
