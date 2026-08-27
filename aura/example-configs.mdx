@@ -9,18 +9,21 @@ Example TOML configurations and advanced quickstarts for AURA agents.
 
 ## Reference Configuration
 
-[`reference.toml`](https://github.com/mezmo/aura/blob/main/examples/reference.toml) is the fully annotated config with every option documented. Use it as a starting point:
+[`reference.toml`](https://github.com/mezmo/aura/blob/main/examples/reference.toml) is the annotated config covering the core sections (MCP servers, vector stores, tools, agent, LLM). Use it as a starting point:
 
-```bash
-cp examples/reference.toml config.toml
-# Edit config.toml with your API key and settings
-cargo run --bin aura-web-server
-```
-
-If encountering issues and more verbose debugging output is necessary, add the --verbose flag for the running binary
 ```bash
 export OPENAI_API_KEY="sk-..."
-CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura-web-server -- --verbose
+cp examples/reference.toml config.toml
+# Edit config.toml with your settings
+cargo run --bin aura -- webserver
+```
+
+For orchestration, HITL, scratchpad, skills, client tools, and reasoning parameters, start from the matching file under [Feature Examples](#feature-examples) instead; each one is a complete, loadable config for that feature.
+
+If encountering issues and more verbose debugging output is necessary, add the `--verbose` flag for the running binary:
+```bash
+export OPENAI_API_KEY="sk-..."
+CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura -- webserver --verbose
 ```
 
 ## Minimal Configs
@@ -29,16 +32,17 @@ Bare-minimum configs to get running with a single LLM provider. No MCP tools —
 
 ```bash
 export OPENAI_API_KEY="sk-..."
-CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura-web-server
+CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura -- webserver
 ```
 
 | File | Provider | API key needed? |
 |------|----------|-----------------|
 | [`openai.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/openai.toml) | OpenAI | Yes |
 | [`anthropic.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/anthropic.toml) | Anthropic | Yes |
-| [`bedrock.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/bedrock.toml) | AWS Bedrock | AWS credentials |
+| [`bedrock.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/bedrock.toml) | AWS Bedrock | AWS credentials and `AWS_REGION` |
 | [`gemini.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/gemini.toml) | Google Gemini | Yes |
 | [`ollama.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/ollama.toml) | Ollama (local) | No |
+| [`openrouter.toml`](https://github.com/mezmo/aura/blob/main/examples/minimal/openrouter.toml) | OpenRouter | Yes |
 
 ## Complete Agent Configs
 
@@ -50,16 +54,36 @@ Full agent compositions that combine an LLM provider with real MCP tool servers 
 | [`incident-response-mezmo.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-mezmo.toml) | PagerDuty + Mezmo |
 | [`incident-response-datadog.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-datadog.toml) | PagerDuty + Datadog |
 | [`kubernetes-sre.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/kubernetes-sre.toml) | K8s MCP + Prometheus |
+| [`kubernetes-sre-orchestrated-multi-model.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/kubernetes-sre-orchestrated-multi-model.toml) | Same tools, orchestrated, with a cheaper model per worker |
+| [`hidden-agent.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/hidden-agent.toml) | `alias` + `hidden = true`: callable by id, absent from `/v1/models` |
+
+## Feature Examples
+
+One complete config per feature. Each is a working agent (most use the Kubernetes MCP server from `kubernetes-sre.toml`) whose header comment lists the environment variables and services it needs, and each is parse-tested in CI.
+
+| File | Shows |
+|------|-------|
+| [`hitl-webhook.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/hitl-webhook.toml) | [Human-in-the-loop](/aura/hitl) gate on mutating tools, webhook route with static and forwarded headers |
+| [`hitl-conversational.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/hitl-conversational.toml) | Same gate, answered by the person in the chat |
+| [`scratchpad-single-agent.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/scratchpad-single-agent.toml) | [Scratchpad](/aura/scratchpad): `memory_dir`, `context_window`, `[agent.scratchpad]`, and per-tool `min_tokens` thresholds |
+| [`skills-agent.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/skills-agent.toml) | [Skills](/aura/skills) loaded from a `SKILL.md` directory shipped alongside the config |
+| [`rag-knowledge-base.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/rag-knowledge-base.toml) | Qdrant and Bedrock Knowledge Base vector stores, scoped per worker and for the coordinator |
+| [`local-ollama-stdio.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/local-ollama-stdio.toml) | [Ollama](/aura/ollama-guide) plus a `stdio` MCP server; no API keys |
+| [`orchestrated-worker-overrides.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/orchestrated-worker-overrides.toml) | Every `[orchestration.*]` setting at its default, and every per-worker override (`llm`, `scratchpad`, `skills`, `turn_depth`, `mcp_filter`) |
+| [`reasoning-models.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/reasoning-models.toml) | OpenAI `reasoning_effort` and Anthropic extended thinking, set per provider |
+| [`client-tools.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/client-tools.toml) | [Client-side tools](/aura/client-side-tools) with a read-only `client_tool_filter` |
 
 ### Serving Multiple Agents
 
-Point `CONFIG_PATH` at a directory to serve every `.toml` file as a selectable agent:
+Point `CONFIG_PATH` at a directory to serve every `.toml` file in it as a selectable agent. [`examples/multi-agent/`](https://github.com/mezmo/aura/tree/main/examples/multi-agent) holds three agents and a README:
 
 ```bash
-CONFIG_PATH=examples/complete/ cargo run --bin aura-web-server
+export OPENAI_API_KEY="sk-..."
+CONFIG_PATH=examples/multi-agent/ DEFAULT_AGENT=sre cargo run --bin aura -- webserver
+curl -s localhost:8080/v1/models | jq '.data[].id'
 ```
 
-Clients discover agents via `GET /v1/models` and select one with the `model` field in chat requests. Each agent is identified by its `alias` (if set) or `name`.
+Clients discover agents via `GET /v1/models` and select one with the `model` field in chat requests. Each agent is identified by its `alias` (if set) or `name`, and those ids must be unique across the directory. `DEFAULT_AGENT` names the agent used when a request omits `model`; without it, a multi-agent server returns 400 for such requests. An agent with `hidden = true` stays callable by id but is left out of `/v1/models`.
 
 ## Advanced Quickstarts
 

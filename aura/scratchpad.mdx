@@ -11,12 +11,20 @@ Scratchpad works in both single-agent and orchestration modes.
 
 ## Configuration
 
-Configure at `[agent.scratchpad]` (applies to the single agent, or provides defaults for orchestration workers) and optionally override per worker at `[orchestration.worker.<name>.scratchpad]`. Set a top-level `memory_dir` for persistence. See [`[agent.scratchpad]`](/aura/configuration-reference#agent-scratchpad) in the configuration reference for the full field table, and [`[mcp.servers.<name>.scratchpad]`](/aura/configuration-reference#per-tool-scratchpad-thresholds) for per-tool interception thresholds.
+Configure at `[agent.scratchpad]`. In single-agent mode that is the whole configuration. In orchestration mode, workers use the `[agent.scratchpad]` table unless they define their own `[orchestration.worker.<name>.scratchpad]`, which **replaces the agent table entirely** rather than merging with it. Any field the worker table leaves out takes the code default, including `enabled`, which defaults to `false`. A worker override must therefore repeat `enabled = true` to keep scratchpad on.
+
+Three settings must be present together or the config fails to load: a top-level `memory_dir`, `context_window` on the LLM that the agent or worker resolves to, and `enabled = true`. See [`[agent.scratchpad]`](/aura/configuration-reference#agent-scratchpad) in the configuration reference for the full field table, and [`[mcp.servers.<name>.scratchpad]`](/aura/configuration-reference#per-tool-scratchpad-thresholds) for per-tool interception thresholds.
 
 ```toml
 # Top-level — required when scratchpad is enabled. Shared by single-agent
 # scratchpad and orchestration persistence.
 memory_dir = "/tmp/aura"
+
+[agent.llm]
+provider = "openai"
+api_key = "{{ env.OPENAI_API_KEY }}"
+model = "gpt-5.2"
+context_window = 400_000              # required when scratchpad is enabled
 
 [agent.scratchpad]
 enabled = true
@@ -24,10 +32,18 @@ context_safety_margin = 0.20          # 20% of context reserved for reasoning/ou
 max_extraction_tokens = 10_000        # cap per extraction tool call
 turn_depth_bonus = 6                  # extra ReAct turns when scratchpad is active
 
+# Replaces [agent.scratchpad] for this worker. Without `enabled = true`
+# here, the worker would run with scratchpad off.
 [orchestration.worker.data-explorer.scratchpad]
-# Override just for this worker
+enabled = true
 max_extraction_tokens = 5_000
+
+# Turn scratchpad off for one worker while the others inherit it.
+[orchestration.worker.summarizer.scratchpad]
+enabled = false
 ```
+
+Complete, loadable versions of both shapes live in the repo: [`scratchpad-single-agent.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/scratchpad-single-agent.toml) and [`orchestrated-worker-overrides.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/orchestrated-worker-overrides.toml).
 
 ## Storage locations
 
@@ -36,7 +52,7 @@ max_extraction_tokens = 5_000
 
 ## Per-tool interception thresholds
 
-Per-tool interception thresholds are configured at `[mcp.servers.<server>.scratchpad]`. Keys are **glob patterns** (default threshold `5_120` if omitted) that are matched against tool names at interception time:
+Per-tool interception thresholds are configured at `[mcp.servers.<server>.scratchpad]`. Keys are **glob patterns** (`*` and `?`) matched against tool names at interception time. A server with no entries in this table is never intercepted, so a catch-all `"*"` entry is what turns scratchpad on for a whole server. `min_tokens` defaults to `5_120` when an entry omits it (`"*" = {}`):
 
 ```toml
 [mcp.servers.k8s-sre.scratchpad]
