@@ -1,0 +1,76 @@
+---
+title: "AI Governance Agents"
+description: "Register, view, edit, and delete the runtime AI agents registered to your Mezmo account under AI Governance."
+---
+
+A Governance agent is a runtime AI agent registered to your Mezmo account under AI Governance. Registering a runtime agent gives it its own service account and a single access key, which authenticates the agent's calls to Mezmo. You'll find the **Agents** page in the **Governance** area of the Mezmo web app, next to **Policies**.
+
+<Note>
+The **Agents** page is available when the AI Governance feature is enabled for your account. If it is not enabled, you will not see the **Governance** area. Depending on your permissions, you might not see the **Agents** page, or you might not be able to register, edit, or delete agents.
+</Note>
+
+## The Agents List
+
+The **Agents** page lists the runtime agents registered to your account. Each row shows:
+
+- The agent's name, with its description as subtext when one is set
+- Runtime name and version
+- Instance ID
+- Status
+- Date registered
+
+## Register an Agent
+
+Before you begin, the AI Governance feature must be enabled for your account.
+
+1. Open **Governance** > **Agents**.
+2. Choose the register action.
+3. Complete the agent fields. See [Agent Fields](#agent-fields) for the detail.
+4. Submit the form.
+
+The new agent appears on the **Agents** page. Registering the agent also generates a single **access key**.
+
+<Warning title="Copy the access key now">
+The access key is shown only once, at registration. Copy it and store it securely before you leave the page, because Mezmo does not show it again, including when you edit the agent.
+</Warning>
+
+## Agent Fields
+
+Get these values from whoever deployed or operates the agent runtime.
+
+| Field | Description |
+| ---- | ---- |
+| **Name** | A name for the agent. |
+| **Runtime Name** (`runtime_name`) | The name of the runtime the agent runs on, for example `aura`. |
+| **Instance ID** (`instance_id`) | Identifies a single running instance of the agent. Unique per running instance. |
+| **Version** | The agent's version. |
+| **Description** | A description of the agent. |
+| **Endpoint URL** (`endpoint_url`) | Optional. The agent's endpoint URL. |
+| **Health Check URL** (`healthcheck_url`) | Optional. A URL used to check the health of the agent instance. |
+| **Documentation URL** (`documentation_url`) | Optional. A URL for the agent's documentation. |
+
+## Edit an Agent
+
+1. Open an agent from the **Agents** page.
+2. Choose edit.
+3. Review the form, which opens with the agent's current values already entered.
+4. Change the fields you want.
+5. Save your changes.
+
+The form does not show the agent's access key, so you cannot retrieve it in edit mode.
+
+## Delete an Agent
+
+1. On the **Agents** page, open the agent you want to remove to go to its Edit page.
+2. On the Edit page, choose the delete action.
+3. Confirm the deletion when prompted.
+
+Deleting an agent unregisters it from your account and cannot be undone. The confirmation includes an option to also delete the service account and access key associated with the agent.
+
+If the agent is deleted but its service account cannot be removed, the app reports a partial success rather than failing the whole operation.
+
+## Related Topics
+
+- [AI Governance Policies](/docs/governance-policies)
+- [Mezmo MCP](/docs/mezmo-mcp)
+- [Use the Mezmo Assistant](/docs/use-ai-assistant)

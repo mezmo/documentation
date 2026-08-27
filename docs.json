@@ -145,6 +145,7 @@
             "pages": [
               "docs/mezmo-mcp",
               "docs/use-ai-assistant",
+              "docs/governance-agents",
               "docs/ingestion-integrations/akamai-cloud-monitor-logs"
             ]
           },
