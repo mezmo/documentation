@@ -202,6 +202,56 @@ correlate an approval with the authorized action directly in the trace. See
 [Tracing & Span Layout](/aura/tracing-spans#span-attributes) for the full list
 of span attributes, including `decision_id`.
 
+## AURA CLI approval display
+
+When `aura.approval_requested` arrives, the [AURA CLI](/aura/cli-reference) REPL
+prints a warning-style status line and starts an "Awaiting approval"
+animation that parks until the next approval event lands. This is REPL behavior.
+
+The status line takes one of two forms, shown here as example output:
+
+```text
+⏸ Approval requested — <tool_name> (config gate · <matched_pattern>)
+⏸ Approval requested — <tool_name> (agent requested)
+```
+
+The line surfaces only the matched glob pattern (config-gate form, where
+`origin.kind = "config_gate"` and carries `matched_pattern`) or the literal
+"agent requested" (agent-requested form, where `origin.kind = "agent_requested"`),
+and does not surface the agent's stated reason. See
+[SSE lifecycle events](/aura/hitl#sse-lifecycle-events) for the `origin` field.
+
+The line is route-neutral by design. The `aura.approval_requested` event carries
+no route field, so the CLI cannot distinguish webhook from conversational and
+prints the same line for both.
+
+What happens next depends on the route:
+
+- **Webhook (unattended) route** — No `aura.approval_pending` follows. The
+  "Awaiting approval" animation persists until the external approver decides and
+  `aura.approval_completed` arrives.
+- **Conversational (attended) route** — `aura.approval_pending` follows
+  immediately and the CLI's interactive approve/deny prompt appears right below
+  the status line, so the "Awaiting approval" animation is visible only briefly.
+  See [Conversational route](/aura/hitl#conversational-route) for the
+  prompt-and-POST flow.
+
+On both routes, when `aura.approval_completed` arrives the REPL prints a terminal
+outcome line and resumes the "Thinking" animation, the streaming animation the
+REPL shows while the model is generating. The completed handler fires for either
+route — the webhook route reaches it after the external approver decides, the
+conversational route after the operator answers the approve/deny prompt. The
+outcome line leads with `⏺ Approval` followed by a status glyph and one of five
+labels — Approved, Denied, Timed out, Cancelled, or Error — which correspond to
+the documented outcome kinds in
+[SSE lifecycle events](/aura/hitl#sse-lifecycle-events):
+
+```text
+⏺ Approval ✗ Denied — <reason>
+```
+
+A denied outcome appends the reason the approver gave when one was provided.
+
 ## Conversational route
 
 Use conversational routing when the approver is present on the chat stream. The

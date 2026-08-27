@@ -138,6 +138,7 @@ cargo build -p aura-cli --no-default-features
 - **Tab completion** — cycle through matching slash commands, models, and conversations with `Tab` / `Shift+Tab`; your typed prefix is preserved as you narrow the matches
 - **Model selection** — browse and select models from the server (or loaded configs in standalone mode)
 - **Permission system** — control which local tools are allowed, denied, or prompted before execution
+- **Approval gate display** — shows a pending-approval status line and the final outcome when a tool call is gated for human approval (see [Human-in-the-Loop Approval Gates](/aura/hitl#aura-cli-approval-display))
 - **SSE streaming** — real-time token-by-token output with a toggleable event panel
 - **Auto-compaction** — automatic context management when conversations grow large
 - **Mid-stream commands** — execute slash commands while the model is still streaming
