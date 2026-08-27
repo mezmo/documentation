@@ -51,7 +51,25 @@ Full agent compositions that combine an LLM provider with real MCP tool servers 
 | [`incident-response-datadog.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-datadog.toml) | PagerDuty + Datadog |
 | [`kubernetes-sre.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/kubernetes-sre.toml) | K8s MCP + Prometheus |
 
+### Feature Examples
+
+Each of these configs demonstrates one AURA feature. Copy the one closest to what you need.
+
+| File | Demonstrates |
+|------|--------------|
+| [`hitl-webhook.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/hitl-webhook.toml) | HITL approval gate on mutating tools with a webhook route, where the approver is not the chat client |
+| [`hitl-conversational.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/hitl-conversational.toml) | HITL approval gate with a conversational route, where the approver is the person chatting |
+| [`scratchpad-single-agent.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/scratchpad-single-agent.toml) | Single-agent context-window management with per-tool interception thresholds |
+| [`skills-agent.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/skills-agent.toml) | On-demand skills loaded from a local skill directory |
+| [`rag-knowledge-base.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/rag-knowledge-base.toml) | RAG over Qdrant and a Bedrock knowledge base, with stores scoped to individual orchestration workers |
+| [`local-ollama-stdio.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/local-ollama-stdio.toml) | A local Ollama model with a stdio MCP server and no API keys |
+| [`orchestrated-worker-overrides.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/orchestrated-worker-overrides.toml) | Every per-worker override: LLM, scratchpad, skills, and MCP filter |
+| [`reasoning-models.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/reasoning-models.toml) | Reasoning parameters per provider: OpenAI reasoning effort and Anthropic thinking budget |
+| [`client-tools.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/client-tools.toml) | Client-side CLI tools with a read-only client-tool filter. See [Client-Side Tools](/aura/client-side-tools) for the risk model before enabling |
+
 ### Serving Multiple Agents
+
+Each `.toml` file served from a directory here is an independently selectable top-level agent, chosen by a client through the `model` field. This is a different mechanism from the orchestration workers shown in `orchestrated-worker-overrides.toml`, which are sub-roles inside a single agent.
 
 Point `CONFIG_PATH` at a directory to serve every `.toml` file as a selectable agent:
 
@@ -60,6 +78,8 @@ CONFIG_PATH=examples/complete/ cargo run --bin aura -- webserver
 ```
 
 Clients discover agents via `GET /v1/models` and select one with the `model` field in chat requests. Each agent is identified by its `alias` (if set) or `name`.
+
+For a runnable example, [`examples/multi-agent/`](https://github.com/mezmo/aura/tree/main/examples/multi-agent) serves three agents from one directory, using `alias` to name them, `hidden` to keep one out of the picker, and the `DEFAULT_AGENT` variable to pick which one answers by default.
 
 ## Advanced Quickstarts
 

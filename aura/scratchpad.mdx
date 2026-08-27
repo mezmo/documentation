@@ -11,7 +11,11 @@ Scratchpad works in both single-agent and orchestration modes.
 
 ## Configuration
 
-Configure at `[agent.scratchpad]` (applies to the single agent, or provides defaults for orchestration workers) and optionally override per worker at `[orchestration.worker.<name>.scratchpad]`. Set a top-level `memory_dir` for persistence. See [`[agent.scratchpad]`](/aura/configuration-reference#agent-scratchpad) in the configuration reference for the full field table, and [`[mcp.servers.<name>.scratchpad]`](/aura/configuration-reference#per-tool-scratchpad-thresholds) for per-tool interception thresholds.
+Configure at `[agent.scratchpad]`. This applies to the single agent and provides the scratchpad configuration for any orchestration worker that does not declare its own. A `[orchestration.worker.<name>.scratchpad]` table replaces the agent-level table wholesale rather than merging with it. A worker override must therefore re-declare every field it needs, including `enabled = true`. Any field the override omits falls back to that field's own schema default, not to the value you set at `[agent.scratchpad]`. So an override that does not re-declare `context_safety_margin`, `max_extraction_tokens`, or `turn_depth_bonus` runs with the defaults of 0.20, 10,000, and 6, whatever those fields are tuned to at the agent level.
+
+Because `enabled` defaults to `false`, a worker override that omits `enabled = true` runs with scratchpad silently off for that worker, and no error is raised. Confirm that interception is active for a worker through its `aura.scratchpad_usage` SSE event, described under [Budget and usage reporting](#budget-and-usage-reporting).
+
+Set a top-level `memory_dir` for persistence. See [`[agent.scratchpad]`](/aura/configuration-reference#agentscratchpad) in the configuration reference for the full field table, [Per-Worker Scratchpad Override](/aura/configuration-reference#per-worker-scratchpad-override) for the worker override rules, and [`[mcp.servers.<name>.scratchpad]`](/aura/configuration-reference#per-tool-scratchpad-thresholds) for per-tool interception thresholds.
 
 ```toml
 # Top-level — required when scratchpad is enabled. Shared by single-agent
@@ -20,12 +24,16 @@ memory_dir = "/tmp/aura"
 
 [agent.scratchpad]
 enabled = true
-context_safety_margin = 0.20          # 20% of context reserved for reasoning/output
+context_safety_margin = 0.30          # 30% of context reserved for reasoning/output
 max_extraction_tokens = 10_000        # cap per extraction tool call
 turn_depth_bonus = 6                  # extra ReAct turns when scratchpad is active
 
 [orchestration.worker.data-explorer.scratchpad]
-# Override just for this worker
+# Replaces [agent.scratchpad] for this worker; it does not merge.
+# Re-declare enabled and any other fields you need. Fields omitted here
+# (for example context_safety_margin) revert to their schema defaults
+# (0.20), not the agent's tuned value (0.30).
+enabled = true
 max_extraction_tokens = 5_000
 ```
 

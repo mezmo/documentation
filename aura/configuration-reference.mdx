@@ -684,6 +684,8 @@ context_window = 128000
 
 #### Per-Worker Scratchpad Override
 
+A `[orchestration.worker.<name>.scratchpad]` table replaces the agent-level `[agent.scratchpad]` table wholesale rather than merging, so fields the worker omits fall back to their own defaults, not to the agent-level values. Because `enabled` defaults to `false`, the worker table must repeat `enabled = true` even when the agent already enables scratchpad.
+
 ```toml
 [orchestration.worker.analyst.scratchpad]
 enabled = true
