@@ -171,6 +171,80 @@ Response behavior:
 | Non-2xx response | Tool does not run. | The worker receives a tool error: approval channel error. |
 | Invalid JSON response | Tool does not run. | The worker receives a tool error: approval channel error. |
 
+## Forward Approver Identity Headers
+
+Aura resolves MCP client headers once, at agent-build time, under the original
+requester's identity. A gated tool call would otherwise run under the
+requester's identity even after a human approves it. `tool_headers_from_response`
+swaps in the approver's identity for that one gated call instead.
+
+This applies only to a `[hitl.route]` with `mode = "webhook"`. It does not apply
+to conversational routes, and it never captures for the agent-callable
+`request_approval` surface. Capture happens only when a webhook decision is
+approved and its origin is the config gate (`origin.kind = "config_gate"`; see
+`origin` in Webhook request, above). Denied, timed-out, and cancelled
+decisions capture nothing.
+
+```toml
+[hitl.route]
+mode = "webhook"
+url = "https://approvals.example.com/aura"
+tool_headers_from_response = { "authorization" = "x-approver-token" }
+```
+
+You provide a map from each outbound MCP header name to the webhook-response
+header whose value replaces it. See the
+[`[hitl.route]` field reference](/aura/configuration-reference#hitlroute) for the
+map's shape and parse rules.
+
+This is distinct from `headers_from_request`, which forwards headers from the
+incoming API request onto every MCP call. `tool_headers_from_response` instead
+captures from the approval webhook response and applies only to the one gated
+call the decision unblocks. For that one call the captured override takes
+precedence over both a static `headers` value and a `headers_from_request` value
+for the same header name. The outbound header does not need to be pre-configured
+through `headers` or `headers_from_request`; the override sets or replaces it on
+that one gated request regardless.
+
+Value substitution is verbatim. Whatever value the webhook response carries for
+the mapped header is copied onto the outbound header as-is, with no
+transformation, so a value that needs a prefix such as `Bearer ` must already
+include that prefix in the webhook response.
+
+When the map is non-empty, every mapped outbound name must resolve to a header
+present on the webhook response. Aura reads response headers case-insensitively,
+and the first value wins if a header repeats. If any mapped header is missing,
+the whole capture fails: the approval resolves to an error rather than an
+approval, so its `aura.approval_completed` event carries `outcome = errored`
+instead of `approved`, and the gated call fails with an approval channel error
+tool error that names every missing header and never a value. Partial capture is
+not possible.
+
+The captured override replaces the client's frozen default header (the header
+value from `headers` or `headers_from_request`, resolved when Aura built the
+agent) for that one gated MCP request only, then Aura discards it. It is not
+persisted and not reused on later calls.
+
+Overrides work on the HTTP-streamable and SSE transports, where Aura applies each
+one as a per-request header that never appears in the JSON body. A gated stdio
+call that carries an override fails closed at MCP dispatch time, because stdio has
+no per-call header channel. The gated call returns a tool error meaning the
+transport cannot deliver approver identity overrides. This is a tool-call error on
+the gated call itself, distinct from the approval channel error that a capture
+failure produces.
+
+Configuring the field on a webhook route whose `url` is plain `http://` is
+allowed, because TLS can terminate ahead of the process. It is never silent,
+though. Each Aura binary logs one warning per `[hitl]` config at startup. This
+warning fires only when `tool_headers_from_response` is set on that webhook route;
+a plain-`http://` webhook route without the field does not trigger it. The warning
+names only the webhook scheme and host. This differs from HMAC signing over
+`http://`, which remains a hard boot-time misconfiguration.
+
+When an override is applied, Aura records the applied header names on the gated
+`mcp.tool_call` span as `applied_headers`. See
+[Tracing & Span Layout](/aura/tracing-spans#span-attributes).
+
 ## SSE lifecycle events
 
 Approval routes emit lifecycle events on streaming responses. These events are
@@ -258,6 +332,31 @@ different port than the mock MCP server (9999) to avoid a collision.
 Ask an orchestration worker to use the gated tool. An approval should let the
 tool run. A denial with a custom reason should produce a successful blocked tool
 result containing that reason.
+
+## Approver Header Capture Manual Smoke Test
+
+Start from the webhook smoke test above, then add `tool_headers_from_response`
+to the route so an approval also swaps in the approver's identity:
+
+```toml
+[hitl]
+require_approval = ["mock_tool"]
+
+[hitl.route]
+mode = "webhook"
+url = "http://localhost:9988"
+timeout_secs = 300
+tool_headers_from_response = { "authorization" = "x-approver-token" }
+```
+
+Have the mock webhook return the mapped header on its approval response, so the
+response carries `x-approver-token` alongside `{ "approved": true }`. Ask an
+orchestration worker to use the gated tool and approve the request. Then verify
+both sides of the capture:
+
+- The mock MCP server received the overridden `authorization` value that the
+  webhook response supplied, not the value the client would otherwise send.
+- The gated `mcp.tool_call` span lists `authorization` in `applied_headers`.
 
 ## Conversational manual smoke test
 

@@ -535,6 +535,7 @@ Tagged by `mode`: `"conversational"` or `"webhook"`.
 | `mode` | string | — | **Required.** `"conversational"` (attended, over an open SSE stream) or `"webhook"` (unattended, posts to a URL). |
 | `timeout_secs` | integer | `60` (conversational) / `300` (webhook) | Seconds to wait for a decision before failing closed. |
 | `url` | string | — | **Required for `webhook` mode only.** Must start with `http://` or `https://`. |
+| `tool_headers_from_response` | table | `{}` | Webhook routes only. Maps an outbound MCP header name to the webhook response header name whose value replaces it on the one gated call the decision unblocks. Empty or absent leaves outbound headers at the values Aura resolved when it built the agent, with no per-call override. See [HITL](/aura/hitl). |
 
 ```toml
 [hitl]
@@ -545,6 +546,26 @@ mode = "webhook"
 url = "https://approvals.example.com/aura"
 timeout_secs = 300
 ```
+
+#### Approver Header Capture (`tool_headers_from_response`)
+
+```toml
+[hitl.route]
+mode = "webhook"
+url = "https://approvals.example.com/aura"
+tool_headers_from_response = { "authorization" = "x-approver-token" }
+```
+
+On a webhook route, `tool_headers_from_response` maps an outbound MCP header name to the webhook response header name whose value replaces it on the one gated call the decision unblocks. Unlike [Header Forwarding (`headers_from_request`)](/aura/configuration-reference#header-forwarding-headers_from_request), which forwards incoming request headers onto every MCP call, this captures from the approval webhook response and applies only to that one gated call, and the outbound header does not need to be pre-configured through `headers` or `headers_from_request`. Aura applies these rules to the map at parse time:
+
+- Every outbound header name is lowercased at parse time.
+- A duplicate outbound name (after lowercasing) is rejected.
+- Any name in the transport-owned reserved set is rejected: `content-type`, `accept`, `mcp-session-id`, `host`, `content-length`, and `transfer-encoding`.
+- An absent or empty map is the default, pre-existing behavior. The gated call proceeds under the requester's frozen identity.
+
+A duplicate or reserved-name mapping is rejected during config deserialization, before the server binds to any port, so a bad map fails the whole config load rather than just the one route, the same validate-before-binding behavior described at the top of this page.
+
+See [HITL](/aura/hitl) for the capture, fail-closed, and transport behavior.
 
 ---
 

@@ -9,6 +9,7 @@ Ansible
 antimalware
 apiKey
 APIs
+approver(s|'s)?
 Aptible
 arcsin
 arccos
@@ -101,8 +102,10 @@ Logspout
 Logstash
 loki
 loopback
+lowercas(e|ed|es|ing)
 Mezmo
 middleware
+misconfigurat(ion|ions)?
 msg
 multiline
 Nagios
@@ -142,6 +145,7 @@ replan(ned|ning)?
 replan_started
 repo
 repos
+requester(s|'s)?
 RSyslog
 ruleset
 runbook(s?)

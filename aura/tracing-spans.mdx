@@ -93,6 +93,15 @@ calls carry no `decision_id` attribute.
 `decision_id` sits on the `execute_tool` (TOOL) parent, not on the nested
 `mcp.tool_call` child, where the tool's own status and errors land.
 
+When an approver-header override is applied on a gated call, Aura records the
+applied outbound header names on the `mcp.tool_call` child span as an attribute
+named `applied_headers`. The names are sorted and comma-joined. The attribute
+carries names only, never header values. The attribute is present only when an override was actually
+applied. It sits on the `mcp.tool_call` child span, in contrast to `decision_id`,
+which sits on the `execute_tool` parent. See
+[Human-in-the-Loop Approval Gates](/aura/hitl) for when a webhook approval
+captures approver headers.
+
 ## OpenInference span kinds
 
 | Kind | Spans |
