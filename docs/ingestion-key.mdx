@@ -35,13 +35,13 @@ curl -H "Authorization: Token sta_34b8f6897cd3396e6af781c3bfe34065b690f90b" \
 
 ---
 
-There are two primary types of keys you can manage, Ingestion Keys and IAM Service Keys.
+There are two primary types of keys you can manage, Ingestion Keys and IAM Access Keys.
 
 ### Ingestion Keys
 
 Ingestion keys are used by log collectors like the Mezmo Agent to send log data to Mezmo, and are also used in commands for the Ingest API. You can have up to 10 ingestion keys active at a time.
 
-### IAM Service Keys
+### IAM Access Keys
 
  Identity and Access Management (IAM) access keys represents a significant step forward in enhancing the security of your interactions with our services. IAM access tokens offer several key advantages over the Generation 1 service keys, including:
 
@@ -55,8 +55,8 @@ There are three distinct types of IAM Access Keys, each of which can be identifi
 | Prefix | Key Type | Example | 
 | ---- | ---- | ---- | 
 | `sta_` | Personal Access Key | `sta_1a2b3c4d5e6f7890abcdef1234567890abcdef12` | 
-| `sts_` | Service Key | `sts_9876543210fedcba0987654321fedcba09876543` | 
-| `ste_` | Enterprise Key | `ste_d710b57dc7dedde45ccc4c35b68cf385b89f8dc3` | 
+| `sts_` | Service Account | `sts_9876543210fedcba0987654321fedcba09876543` | 
+| `ste_` | Enterprise Service Account | `ste_d710b57dc7dedde45ccc4c35b68cf385b89f8dc3` | 
 
 ---
 
@@ -75,13 +75,13 @@ Personal Access Keys provide user-specific authentication for API operations. Th
 
 Personal Access Keys are scoped to the user's permissions and cannot exceed the access level of the user the access token is associated with. Individual users looking to explore the Mezmo Platform APIs should be encouraged to create Personal Access Keys to do so.
 
-#### Service Keys (`sts`)
+#### Service Accounts (`sts`)
 
-Service keys are access Key associated with a service account for automation and CI/CD. These tokens are not associated with a normal user with in your organizations and as such, its level of access is only limited by the access it is granted. For this reason it is highly recommended that the ability to create service account and keys be reserved for account administrators. You can have up to 50 service keys active at a time.
+A service account is a non-user identity that has its own key and its own permission set. Service accounts are associated with a Service Account Key for automation and CI/CD. These tokens are not associated with a normal user with in your organizations and as such, its level of access is only limited by the access it is granted. For this reason it is highly recommended that the ability to create service account and keys be reserved for account administrators. You can have up to 50 service accounts active at a time.
 
-#### Enterprise Access Keys (`ste`)
+#### Enterprise Service Accounts (`ste`)
 
-Enterprise access accounts and their access keys are associated with an enterprise rather than an individual Mezmo account. These types of access keys are enabled to perform operations and interactions across many accounts in an effort to streamline and optimized account management for large customers who may have many dozens to hundreds of accounts. 
+Enterprise Service Accounts and their access keys are associated with an enterprise rather than an individual Mezmo account. These types of access keys are enabled to perform operations and interactions across many accounts in an effort to streamline and optimized account management for large customers who may have many dozens to hundreds of accounts. 
 
 <Note>
 Enterprise Service Accounts are only available through our enterprise dashboard.
@@ -94,7 +94,7 @@ Enterprise Service Accounts are only available through our enterprise dashboard.
 1. Log in to [the Mezmo Web App](https://app.logdna.com/account/signin).
 2. Go to **Settings &gt;** **Organization &gt; API Keys**.
 3. To generate additional ingestion keys, click **Generate Ingestion Key** for up to a total of 10 keys.
-4. To generate additional service keys, click **Generate Service Key** for up to a total of 20 keys.
+4. To generate additional service accounts, click **Create Service Account** for up to a total of 50 keys.
 5. Remove an ingestion key by clicking the X next to it.
 Note that any applications actively using this key will no longer be able to send logs to your account
 
@@ -102,4 +102,36 @@ Note that any applications actively using this key will no longer be able to sen
   ![Image](/images/docs/j42gmtllmavb26q8m4e1r3drgyd9dfa4zhr2r7ln5m4yy8qwo1iksokj1fupb75c.png)
 </Frame>
 
-For information on using IAM Service keys to interact with the mezmo platform APIs, see: [Authenticating With The API](/docs/api#authenticating-with-the-api)
+## Manage Service Accounts and Keys
+
+The keys table and its actions apply to your IAM Access Keys: personal access tokens, service accounts, and enterprise service accounts. Manage ingestion keys with the steps in [Access and Generate New Keys](#access-and-generate-new-keys) above.
+
+After you create a key, it appears in a table with **Name**, **Access**, **Created**, and **Actions** columns. The **Name** column shows only a masked trailer of the secret, displayed as `····<trailer>`, so the full key value never appears in the table. The **Access** column lists the key's assigned roles or permissions.
+
+From the **Actions** column, the row actions available to you depend on the key type:
+
+- **Rename** is available for all key types.
+- **Edit permissions** is available for service accounts and enterprise service accounts, and only when role-based access management is enabled for your organization. It is not available for personal access tokens.
+- **Rotate** is available for service accounts only. It is not available for enterprise service accounts or personal access tokens.
+- **Delete** is available for all key types.
+
+When you rotate a key, you confirm the action, then the current key stops working immediately and a new key is generated and shown to you once.
+
+<Warning>
+Rotating or deleting a key takes effect immediately and cannot be undone. Any integration or automation still using the old key stops working until you update it with the new key.
+</Warning>
+
+After you create or rotate a key, the full key value appears exactly once in a window with a copy control. It is not shown again, so copy and store it right away. This applies to all key types.
+
+The following table summarizes what each key type supports:
+
+| Capability | Personal Access Tokens | Service Accounts | Enterprise Service Accounts |
+| ---- | ---- | ---- | ---- |
+| Create | Yes | Yes | Yes |
+| Rename | Yes | Yes | Yes |
+| Edit permissions | No | Yes | Yes |
+| Rotate | No | Yes | No |
+| Delete | Yes | Yes | Yes |
+| One-time reveal | Yes | Yes | Yes |
+
+For information on using IAM Access Keys to interact with the Mezmo platform APIs, see: [Authenticating With The API](/docs/api#authenticating-with-the-api)
