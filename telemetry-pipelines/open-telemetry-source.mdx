@@ -86,3 +86,11 @@ A successful publish of real records returns HTTP status `200` instead; `207` ap
 <Note>
 The body must parse to an empty JSON object. `{}` with surrounding whitespace works, but a zero-byte body, a whitespace-only body with no braces, and an empty JSON array (`[]`) are still rejected with HTTP status `400`.
 </Note>
+
+## Payload Size
+
+The endpoint accepts large OTLP HTTP payloads, including large multi-line batches. Mezmo automatically splits large batches, so you no longer need to keep your batches under a small size cap.
+
+<Note>
+An individual event must still fit under the maximum message size. If a single event is larger than that limit, Mezmo rejects the request with an HTTP 413 error and the message `Request contains events larger than the maximum message size`. Nothing from the request is published when this happens, so you can safely retry after reducing the event size. See the [Error Code Reference](/telemetry-pipelines/error-code-reference) for details.
+</Note>

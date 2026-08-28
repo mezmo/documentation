@@ -265,13 +265,29 @@ Converts relative time expressions to absolute time ranges in milliseconds.
 
 ### 8. Trace Analysis
 
-These tools analyze OpenTelemetry trace data across your entire account, so you don't need to specify a source or component.
+These tools analyze OpenTelemetry trace data across your entire account, so you don't need to specify a source or component. Trace, span, and failure data lags behind real time by roughly a couple of minutes. The degraded-edge and latency-summary tools (`find_degraded_service_edges` and `list_service_latency_summaries`) draw on latency summaries that can lag further, sometimes by hours, and fill in windows retroactively as backlogs drain, so very recent activity may not appear immediately.
 
-- `get_service_graph`: Gets the service graph showing service-to-service calls by operation. Takes no arguments.
-- `list_failed_traces`: Lists failed traces within a time range, optionally filtered by specific services.
-- `get_trace_spans`: Gets the spans for a given `trace_id`.
-- `find_degraded_service_edges`: Detects service call edges with degraded latency by comparing the current period to a baseline period. Returns edges where the selected percentile metric has increased beyond the threshold you provide. Use it to spot service-to-service calls that are changing behavior.
-- `list_service_latency_summaries`: Fetches bucketed latency summaries for specific operations between a service and its target. Each result is a timestamped bucket with latency metrics like `p50`, `p95`, and `p99`.
+<Note>
+These trace tools appear in the tool list, and are callable, only when Mezmo has analyzed trace data from your account within roughly the last 24 hours (the default look-back window). If your account has no recent analyzed trace data, the tools are hidden and do not appear. Mezmo evaluates availability automatically, and there is no feature flag to turn on. If an agent calls one of these tools while it is unavailable, the server responds with a `tool not found` error, the same as for an unknown tool.
+</Note>
+
+- `get_service_graph`: Gets the service graph showing service-to-service calls by operation. Takes no arguments. The graph is built from completed traces, so a missing edge does not prove that the call never happens.
+- `list_failed_traces`: Lists failed traces within a time range, optionally filtered by service. Supports an optional `limit` (1 to 500, default `100`). Only traces with at least one failed span are indexed, so an empty result means no failures, not no traffic.
+- `get_trace_spans`: Gets the spans for a given `trace_id`. Obtain the `trace_id` from `list_failed_traces` or `get_service_failures` (both described in this section). Supports optional `limit` (1 to 500, default `250`), `failed_only` (default `false`, returns only failing spans), and `include_attributes` (default `false`, includes span attributes).
+- `find_degraded_service_edges`: Detects service-call edges with degraded latency by comparing a current period to a baseline period, and surfaces newly appearing edges. Returns edges where the selected percentile metric increased beyond the threshold you set. Use it to spot service-to-service calls that are changing behavior.
+
+  **Parameters:**
+
+  - `current_from_time` (required): Start of the current window, as an RFC3339 timestamp (for example, `2023-01-01T00:00:00Z`).
+  - `current_to_time` (required): End of the current window, as an RFC3339 timestamp.
+  - `baseline_from_time` (required): Start of the baseline window, as an RFC3339 timestamp.
+  - `baseline_to_time` (required): End of the baseline window, as an RFC3339 timestamp.
+  - `metric` (optional): Percentile to compare. One of `p50`, `p90`, `p95`, or `p99`. Defaults to `p99`.
+  - `threshold` (optional): Minimum ratio of current to baseline latency that counts as degraded, so `2.0` means current latency is at least twice the baseline. Defaults to `2.0`.
+  - `limit` (optional): Maximum number of edges to return, from 1 to 100. Defaults to `20`.
+  - `min_sample_count` (optional): Edges with fewer samples are treated as low confidence and suppressed. Defaults to `30`.
+  - `include_low_confidence` (optional): Include low-confidence rows. Defaults to `false`.
+- `list_service_latency_summaries`: Fetches bucketed latency summaries for operations between a service and its target. Each result is a timestamped bucket with latency metrics like `p50`, `p95`, and `p99`, plus a mean.
 - `get_service_failure_rates`: Gets service failure rates as a histogram over the window you provide, optionally grouped by service, edge, or operation.
 - `get_service_failures`: Fetches individual service failure records, optionally filtered by service, edge, or operation.
 
