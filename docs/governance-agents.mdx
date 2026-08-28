@@ -1,17 +1,17 @@
 ---
 title: "AI Governance Agents"
-description: "Register, view, edit, and delete the runtime AI agents registered to your Mezmo account under AI Governance."
+description: "Register, edit, and delete runtime AI (AURA) agents, and assign each a governance policy, under AI Governance."
 ---
 
-A Governance agent is a runtime AI agent registered to your Mezmo account under AI Governance. Registering a runtime agent gives it its own service account and a single access key, which authenticates the agent's calls to Mezmo. You'll find the **Agents** page in the **Governance** area of the Mezmo web app, next to **Policies**.
+A Governance agent is a runtime AI agent registered to your Mezmo account under AI Governance. Registering a runtime agent gives it its own service account and a single access key, which authenticates the agent's calls to Mezmo. Registering an agent also lets you assign a governance policy that controls what the agent can do. You'll find the **AURA Agents** page in the **Governance** area of the Mezmo web app, next to **Policies**. This page was previously named **Agents**. [Learn more about Mezmo AURA](https://mezmo.com/aura).
 
 <Note>
-The **Agents** page is available when the AI Governance feature is enabled for your account. If it is not enabled, you will not see the **Governance** area. Depending on your permissions, you might not see the **Agents** page, or you might not be able to register, edit, or delete agents.
+The **AURA Agents** page is available when the AI Governance feature is enabled for your account. If it is not enabled, you will not see the **Governance** area. Depending on your permissions, you might not see the **AURA Agents** page, or you might not be able to register, edit, or delete agents.
 </Note>
 
-## The Agents List
+## The AURA Agents List
 
-The **Agents** page lists the runtime agents registered to your account. Each row shows:
+The **AURA Agents** page lists the runtime agents registered to your account. Each row shows:
 
 - The agent's name, with its description as subtext when one is set
 - Runtime name and version
@@ -23,12 +23,12 @@ The **Agents** page lists the runtime agents registered to your account. Each ro
 
 Before you begin, the AI Governance feature must be enabled for your account.
 
-1. Open **Governance** > **Agents**.
-2. Choose the register action.
-3. Complete the agent fields. See [Agent Fields](#agent-fields) for the detail.
-4. Submit the form.
+Registering an agent uses a wizard with three steps. A step rail above the form shows your progress through **Details**, **Policy**, and **Finished**.
 
-The new agent appears on the **Agents** page. Registering the agent also generates a single **access key**.
+1. Open **Governance** > **Agents** to open the **AURA Agents** page, then choose to register an agent.
+2. On the **Details** step, complete the required agent fields and the optional description. See [Agent Fields](#agent-fields) for the detail.
+3. On the **Policy** step, assign a governance policy, or choose to assign one later. See [Assign a Governance Policy](#assign-a-governance-policy).
+4. The **Finished** step opens after a successful save. Copy the one-time access key, note the agent ID and service account ID, and use the configuration snippet to connect the agent to AURA.
 
 <Warning title="Copy the access key now">
 The access key is shown only once, at registration. Copy it and store it securely before you leave the page, because Mezmo does not show it again, including when you edit the agent.
@@ -40,29 +40,40 @@ Get these values from whoever deployed or operates the agent runtime.
 
 | Field | Description |
 | ---- | ---- |
-| **Name** | A name for the agent. |
-| **Runtime Name** (`runtime_name`) | The name of the runtime the agent runs on, for example `aura`. |
-| **Instance ID** (`instance_id`) | Identifies a single running instance of the agent. Unique per running instance. |
-| **Version** | The agent's version. |
-| **Description** | A description of the agent. |
-| **Endpoint URL** (`endpoint_url`) | Optional. The agent's endpoint URL. |
-| **Health Check URL** (`healthcheck_url`) | Optional. A URL used to check the health of the agent instance. |
-| **Documentation URL** (`documentation_url`) | Optional. A URL for the agent's documentation. |
+| **Name** | Required. A name for the agent. |
+| **Runtime Name** (`runtime_name`) | Required. The name of the runtime the agent runs on, for example `aura`. |
+| **Instance ID** (`instance_id`) | Required. Identifies a single running instance of the agent. Unique per running instance. |
+| **Version** | Required. The agent's version. |
+| **Description** | Optional. A description of the agent. |
+
+## Assign a Governance Policy
+
+A governance policy controls what a registered agent can do. For every tool call the agent makes, its policy decides whether the call runs, waits for a person's approval, or the policy refuses it.
+
+Assigning a policy is optional. An agent with no policy is ungoverned until you create a policy and assign it. You can assign or change an agent's policy later by editing the agent.
+
+To assign a policy on the **Policy** step:
+
+1. Pick a governance policy from the dropdown. To leave the agent ungoverned for now, choose **No policy**.
+2. Review the summary for the selected policy, which shows its description, its default (fall-through) action, its rule count, and its created date. The default action applies when no rule matches a tool call. See [AI Governance Policies](/docs/governance-policies) for what each default action does.
+
+When you edit an agent, the **Policy** step pre-fills the agent's current policy.
+
+If no policies exist yet, the step shows an empty state that directs you to create a policy first. See [AI Governance Policies](/docs/governance-policies) to create one.
 
 ## Edit an Agent
 
-1. Open an agent from the **Agents** page.
+1. Open an agent from the **AURA Agents** page.
 2. Choose edit.
-3. Review the form, which opens with the agent's current values already entered.
-4. Change the fields you want.
+3. The **Details** step opens with the agent's current values already entered. Change the fields you want. See [Agent Fields](#agent-fields) for the detail.
+4. The **Policy** step opens with the agent's current policy pre-filled. Assign or change the policy. See [Assign a Governance Policy](#assign-a-governance-policy).
 5. Save your changes.
-
-The form does not show the agent's access key, so you cannot retrieve it in edit mode.
+6. The **Finished** step opens and shows the configuration snippet for connecting the agent to AURA. The access key is not shown when you edit an agent, so you cannot retrieve it in edit mode.
 
 ## Delete an Agent
 
-1. On the **Agents** page, open the agent you want to remove to go to its Edit page.
-2. On the Edit page, choose the delete action.
+1. On the **AURA Agents** page, open the agent you want to remove. This opens the edit wizard.
+2. From the edit wizard, choose the delete action.
 3. Confirm the deletion when prompted.
 
 Deleting an agent unregisters it from your account and cannot be undone. The confirmation includes an option to also delete the service account and access key associated with the agent.
