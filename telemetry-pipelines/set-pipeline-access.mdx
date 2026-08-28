@@ -1,9 +1,50 @@
 ---
 title: "Set Pipeline Access"
-description: "Grant organization members access to the pipelines you create by assigning them the Member + Pipeline role."
+description: "Control who can view, build, and deploy pipelines by setting the Pipelines, Processor Groups, and Shared Ingestion Source permission levels on a role."
 ---
 
-You can provide other members of your organization with access to Pipelines that you create. 
+You control pipeline access through role permissions you set at **Settings > Organization > Roles**. Three separate pipeline resources each have their own permission level, so a role can grant one level of access to pipelines and a different level to processor groups or shared ingestion sources. Each level maps to a set of pipeline permissions, from **Read** for viewing, to **Write** for building, to **Manage** for publishing and deploying. Roles are the standard way to grant access, so see [Role-Based Access Control](/docs/rbac) for how roles work and [Manage Members](/docs/manage-members) for assigning a role to a member.
 
-1. Follow [the instructions to add a member](/docs/manage-members) to your organization.
-2. When the new member accepts the invitation to join your organization, set the **Role** for that member to **Member + Pipeline.**
+## Pipeline Permission Resources
+
+On the **Permissions** tab of the Role form, the pipeline permissions are grouped under the **PIPELINE** header. Three resources appear there, and you set each one independently to one of four levels:
+
+- **Pipelines**
+- **Processor Groups**
+- **Shared Ingestion Source** (see [Shared Sources](/telemetry-pipelines/shared-sources))
+
+## What Each Permission Level Unlocks
+
+Each of the three resources can be set to one of four levels. The table below describes what each level grants for the resource it is set on.
+
+| Level | What it grants |
+| ---- | ---- |
+| **None** | No access to the resource. |
+| **Read** | View the resource it is set on, read-only. For **Pipelines**, view pipelines and navigate the Pipelines area. For **Processor Groups**, view processor groups. For **Shared Ingestion Source**, view shared sources. |
+| **Write** | Everything **Read** allows. For **Pipelines**, create, edit, save, and import pipelines. For **Processor Groups**, create and save processor groups. For **Shared Ingestion Source**, create and edit shared sources, including converting a node to a shared source. **Write** does not allow publishing or deploying. |
+| **Manage** | Everything **Write** allows, plus publish or deploy a pipeline or processor group, delete a pipeline, shared source, or processor group. |
+
+Publishing or deploying a pipeline or processor group requires the **Manage** level. A role set to **Write** can build and save, but a member needs **Manage** before they can push that work live.
+
+When a member does not hold the level an action requires, the control for that action is disabled. If you do not have access to **Settings > Organization > Roles**, ask your organization admin to set the level your action requires.
+
+## Default Role Permissions
+
+The built-in system roles carry the following pipeline permissions:
+
+| Role | Pipelines | Processor Groups | Shared Ingestion Source |
+| ---- | ---- | ---- | ---- |
+| Owner | Manage | Manage | Manage |
+| Admin | Manage | Manage | Manage |
+| Basic | Write | Read | Write |
+| Read-only | Read | Read | Read |
+
+System roles are view-only, but you can clone one to use it as the starting point for a custom role. A custom role sets each of the three resources independently. See [Role-Based Access Control](/docs/rbac) for how to create a role.
+
+## Set Pipeline Permissions for a Role
+
+1. Go to **Settings > Organization > Roles**, open a role, and go to the **Permissions** tab. To create or clone a role, see [Role-Based Access Control](/docs/rbac).
+2. Under the **PIPELINE** header, select the level (**None**, **Read**, **Write**, or **Manage**) for each of the three resources.
+3. Click **Save**.
+
+To assign the role to a member, see [Manage Members](/docs/manage-members).
