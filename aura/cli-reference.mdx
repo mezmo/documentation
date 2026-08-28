@@ -103,6 +103,83 @@ aura init --provider openai --model gpt-4o --non-interactive
 
 ---
 
+## Governance Catalog Sync (`aura governance sync`)
+
+`aura governance sync` discovers every Model Context Protocol (MCP) tool each loaded agent can call, then POSTs a catalog snapshot to that agent's configured governance webhook. This gives your policy system a current, accurate inventory of MCP tools, so you can author and enforce tool-access policies. Run it on demand. Send it right after you connect a new MCP server, for example, rather than waiting for live tool-call traffic to reveal what an agent can reach.
+
+### Prerequisites
+
+- Ships in the default build. It relies on the [`standalone-cli`](#feature-flag-standalone-cli) Cargo feature, which is enabled by default, so the command is absent from a `--no-default-features` HTTP-only build.
+- The command only sends for an agent config that declares a `[governance.catalog]` table with a `url` (`http` or `https`), plus an `[mcp]` table declaring the MCP servers to discover.
+- The governance webhook must be reachable from wherever you run the command.
+
+### How to Run It
+
+`aura governance sync` takes no subcommand-specific flags. Select the config with the global [`--config <PATH>`](#command-line-arguments) flag (or the `AURA_CONFIG` environment variable), placed before the subcommand as shown below. When neither is set, the command falls back to `config.toml` in the current directory, then `~/.aura/agents/`, then `~/.aura/agent.toml`, and uses the first one it finds.
+
+```bash
+# Single agent config file
+aura --config path/to/agent.toml governance sync
+
+# Directory of agent configs (each config is synced in turn)
+aura --config configs/ governance sync
+```
+
+### Required Config Keys
+
+At a minimum, the agent config needs a `[governance.catalog]` table with a `url`, plus an `[mcp]` table:
+
+```toml
+[governance.catalog]
+url = "https://governance.example.com/catalog"
+
+[mcp]
+# Declare your MCP servers here, e.g. [mcp.servers.<name>].
+```
+
+Optional keys tune delivery: `timeout_secs` (default 30), static `headers`, `headers_from_request` to forward inbound request headers, and an optional `[governance.catalog.hmac]` table whose `secret` of at least 32 bytes signs each request.
+
+<Warning>**Don't inline the HMAC secret.** Set it with a placeholder such as `secret = "{{ env.VAR }}"`. An inline secret can be committed to source control and exposed.</Warning>
+
+In standalone mode the CLI loads the `.env` next to the config directory, so `{{ env.VAR }}` placeholders in any of these keys resolve at send time.
+
+For manual and advanced `[mcp]` setup, see [`[mcp]`](/aura/configuration-reference#mcp) in the configuration reference.
+
+### What Gets Sent
+
+Each POST carries one catalog snapshot describing a single agent:
+
+- The agent's id, name, and model.
+- For each MCP server: its name, transport, connection status, and its tools.
+
+Each tool entry carries the tool name, an optional description, and its input schema.
+
+<Note>The snapshot contains no secrets. No API keys, headers, or environment values are ever included in the payload.</Note>
+
+That guarantee covers what Aura adds, not what your MCP tool definitions themselves contain. Each tool's description and input schema come verbatim from your MCP servers' own tool definitions. Review custom or third-party MCP tools before syncing, since that text is sent as-is.
+
+### Behavior With Multiple or Non-Qualifying Configs
+
+`aura governance sync` sends one POST per qualifying agent config. Point `--config` at a directory and the command syncs each config in turn.
+
+`aura governance sync` skips a config that has no `[governance.catalog]` block or no `[mcp]` table, and prints nothing for it. If it finds no agent configs at all, the command reports `No agent configs found` and exits. The command logs a per-config failure as a warning and continues the run, so the remaining configs still sync.
+
+The command prints no per-config confirmation, so a run that finishes without a warning has sent a catalog snapshot for every qualifying config. Confirm delivery on your governance webhook. If you want per-config confirmation as it runs, run the sync from the REPL with [`/governance sync`](#run-it-from-the-repl-governance-sync), which reports each config's result including a per-sync event id.
+
+### Run It From the REPL (`/governance sync`)
+
+`/governance sync` is the in-REPL equivalent of `aura governance sync`. It reuses the same catalog sync described above. `/governance` is the command, `sync` is its only subcommand, and `/governance sync` takes no arguments.
+
+The `aura governance sync` subcommand selects a config with `--config`. `/governance sync` instead syncs the agent config or configs already loaded in your current REPL session, and it does not re-run config discovery.
+
+`/governance sync` runs in standalone mode only. If you started your REPL with `--api-url` or the `AURA_API_URL` environment variable, it connects to a web server over HTTP and `/governance sync` does not run. It reports that governance commands work only in standalone mode, and it tells you to omit `--api-url` or pass `--config`.
+
+`/governance sync` prints its progress in the REPL. It inspects each loaded agent config and reports each config's sync result, including a per-sync event id.
+
+The prerequisites, required config keys, catalog snapshot, and no-secrets guarantee are the same as for `aura governance sync` above.
+
+---
+
 ## Backends
 
 AURA CLI supports two backends, selected by the presence of `--api-url`:
@@ -177,7 +254,7 @@ aura [OPTIONS]
 | `--enable-client-tools[=<bool>]`           | `AURA_ENABLE_CLIENT_TOOLS`           | Advertise CLI local tools to the model (default: disabled — see [Client-Side Tools](#client-side-tools)) |
 | `--enable-final-response-summary[=<bool>]` | `AURA_ENABLE_FINAL_RESPONSE_SUMMARY` | Generate a one-line LLM title for each final response (adds an extra round-trip per turn; default: disabled) |
 | `--standalone`                             | —                                    | Force standalone mode (default when `--api-url` is absent; mutually exclusive with `--api-url` flag, but overrides `AURA_API_URL` env var) |
-| `--config <PATH>`                          | —                                    | Path to TOML agent config file or directory (standalone mode; defaults to `config.toml`)                 |
+| `--config <PATH>`                          | `AURA_CONFIG`                        | Path to TOML agent config file or directory (standalone mode; defaults to `config.toml`)                 |
 | `--log-file <PATH>`                        | `AURA_LOG_FILE`                      | Append diagnostic tracing logs to this file. Omit for no logging (see [Logging](#logging))               |
 
 **Precedence:** CLI flags > environment variables > project `cli.toml` > global `cli.toml` > defaults.
@@ -267,6 +344,7 @@ Once inside the REPL, the slash commands below are available. All slash commands
 | `/rename <name>`   | Rename the current conversation                                     |
 | `/model <filter>`  | Browse and select a model (see [Model Selection](#model-selection)) |
 | `/mcp`             | List the active agent's configured MCP servers, or set one up with a guided wizard (see [Manage MCP Servers](#manage-mcp-servers)) |
+| `/governance sync` | Sync each loaded agent config's MCP tool catalog to its governance webhook (standalone mode only) |
 | `/style [name]`    | Switch visual style: `normal`, `high-contrast`, `no-colors`         |
 | `/quit` or `/exit` | Exit the REPL                                                       |
 
@@ -281,7 +359,7 @@ The wizard walks you through the following steps:
 3. Name the server and provide credentials. You can reuse an existing environment variable or enter a value with masked input.
 4. Confirm the setup. The wizard verifies the connection, then previews the exact `[mcp.servers.<name>]` block before writing the config. The preview also includes a wildcard scratchpad entry that matches every tool, which the wizard adds automatically, without asking: `[mcp.servers.<name>.scratchpad]` with `"*" = { min_tokens = 5120 }`. This entry sends any tool output over `min_tokens` (default `5120`) to scratchpad storage instead of the context window. Because the scratchpad entry is part of the same preview, declining the write declines it too.
 
-The wizard appends the `[mcp.servers.<name>]` block to your loaded single-file agent TOML config. Configuration-directory setups are not supported. Secrets go to a `.env` file next to your config, never into the TOML file, which uses `{{ env.VAR }}` placeholders. For orchestrated configs, the wizard can scope the new server's tools to specific workers through `mcp_filter`. You must restart AURA to activate a newly added server; there is no hot reload. The wizard supplements manual TOML editing rather than replacing it. See [`[mcp]`](/aura/configuration-reference#mcp) in the configuration reference for manual and advanced MCP setup, including the three transports. The scratchpad entry stays inert until agent-level scratchpad is enabled, and the wizard does not enable it for you. If your config lacks `[agent.scratchpad] enabled = true`, the wizard prints a note that interception is configured but inactive. To activate it, add `[agent.scratchpad] enabled = true`, a top-level `memory_dir`, and `[agent.llm].context_window` to your config, then see the [Scratchpad guide](/aura/scratchpad) for the full setup.
+The wizard appends the `[mcp.servers.<name>]` block to your loaded single-file agent TOML config. Configuration-directory setups are not supported. Secrets go to a `.env` file next to your config, never into the TOML file, which uses `{{ env.VAR }}` placeholders. For orchestrated configs, the wizard can scope the new server's tools to specific workers through `mcp_filter`. You must restart AURA to activate a newly added server; there is no hot reload. Once the server is active, run [`aura governance sync`](#governance-catalog-sync-aura-governance-sync) to push the updated MCP tool inventory to your governance webhook. The wizard supplements manual TOML editing rather than replacing it. See [`[mcp]`](/aura/configuration-reference#mcp) in the configuration reference for manual and advanced MCP setup, including the three transports. The scratchpad entry stays inert until agent-level scratchpad is enabled, and the wizard does not enable it for you. If your config lacks `[agent.scratchpad] enabled = true`, the wizard prints a note that interception is configured but inactive. To activate it, add `[agent.scratchpad] enabled = true`, a top-level `memory_dir`, and `[agent.llm].context_window` to your config, then see the [Scratchpad guide](/aura/scratchpad) for the full setup.
 
 ---
 
