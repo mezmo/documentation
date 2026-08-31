@@ -73,7 +73,7 @@ Personal Access Keys provide user-specific authentication for API operations. Th
 - Integrating with third-party tools and services
 - Performing operations within the scope of the user's access
 
-Personal Access Keys are scoped to the user's permissions and cannot exceed the access level of the user the access token is associated with. Individual users looking to explore the Mezmo Platform APIs should be encouraged to create Personal Access Keys to do so.
+Personal Access Keys are scoped to the user's permissions and cannot exceed the access level of the user the access token is associated with. Individual users looking to explore the Mezmo Platform APIs should be encouraged to create Personal Access Keys to do so. Managing a personal access token later depends on your organization permissions. See [Personal Access Tokens and Your Permissions](#personal-access-tokens-and-your-permissions).
 
 #### Service Accounts (`sts`)
 
@@ -110,10 +110,10 @@ After you create a key, it appears in a table with **Name**, **Access**, **Creat
 
 From the **Actions** column, the row actions available to you depend on the key type:
 
-- **Rename** is available for all key types.
+- **Rename** is available for all key types. For personal access tokens, availability to you also depends on your permissions. See [Personal Access Tokens and Your Permissions](#personal-access-tokens-and-your-permissions).
 - **Edit permissions** is available for service accounts and enterprise service accounts, and only when role-based access management is enabled for your organization. It is not available for personal access tokens.
 - **Rotate** is available for service accounts only. It is not available for enterprise service accounts or personal access tokens.
-- **Delete** is available for all key types.
+- **Delete** is available for all key types. For personal access tokens, availability to you also depends on your permissions. See [Personal Access Tokens and Your Permissions](#personal-access-tokens-and-your-permissions).
 
 When you rotate a key, you confirm the action, then the current key stops working immediately and a new key is generated and shown to you once.
 
@@ -122,6 +122,20 @@ Rotating or deleting a key takes effect immediately and cannot be undone. Any in
 </Warning>
 
 After you create or rotate a key, the full key value appears exactly once in a window with a copy control. It is not shown again, so copy and store it right away. This applies to all key types.
+
+### Personal Access Tokens and Your Permissions
+
+For your own personal access tokens, the actions available to you also depend on your own permissions, in three cumulative levels:
+
+- View permission lets you view your own personal access tokens.
+- The next level lets you **Create** and **Rename** tokens.
+- A higher level lets you **Delete** tokens.
+
+These levels govern what you can do with the tokens in the keys table, which is separate from the **Access** scope assigned to a token itself. They do not add **Rotate**, which is not available for personal access tokens at any level.
+
+If you do not have view permission for your own personal access tokens, the keys table does not display them, and you are prompted to contact an account admin or owner to request access. With view permission, you see your tokens but not every control. If you are blocked from the **Create**, **Rename**, or **Delete** controls, contact an account admin or owner to request the permission you need. Deleting a personal access token requires a higher permission level than creating or renaming one.
+
+These levels apply only to personal access tokens. The actions available for service accounts and enterprise service accounts are unchanged. Your organization's roles and permissions control what you can do. For more about organization roles and permissions, see [Role-Based Access Control](/docs/rbac) and the [Feature Access Matrix](/docs/feature-access-matrix).
 
 The following table summarizes what each key type supports:
 
@@ -133,5 +147,7 @@ The following table summarizes what each key type supports:
 | Rotate | No | Yes | No |
 | Delete | Yes | Yes | Yes |
 | One-time reveal | Yes | Yes | Yes |
+
+For personal access tokens, whether **Create**, **Rename**, and **Delete** are available to you also depends on your permissions; see [Personal Access Tokens and Your Permissions](#personal-access-tokens-and-your-permissions) above.
 
 For information on using IAM Access Keys to interact with the Mezmo platform APIs, see: [Authenticating With The API](/docs/api#authenticating-with-the-api)
