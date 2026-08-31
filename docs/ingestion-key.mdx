@@ -39,7 +39,7 @@ There are two primary types of keys you can manage, Ingestion Keys and IAM Acces
 
 ### Ingestion Keys
 
-Ingestion keys are used by log collectors like the Mezmo Agent to send log data to Mezmo, and are also used in commands for the Ingest API. You can have up to 10 ingestion keys active at a time.
+Ingestion keys are used by log collectors like the Mezmo Agent to send log data to Mezmo, and are also used in commands for the Ingest API. You can have up to 10 ingestion keys active at a time. Your [organization permissions](#ingestion-keys-and-your-permissions) determine which ingestion-key actions you can take.
 
 ### IAM Access Keys
 
@@ -101,6 +101,16 @@ Note that any applications actively using this key will no longer be able to sen
 <Frame caption="Access to the API Keys through **Settings &gt; Organization**">
   ![Image](/images/docs/j42gmtllmavb26q8m4e1r3drgyd9dfa4zhr2r7ln5m4yy8qwo1iksokj1fupb75c.png)
 </Frame>
+
+### Ingestion Keys and Your Permissions
+
+What you can do with ingestion keys depends on your organization permissions, which apply in cumulative levels. A view-level permission lets you see the ingestion keys. The next level also lets you generate ingestion keys with the **Generate Ingestion Key** control and rename an existing key by editing its name in the table. A higher level also lets you delete ingestion keys by clicking the X next to a key.
+
+Controls you don't have permission to use appear disabled rather than hidden. Hover over a disabled control to see why it's unavailable.
+
+The API Keys page opens for anyone with permission to view any of its key tables, so you may reach the page even without permission to view ingestion keys.
+
+For how roles and permissions work, see [Role-Based Access Control](/docs/rbac). For the permissions each role grants, see the [Feature Access Matrix](/docs/feature-access-matrix).
 
 ## Manage Service Accounts and Keys
 
