@@ -6,8 +6,20 @@ description: "Control whether AI agent tool calls run, wait for approval, or are
 An AI Governance policy is a versioned set of bounded rules. For every AI agent tool call, a policy decides one of three outcomes: the call runs (**Allow**), waits for a person to approve it (**Require Approval**), or is refused (**Deny**). Policies live in the **Governance** area of the Mezmo web app, under **Policies**, alongside the **Agents** registry.
 
 <Note>
-AI Governance is available when the feature is enabled for your account. If it is not enabled, you will not see the **Governance** area.
+AI Governance is available when the feature is enabled for your account and you have read access to policies or agents. If the feature is not enabled, you will not see the **Governance** area.
 </Note>
+
+## Access and Permissions
+
+What you can do with policies depends on your access level.
+
+- To see the **Policies** link and list, you need read access to policies.
+- To create or edit a policy, you need write access.
+- To delete a policy, you need manage access.
+
+With read-only access, you can view policies, but you cannot create, edit, or delete them. If the list is empty, you see a message that no policies exist instead of the prompt to create one.
+
+The feature must also be enabled for your account, as noted above.
 
 ## How a Policy Evaluates a Tool Call
 
@@ -24,22 +36,75 @@ The **Policies** page lists every policy in your account. Each row describes one
 | **Policy** | The policy name. |
 | **Rules** | The number of rules in the policy. |
 | **Fallthrough** | The outcome applied to calls that no rule permits. |
-| **Findings** | A warning indicator, shown when the policy has any warnings. |
+| **Draft** | A badge showing whether a draft exists for the policy and the state of that draft. |
+| **Warnings** | An indicator shown when the policy has one or more warnings. |
 | **Created** | When the policy was created. |
 
-When no policies exist, the page prompts you to create one with **New Policy**.
+Each row has a **View** button that opens the policy's detail page. See [View a Policy](#view-a-policy).
+
+The list is paginated. Use **Previous** and **Next** to move between pages. Each page has its own URL, so you can share a link to a specific page or use your browser's back button to return to it.
+
+When no policies exist, the page prompts you to create one with **New Policy**. For what you see without write or manage access, see [Access and Permissions](#access-and-permissions).
+
+## View a Policy
+
+Click **View** on a policy in the **Policies** list to open its detail page. The detail page shows the policy's name, description, **Policy ID**, current revision (see [Change a Policy](#change-a-policy)), and created date, along with its compiled rules and fallthrough behavior.
+
+From the detail page you can start a new policy with **New Policy** or remove this one with **Delete Policy**. Starting a new policy requires write access; deleting one requires manage access. See [Access and Permissions](#access-and-permissions).
+
+To change the policy, you start or resume a draft from the draft banner on the detail page. The banner action matches the draft's current state. See [Change a Policy](#change-a-policy).
+
+When a draft is in progress for the policy, the detail page previews the drafted rules and their compiled output.
 
 ## Create a Policy
 
-Before you begin, the AI Governance feature must be enabled for your account.
+Before you begin, the AI Governance feature must be enabled for your account, and creating a policy requires write access. See [Access and Permissions](#access-and-permissions).
 
 1. Open **Governance** > **Policies**, then click **New Policy**.
 2. On the **Basics** step, enter a **Policy Name** and an optional **Description**.
 3. On the **Rules** step, click **Add Rule** to add one or more rules, or leave the list empty. For each rule, set what to match on, the rule outcome, and any argument constraints. See [Rule Fields and Limits](#rule-fields-and-limits) for the detail.
 4. On the **Fallthrough** step, choose what happens to a call that no rule permits.
-5. On the **Review** step, review the findings and the summary, then click **Create Policy**.
+5. On the **Review** step, review the warnings and the summary, then click **Create Policy**.
 
 The new policy appears in the **Policies** list.
+
+## Change a Policy
+
+A policy is never edited in place. To change a policy, you create a **draft**, edit the draft, then either accept or discard it. Editing a policy through a draft requires write access. See [Access and Permissions](#access-and-permissions).
+
+Start or resume the draft from the draft banner on the policy's detail page. The banner action matches the draft's current state: click **Create Draft** when no draft exists yet, **Continue Editing** to resume your own draft whether your hold is still live or has lapsed, or **Take Over Draft** when the draft belongs to another editor and its hold has lapsed. **Create Draft** and **Continue Editing** open the same wizard you use to create a policy, this time in draft mode. **Take Over Draft** claims the draft but keeps you on the detail page. Click **Continue Editing** afterward to start editing. In draft mode, the wizard offers two ways to save:
+
+- **Save Draft** saves your progress without projecting the changes into the policy.
+- **Save and Accept Draft** saves your progress and accepts the draft in one step.
+
+Use **Save Draft** to save your progress and keep editing later without changing the live policy; use **Save and Accept Draft** when your changes are ready to take effect as a new revision.
+
+Accepting a draft with **Save and Accept Draft** projects the drafted changes back into the policy as a new **revision**. A revision is a frozen version of the policy, produced each time a draft is accepted. There is no separate publish step. Accepting the draft is what makes your changes take effect.
+
+While you hold the draft, the detail-page banner also offers **Accept Draft** and **Discard Draft**, so you can accept or discard the draft without reopening the wizard.
+
+Discarding a draft throws away its unaccepted changes and leaves the policy at its current revision.
+
+### Draft Holds
+
+A policy can have only one draft at a time. When you hold the draft, you are its sole editor. Your hold renews automatically while you keep the draft open for editing.
+
+How you can act on a draft depends on its current hold:
+
+- When you hold the draft, you can keep editing it, then accept or discard it.
+- When another editor holds the draft, you cannot edit it while their hold stays live.
+- When a draft is locked until a stated time, you can take it over once that time passes.
+- When a hold has lapsed, you can resume your own draft with **Continue Editing**, or claim another editor's lapsed draft with **Take Over Draft**.
+
+Click **Take Over Draft** to claim a draft whose hold has lapsed or belongs to another editor. Taking over replaces the prior editor's unaccepted changes.
+
+You cannot discard a draft while another editor holds a live hold on it. You also cannot delete a policy while another editor holds its draft. See [Delete a Policy](#delete-a-policy).
+
+## Delete a Policy
+
+To delete a policy, open its detail page and click **Delete Policy**. Deleting a policy requires manage access. See [Access and Permissions](#access-and-permissions).
+
+You cannot delete a policy while another editor holds an active draft for it. Once that draft is accepted or discarded, or its hold lapses, you can delete the policy.
 
 ## Rule Fields and Limits
 
