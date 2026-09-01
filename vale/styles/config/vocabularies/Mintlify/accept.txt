@@ -178,6 +178,7 @@ unexpressible
 ungated
 uninstallations
 [Uu]nmount(s|ed|ing)?
+[Uu]nmute(s|d)?
 [Uu]npause
 unparsed
 url

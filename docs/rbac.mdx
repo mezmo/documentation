@@ -33,7 +33,25 @@ You manage roles and their access scopes at [**Settings &gt; Organization &gt; R
 
 To learn more about query syntax, see [search log contents](/docs/searching-log-contents).
 
+## Permissions
+
+Beyond the built-in roles, many features grant access through cumulative permission levels that you set on a role's **Permissions** tab. For example, Alerts and the Roles page each have their own levels. This section describes the levels for managing the Roles page.
+
+The Roles page has three cumulative permission levels. **Manage** includes everything in **Write**, and **Write** includes everything in **Read**.
+
+- **Read**: view the Roles page and open a role in view-only mode.
+- **Write**: everything Read allows, plus create a role and edit a role.
+- **Manage**: everything Write allows, plus delete a role.
+
+If your permission level does not allow an action, its control appears disabled. With only Read, you can open a role, but the form stays view only and you cannot make changes.
+
+You set these levels on the **Permissions** tab when you [create or edit a role](#create-or-edit-a-role).
+
 ## Create or Edit a Role
+
+<Note>
+Creating or editing a role requires the **Write** permission level. See [Permissions](#permissions).
+</Note>
 
 1. Go to [**Settings &gt; Organization &gt; Roles**](https://app.mezmo.com/manage/roles).
 2. Click **Create Role** to add a role, or click **Edit** next to an existing role.
