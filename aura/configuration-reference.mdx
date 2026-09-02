@@ -555,7 +555,7 @@ Unlike every other section on this page, the session store is **not configured i
 By default, cross-request session state (A2A tasks, parked HITL approvals) lives in process memory — correct for a single pod, the CLI, and local dev. Behind a load balancer with multiple replicas, configure a shared Redis/Valkey backend and every cross-request flow works no matter which pod serves each request: A2A `message:send` → poll → `list` → history-by-context, A2A `subscribe`/`cancel` against a task executing on another pod, and conversational HITL approvals resolved by a `POST /v1/approvals/{id}` that lands away from the pod that parked them.
 
 ```bash
-export AURA_SESSION_STORE=redis                          # memory (default) | redis
+export AURA_SESSION_STORE=redis                          # memory (default) | redis | file
 export AURA_SESSION_STORE_URL=redis://valkey:6379        # redis:// or rediss:// (Valkey compatible)
 export AURA_SESSION_STORE_PREFIX=aura:prod               # optional namespace (default "aura")
 export AURA_SESSION_STORE_CONNECT_TIMEOUT_SECS=5         # optional
@@ -564,7 +564,24 @@ export AURA_SESSION_STORE_TASK_TTL_SECS=86400            # optional; 0 = no expi
 
 The server pings the backend at startup and fails fast if it is unreachable; `/health` reports the backend and its ping latency.
 
-The Redis backend requires building with the `session-store-redis` cargo feature (`cargo build --release --features aura-cli/session-store-redis`). The in-memory backend is always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
+The Redis backend requires building with the `session-store-redis` cargo feature (`cargo build --release --features aura-cli/session-store-redis`). The in-memory and file backends are always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
+
+### File Backend for Single-Pod Durability
+
+The `file` backend persists conversational HITL approvals to disk, writing one JSON file per decision ID under the directory set by `AURA_SESSION_STORE_PATH`. Parked approvals survive a process restart on a single host, so you can run durably without Redis or Valkey.
+
+Only conversational HITL approvals are persisted. The A2A task store and the event bus stay in process memory. This is a single-pod, single-writer model, not a cross-pod backend. If you run multiple replicas, use the `redis` backend instead.
+
+```bash
+export AURA_SESSION_STORE=file
+export AURA_SESSION_STORE_PATH=/var/lib/aura/session-store   # required; no default
+```
+
+`AURA_SESSION_STORE_PATH` is required and has no default. The server fails fast at startup if it is unset or blank. It also creates the store directories and probes them for write access. The file backend re-checks write access on `/health` rather than reporting ping latency (ping latency applies only to the `redis` backend), so a store it cannot write to fails fast rather than on the first approval.
+
+The Redis variables (`AURA_SESSION_STORE_URL`, `AURA_SESSION_STORE_PREFIX`, `AURA_SESSION_STORE_CONNECT_TIMEOUT_SECS`, and `AURA_SESSION_STORE_TASK_TTL_SECS`) do not apply to the `file` backend. They apply only to the `redis` backend.
+
+If the process dies mid-resolve, an empty decision file may be left behind. Delete that empty file to recover.
 
 ---
 

@@ -285,5 +285,8 @@ Expected behavior:
   Redis or Valkey session store. A `POST /v1/approvals/{id}` request that lands on
   any instance then resolves an approval parked on another. See
   [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
+- You can also configure the `file` session-store backend to keep parked
+  approvals across a process restart on the same pod, without Redis. See
+  [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
 - Webhook egress has no built-in authentication layer. Put auth, signing, or
   network controls in front of the webhook service.
