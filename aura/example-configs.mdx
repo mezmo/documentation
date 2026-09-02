@@ -14,13 +14,13 @@ Example TOML configurations and advanced quickstarts for AURA agents.
 ```bash
 cp examples/reference.toml config.toml
 # Edit config.toml with your API key and settings
-cargo run --bin aura-web-server
+cargo run --bin aura -- webserver
 ```
 
 If encountering issues and more verbose debugging output is necessary, add the --verbose flag for the running binary
 ```bash
 export OPENAI_API_KEY="sk-..."
-CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura-web-server -- --verbose
+CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura -- webserver --verbose
 ```
 
 ## Minimal Configs
@@ -29,7 +29,7 @@ Bare-minimum configs to get running with a single LLM provider. No MCP tools —
 
 ```bash
 export OPENAI_API_KEY="sk-..."
-CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura-web-server
+CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura -- webserver
 ```
 
 | File | Provider | API key needed? |
@@ -56,7 +56,7 @@ Full agent compositions that combine an LLM provider with real MCP tool servers 
 Point `CONFIG_PATH` at a directory to serve every `.toml` file as a selectable agent:
 
 ```bash
-CONFIG_PATH=examples/complete/ cargo run --bin aura-web-server
+CONFIG_PATH=examples/complete/ cargo run --bin aura -- webserver
 ```
 
 Clients discover agents via `GET /v1/models` and select one with the `model` field in chat requests. Each agent is identified by its `alias` (if set) or `name`.

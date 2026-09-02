@@ -58,7 +58,24 @@ Token counting uses real tokenization, not byte/character heuristics, so `min_to
 
 ## Per-call extraction limit
 
-`max_extraction_tokens` (default `10_000`): every exploration tool checks the size of its result before returning. If a single call would exceed this cap (or the cumulative context budget), the tool returns a structured JSON error like `{"error": "head_too_large", "estimated_tokens": ..., "suggestions": [...]}` instead of the content. The LLM sees this as a successful tool result and retries with smaller params — each retry consumes a turn, which is why `turn_depth_bonus` exists.
+`max_extraction_tokens` (default `10_000`): every exploration tool checks the size of its result before returning. If a single call would exceed this cap (or the cumulative context budget), the tool returns a structured JSON error like `{"error": "head_too_large", "estimated_tokens": ..., "suggestions": [...]}` instead of the content. The LLM sees this as a successful tool result and retries with smaller params — each retry consumes a turn, which is why `turn_depth_bonus` exists. When an `iterate_over` result is too large, the `iterate_over_too_large` error leads with a ready-to-run [paginated retry over a narrower window](#paginate-iterate_over-with-offset-and-limit) that halves the current window, ahead of suggestions to request fewer fields, use `get_in`, or use `grep`.
+
+## Paginate `iterate_over` with offset and limit
+
+`iterate_over` can project the requested fields over a window of a large array instead of the whole array, using two optional arguments. This lets a call that would otherwise exceed `max_extraction_tokens` succeed over a slice.
+
+| Argument | Type | Default | Description |
+| --- | --- | --- | --- |
+| `offset` | integer | `0` | Index of the first item to return, 0-indexed. Minimum `0`. |
+| `limit` | integer | _(all remaining items from `offset`)_ | Maximum number of items to return, starting at `offset`. Minimum `1`; a `limit` of `0` is rejected. |
+
+Windowed rows keep their absolute array position in the `_index` field. That position is `offset` plus the row's position in the window, so paths that `get_in` resolves stay valid no matter which window produced the row.
+
+An `offset` past the end of the array returns an empty result `[]` rather than an error, so the agent can correct course.
+
+Each exploration tool call ends its result with a one-line footer that summarizes what it returned. When you paginate, that footer reports the window as a half-open interval over the total, with the start index inclusive and the end index exclusive. For example, the footer output `iterate_over: $.results (items [3..7) of 120 total, fields: [id,title])` covers the items at index 3, 4, 5, and 6. With no `offset` or `limit`, the footer reports a full scan instead, for example `2 items`.
+
+`get_in` and `item_schema` take the same `offset` and `limit` arguments. `get_in` paginates a large string value by line, and `item_schema` windows a large array by item.
 
 ## Budget and usage reporting
 
