@@ -1,0 +1,66 @@
+---
+title: "AI Governance Workflows"
+description: "List and review the tool-call approval workflows that an AI Governance policy escalates for a decision."
+---
+
+An AI Governance workflow is a single tool-call approval request that a governance policy escalated for a decision. When a policy evaluates a tool call and the outcome is **Require Approval**, the call is surfaced here as a workflow that needs a person's approval. While the workflow awaits a decision its status is **Pending**; after a decision it is **Approved** or **Denied**. The tool calls being evaluated come from **AURA** agents registered to your account. Workflows live in the **Governance** area of the Mezmo web app, alongside **Agents** and **Policies**, where the list is headed **Workflow Decisions**.
+
+<Note>
+AI Governance is available when the feature is enabled for your account. If the feature is not enabled, you will not see the **Governance** area. To have it turned on, contact Mezmo.
+</Note>
+
+## Access and Permissions
+
+What you can do with workflows depends on your access level.
+
+- To view the Workflows list and a workflow's detail, you need **read** access.
+- To make a decision on a workflow, you need **write** access.
+
+With read-only access, you can view workflows, but you cannot approve or deny them. Someone with write access must make the decision, so you can share the workflow's URL with them.
+
+## How a Workflow Is Created
+
+When an AURA agent proposes a tool call, the agent's governance policy evaluates the call against its rules. Most calls resolve on their own: the policy allows the call, or it denies the call outright. A workflow appears here only when the evaluation escalates the call for a person's approval, because the outcome is **Require Approval**. For how a policy reaches an outcome, see [AI Governance Policies](/docs/governance-policies). For the agents that make the calls, see [AI Governance Agents](/docs/governance-agents).
+
+## The Workflows List
+
+The **Workflow Decisions** list shows the workflows for your account. Each row describes one workflow.
+
+| Column | Description |
+| ---- | ---- |
+| **Status** | The workflow's current state: **Pending**, **Approved**, or **Denied**. |
+| **Workflow** | The workflow, identified by its first gated or denied tool call. |
+| **Agent** | The AURA agent that made the tool call. |
+| **Policy** | The governance policy that evaluated the call. |
+| **Tool Calls** | The number of tool calls in the workflow. |
+| **Requested** | When the workflow was raised. |
+
+Status tabs above the list filter it to **All**, **Pending**, **Approved**, or **Denied**. You can also filter by **Agent** and by **Policy**. These filters are reflected in the page URL, so you can share a filtered view or return to it with your browser's back button.
+
+The list is paginated. Use **Previous** and **Next** to move between pages.
+
+Selecting a row opens that workflow's detail. See [The Workflow Detail](#the-workflow-detail).
+
+## The Workflow Detail
+
+Selecting a workflow opens its detail page, which shows:
+
+- A **status badge** for the workflow's current state.
+- A **headline** naming the first tool call that was gated or denied.
+- **Tool-call cards**, one per call in the workflow. Each card shows the tool's name, the arguments passed to it, and any dependencies between calls.
+- A **Request** panel with the workflow's metadata.
+- A **Timeline** of the workflow's events.
+
+## Making a Decision
+
+On a **Pending** workflow, when decision-making is enabled for your account, a reader with write access sees a **Decision Gate** with a **reason** field and **Deny** and **Approve Workflow** controls. A reader with read-only access can open the workflow but does not see the Decision Gate.
+
+<Note>
+The ability to approve or deny workflows is still rolling out and may not yet be available for your account.
+</Note>
+
+## Related
+
+- [AI Governance Policies](/docs/governance-policies)
+- [AI Governance Agents](/docs/governance-agents)
+- [Human-in-the-Loop Approval Gates](/aura/hitl): Configure approval gates inside AURA itself, separate from this web-app governance surface.

@@ -9,6 +9,7 @@ Ansible
 antimalware
 apiKey
 APIs
+approver(s?)
 Aptible
 arcsin
 arccos
