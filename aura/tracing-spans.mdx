@@ -63,7 +63,10 @@ agent.stream (AGENT, ROOT)
 ### Agent root (`agent.stream`)
 
 `user.id`, `session.id`, `metadata`, `input.value`, `output.value`,
-`llm.token_count.prompt`, `llm.token_count.completion`, `llm.token_count.total`
+`llm.token_count.prompt`, `llm.token_count.completion`, `llm.token_count.total`,
+`llm.token_count.prompt_details.cache_read`, `llm.token_count.prompt_details.cache_write`
+
+`llm.token_count.prompt_details.cache_read` and `llm.token_count.prompt_details.cache_write` are both sub-counts of `llm.token_count.prompt`. They are auto-translated from the provider libraries' `gen_ai.usage.cache_read_input_tokens` and `gen_ai.usage.cache_creation_input_tokens` attributes. These are the same counts reported by the `cache_read_input_tokens` and `cache_creation_input_tokens` fields on the [`aura.usage` streaming event](/aura/streaming-api-guide); `prompt_details.cache_write` corresponds to `cache_creation_input_tokens`. Phoenix renders and prices these sub-counts in its token breakdown.
 
 ### Orchestration spans
 
@@ -75,7 +78,8 @@ agent.stream (AGENT, ROOT)
 | `orchestration.worker` | `orchestration.task_id`, `orchestration.worker`, `orchestration.task` |
 
 Token usage (`llm.token_count.*`) is recorded on all orchestration phase
-spans (planning, worker).
+spans (planning, worker), including the `llm.token_count.prompt_details.cache_read`
+and `.cache_write` cache sub-counts described above.
 
 ### Tool spans (`execute_tool`)
 

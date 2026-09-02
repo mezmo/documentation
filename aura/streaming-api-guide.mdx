@@ -142,7 +142,7 @@ AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 | `aura.mcp_status` | Per-server MCP connection status emitted at stream start (connected/failed/not_attempted, with failure reason) | ✅ Implemented |
 | `aura.worker_phase` | Worker phase transitions in multi-agent mode (planning/executing/analyzing) | ✅ Implemented |
 | `aura.tool_usage` | Usage snapshot after tool execution (associates tool IDs with token counts) | ✅ Implemented |
-| `aura.usage` | Final token usage emitted at stream end (prompt/completion/total) | ✅ Implemented |
+| `aura.usage` | Final token usage emitted at stream end (prompt/completion/total, plus optional cache read/creation sub-counts) | ✅ Implemented |
 | `aura.scratchpad_usage` | Per-agent scratchpad usage summary (single-agent or worker), emitted when an agent finishes with scratchpad activity | ✅ Implemented |
 | `aura.approval_requested` | HITL approval request raised for a gated tool or `request_approval` call | ✅ Implemented for webhook and conversational routes |
 | `aura.approval_pending` | HITL approval is waiting for an attended decision | ✅ Implemented for conversational route |
@@ -360,6 +360,8 @@ Emitted from the `on_stream_completion_response_finish` hook when usage data is 
 event: aura.usage
 data:
 ```
+
+**Without cache usage**:
 ```json
 {
   "prompt_tokens": 21500,
@@ -369,7 +371,28 @@ data:
 }
 ```
 
+**With cache usage**:
+```json
+{
+  "prompt_tokens": 21500,
+  "completion_tokens": 342,
+  "total_tokens": 21842,
+  "cache_read_input_tokens": 18000,
+  "cache_creation_input_tokens": 1200,
+  "session_id": "sess_xyz"
+}
+```
+
 Use `prompt_tokens` with `model_context_limit` from `aura.session_info` to calculate context window fill percentage: `(prompt_tokens / model_context_limit) * 100`. No `agent_id` field (only `CorrelationContext`).
+
+Two optional cache fields report prompt-cache activity:
+
+- `cache_read_input_tokens` (integer, optional) — input tokens served from the provider's prompt cache.
+- `cache_creation_input_tokens` (integer, optional) — input tokens written to the provider's prompt cache.
+
+Both are sub-counts already included within `prompt_tokens`, not additive, and either or both may appear in a single response. Both are omitted entirely from the JSON when no provider reports cache usage, so existing consumers see identical payloads when caching is off. Even when caching is enabled, an individual response may omit them, for example on a cache miss or on the first request before any cache exists. Their absence on a given response does not indicate a problem.
+
+For Anthropic and Bedrock agents, both fields can appear once `prompt_caching` is enabled (see the [Configuration Reference](/aura/configuration-reference)) and the provider reports cache activity. For OpenAI-backed agents, only `cache_read_input_tokens` can ever appear, because OpenAI caching is automatic and reports only cache reads. `cache_creation_input_tokens` therefore appears only for Anthropic and Bedrock. The same counts appear as span attributes on the [Tracing guide](/aura/tracing-spans).
 
 **Scratchpad usage** (per-agent report when an agent finishes with scratchpad activity):
 ```

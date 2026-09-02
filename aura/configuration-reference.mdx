@@ -160,6 +160,8 @@ Extra fields:
 | `base_url` | string | — | Override the API base URL (useful for compatible proxies). |
 | `reasoning_effort` | string | — | `none`, `minimal`, `low`, `medium`, `high`, or `xhigh`. Controls reasoning depth. Support varies by model and version. Aura passes the value straight to the OpenAI API, which returns a 400 error for combinations of `model` and `reasoning_effort` that it does not support. |
 
+OpenAI caching is automatic, so there is no `prompt_caching` field. OpenAI cache reads surface in usage output as `cache_read_input_tokens`.
+
 ### `provider = "anthropic"`
 
 ```toml
@@ -168,6 +170,7 @@ provider = "anthropic"
 api_key = "{{ env.ANTHROPIC_API_KEY }}"
 model = "claude-sonnet-4-20250514"
 context_window = 200000
+# prompt_caching = true  # opt-in prompt caching (off by default)
 
 # Enable extended thinking:
 [agent.llm.additional_params]
@@ -180,6 +183,9 @@ Extra fields:
 |---|---|---|---|
 | `api_key` | string | — | **Required.** Anthropic API key. |
 | `base_url` | string | — | Override the API base URL. |
+| `prompt_caching` | `bool` | `false` | Opt-in prompt caching. When enabled, Aura adds `cache_control` breakpoints on the system prompt and the last message. The tools definition renders before the system prompt, so those breakpoints also cover the tools; Aura adds no separate breakpoints for them. Off by default (cache writes bill at a premium, reads at a reduced rate). |
+
+To verify caching and for the orchestration-worker override caveat, see [Confirm prompt caching](#confirm-prompt-caching) below.
 
 ### `provider = "bedrock"`
 
@@ -192,6 +198,7 @@ model = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
 region = "{{ env.AWS_REGION }}"
 profile = "default"  # optional
 context_window = 200000
+# prompt_caching = true  # opt-in; model must support caching
 ```
 
 Extra fields:
@@ -200,6 +207,11 @@ Extra fields:
 |---|---|---|---|
 | `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
 | `profile` | string | — | AWS profile name. Uses the default credential chain if omitted. |
+| `prompt_caching` | `bool` | `false` | Opt-in prompt caching. When enabled, Aura adds `cachePoint` blocks after the system prompt, the tools, and the last message. Off by default (cache writes bill at a premium, reads at a reduced rate). The model must support caching or the request fails. Supported families include Claude 3.5 Sonnet v2, Claude 3.7, Claude 4.x, Claude 5, and Nova. |
+
+#### Confirm prompt caching
+
+Prompt caching reports the same way for Anthropic and Bedrock agents. To confirm caching is working, check the `cache_read_input_tokens` and `cache_creation_input_tokens` fields on the [`aura.usage` streaming event](/aura/streaming-api-guide) and the cache span attributes on the [Tracing guide](/aura/tracing-spans). Re-specify `prompt_caching` in an orchestration worker's LLM override when you enable it there, because a per-worker LLM override replaces the whole `llm` block. See [Per-Worker LLM Override](#per-worker-llm-override).
 
 ### `provider = "gemini"`
 
@@ -681,6 +693,8 @@ api_key = "{{ env.OPENAI_API_KEY }}"
 model = "gpt-4o-mini"
 context_window = 128000
 ```
+
+A worker with no `[orchestration.worker.<name>.llm]` block inherits `[agent.llm]`, including `prompt_caching`. A per-worker `[orchestration.worker.<name>.llm]` block replaces the entire LLM config (it is a complete config, not a partial patch, with no merging). You must re-specify `prompt_caching` in the override block, or it reverts to the default (`false`).
 
 #### Per-Worker Scratchpad Override
 
