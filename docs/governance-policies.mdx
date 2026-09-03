@@ -49,7 +49,7 @@ When no policies exist, the page prompts you to create one with **New Policy**. 
 
 ## View a Policy
 
-Click **View** on a policy in the **Policies** list to open its detail page. The detail page shows the policy's name, description, **Policy ID**, current revision (see [Change a Policy](#change-a-policy)), and created date, along with its compiled rules and fallthrough behavior.
+Click **View** on a policy in the **Policies** list to open its detail page. The detail page shows the policy's name, description, **Policy ID**, current revision (see [Change a Policy](#change-a-policy)), and created date, along with its compiled rules and fallthrough behavior. Next to the current revision, a **View history** link opens the policy's revision history. See [View Revision History](#view-revision-history).
 
 The detail page also shows an **Agents** section that lists the agents that use this policy. Each agent links to its edit page, or appears as plain text if you don't have write access to agents. If no agent uses the policy, the section shows **None**. The **Agents** section appears only when you have read access to agents.
 
@@ -102,6 +102,62 @@ How you can act on a draft depends on its current hold:
 Click **Take Over Draft** to claim a draft whose hold has lapsed or belongs to another editor. Taking over replaces the prior editor's unaccepted changes.
 
 You cannot discard a draft while another editor holds a live hold on it. You also cannot delete a policy while another editor holds its draft. See [Delete a Policy](#delete-a-policy).
+
+## View Revision History
+
+Open the revision history from the **View history** link next to the revision on the policy's detail page. The revision history is an append-only timeline of the policy's revisions, newest first. The timeline is paginated at 10 revisions per page. Use **Previous** and **Next** to move between pages.
+
+Each entry is a frozen snapshot of one revision's rules and fallthrough. Because the timeline is append-only, restoring an older revision adds a new revision to the top rather than rewinding the timeline. The record of what past tool calls were evaluated against stays intact.
+
+Each entry carries an **origin** label that says how the revision was produced:
+
+- **Created** marks the initial revision.
+- **Edited** marks a revision from an accepted edit draft.
+- **Forked** marks a revision from an accepted forked draft.
+- **Reverted** marks a revision produced by a revert.
+
+The revision now in force also carries a **Current** label. Every entry also shows when the revision was made.
+
+An entry that came from another revision shows a provenance line. It tells you which revision the entry was restored or forked from, and who did it.
+
+Each past revision also shows how restoring it would change the current policy: the rules it would add, change, or drop, and whether the fallthrough would change. When the revision matches the current policy, the entry notes that instead. Use this comparison to decide whether to restore the revision.
+
+To inspect a revision's rules, expand its **View Rules** panel. A rule that the current policy no longer has is labeled **Not in current**, and a rule that the current policy has changed is labeled **Differs from current**. The panel also lists current rules that the revision does not have.
+
+## Restore a Previous Revision
+
+You can restore any past revision in two ways: fork it into a draft, or revert to it directly. Both require write access to the policy, and both keep the policy's current name and description. See [Access and Permissions](#access-and-permissions).
+
+The two paths differ in when the change takes effect. Forking is review-first: it opens a draft that you can edit and review before it takes effect. Reverting is immediate: it restores the revision as a new revision with no draft and no review step. Choose fork when you want to review or adjust the earlier rules before they take effect, and choose revert when you need the earlier state back immediately, such as to undo a bad edit.
+
+### Fork a Revision Into a Draft
+
+**Fork into Draft** opens a draft pre-filled from the chosen revision, so you can review or edit it before it lands. The draft then follows the normal draft lifecycle. See [Change a Policy](#change-a-policy).
+
+The **Fork into Draft** control is unavailable (disabled) while a draft is already open, because a policy can have only one draft at a time. To check whether a draft is already open, look for the **Draft** badge on the policy's row in the [Policies list](#the-policies-list), or the draft banner on its [detail page](#change-a-policy). See [Draft Holds](#draft-holds).
+
+To fork a revision into a draft:
+
+1. Open the policy's revision history from the **View history** link on its detail page.
+2. Find the revision you want to restore.
+3. Click **Fork into Draft**.
+
+You land in the policy wizard, and the draft's banner notes which revision it was forked from. Continue in the wizard to review, edit, and accept the draft, as described in [Change a Policy](#change-a-policy).
+
+### Revert to a Revision
+
+**Revert to This** restores the chosen revision's rules and fallthrough immediately as a new revision, with no draft and no review step. A confirmation dialog explains that the change takes effect immediately, and you click **Yes, Revert** in it to apply the revert.
+
+To revert to a revision:
+
+1. Open the policy's revision history from the **View history** link on its detail page.
+2. Find the revision you want to restore.
+3. Click **Revert to This** on the revision.
+4. In the confirmation dialog, which explains that the change takes effect immediately, click **Yes, Revert**.
+
+The change takes effect immediately. From the next evaluation onward, every agent assigned to the policy is governed by the restored rules. If a draft is open when you revert, the revert makes that draft stale.
+
+After the revert, a new entry with the **Reverted** origin label appears at the top of the revision history and carries the **Current** label, confirming the change took effect. Reverting does not remove or overwrite the revision you are moving away from; it adds a new entry to the append-only history, so earlier revisions remain available. Because the revert is itself recorded as a new revision and those earlier revisions stay in the history, you can correct an unwanted revert by reverting again to the revision that was current before.
 
 ## Delete a Policy
 
