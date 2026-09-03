@@ -72,6 +72,7 @@ curl http://localhost:8080/aura/info | jq
   "agents": [
     {
       "id": "orch",
+      "instance_id": "6b7d9f24-8c31-5a0e-bf12-3d5e7a9c1b04",
       "model": "gpt-4o",
       "description": "General-purpose assistant with tool access",
       "workers": [
@@ -89,6 +90,7 @@ curl http://localhost:8080/aura/info | jq
     },
     {
       "id": "solo",
+      "instance_id": "a1c3e5f7-2b48-5d6a-9e0f-1b3d5f7a9c2e",
       "model": "gpt-4o",
       "mcp_servers": {}
     }
@@ -106,6 +108,15 @@ that config field is unset. Omitting it when
 unset keeps older servers and clients compatible. This is the same value returned by `/v1/models` (see the [web server reference](/aura/web-server-reference)); use `/aura/info` when a client also wants the worker or MCP-server metadata this endpoint provides. The `workers` array is
 omitted for non-orchestration agents. Each worker's `model` is included only
 when it overrides the coordinator model.
+
+Each agent object also carries an `instance_id`: the stable identity of that
+running agent instance (see [Instance
+identity](/aura/configuration-reference#instance-identity)). A current server
+always resolves an environment seed — falling through to a random per-process
+value when nothing else matches — so it computes and includes an `instance_id`
+for every agent, not only when a config field is set. The field is absent only
+from older servers that predate it, which is what keeps those servers and their
+clients compatible.
 
 `mcp_servers` is a credential-free view of the agent's configured MCP servers,
 keyed by name and tagged by `transport` (`stdio`, `http_streamable`, or `sse`).

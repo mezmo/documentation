@@ -113,6 +113,7 @@ wire shape with `kind` tags for `scope` and `origin`:
   "version": 1,
   "decision_id": "019edc27-e4d2-7950-abbf-e37a9060887d",
   "request_id": "req_d6df99fd5c8b4eb6af6e0de049e9c0d6",
+  "instance_id": "9b2c4d6e-8a10-5f32-b7c9-1e3a5c7f9d2b",
   "scope": {
     "kind": "worker",
     "run_id": "019edc27-d7e1-73d2-ac33-1a1e21b3fffd",
@@ -143,6 +144,7 @@ Fields:
 | `version` | Approval webhook protocol version. |
 | `decision_id` | Unique id for this approval decision. |
 | `request_id` | Aura request id for the chat completion. |
+| `instance_id` | Identifies the running agent instance (pod, container, or process) that raised the request; stable across restarts. Its correlation value shows up across multi-instance deployments, where every instance carries a distinct value; in a single-instance deployment every request carries the same value. See [Instance identity](/aura/configuration-reference#instance-identity). |
 | `scope` | Which agent surface is asking, independent of why. `kind = "single"` for a single-agent run or `kind = "worker"` for an orchestration worker. Both HITL origins carry a scope. |
 | `origin` | Why approval was requested. `kind = "config_gate"` (a configured glob matched the tool call, carries the matched glob) or `kind = "agent_requested"` (the agent called `request_approval`, carries the reason). |
 | `items` | Tool call payloads awaiting approval. One item per request. |

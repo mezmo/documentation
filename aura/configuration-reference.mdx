@@ -1,6 +1,6 @@
 ---
 title: "Configuration Reference"
-description: "Complete TOML field reference for AURA — agent identity, LLM providers, MCP, vector stores, scratchpad, skills, orchestration, HITL, and session storage."
+description: "Complete TOML field reference for AURA — agent identity, LLM providers, MCP, vector stores, scratchpad, skills, orchestration, instance identity, HITL, and session storage."
 ---
 
 AURA is configured with a single TOML file. The file path defaults to `config.toml` in the working directory; override it with the `CONFIG_PATH` environment variable.
@@ -47,6 +47,7 @@ Defines the agent identity, system prompt, and behavioral settings.
 |---|---|---|---|
 | `name` | string | *required* | Display name. Doubles as the model identifier clients send in requests. |
 | `alias` | string | — | Stable identifier for model selection. Clients send this as the `model` field. Useful when the name contains spaces. |
+| `instance_seed` | string | — | Explicit seed for the agent's stable instance ID. When omitted, the ID's config component falls back to the agent's `name` plus `alias`. See [Instance identity](#instance-identity). |
 | `description` | string | — | Optional one-line, human-readable summary of the agent. Use it to distinguish multiple loaded configs that would otherwise differ only by `name` or `alias`. Display-only. It appears in `/v1/models`, `/aura/info`, and the CLI `/model` picker, but is never part of runtime settings and never sent to the model. Omitted from `/v1/models` and `/aura/info` responses when unset. Not to be confused with the required per-worker `description` under `[orchestration]`, which guides planning and is not shown to people. It is free-form text with no enforced length limit; the CLI `/model` picker collapses whitespace and truncates it to fit the terminal. |
 | `system_prompt` | string | *required* | The agent's system prompt. Multi-line strings use TOML `"""..."""` syntax. |
 | `turn_depth` | integer | `5` | Max tool-call rounds per user turn. Acts as a failsafe to prevent models from spinning out in unbounded tool-call loops. |
@@ -545,6 +546,65 @@ mode = "webhook"
 url = "https://approvals.example.com/aura"
 timeout_secs = 300
 ```
+
+---
+
+## Instance Identity
+
+Each running agent instance has a stable instance ID: a deterministic UUID that
+lets downstream consumers correlate HITL, webhook, and event traffic back to the
+specific agent instance that produced it. Because the ID is deterministic, it
+stays the same across restarts as long as the host identity is stable.
+
+The ID is derived from two seed components:
+
+- **Config seed**: the agent's `instance_seed` when set; otherwise the agent's
+  `name` plus `alias`.
+- **Environment seed**: an identifier for the host or pod, resolved from the
+  environment.
+
+The final ID combines both seeds, so agents or pods that share an identical
+config seed still get distinct IDs whenever their environment seed differs — each
+Kubernetes pod, for example, supplies a different `POD_NAME`. A fully stable ID
+therefore requires both seed components to be stable: setting `instance_seed`
+alone does not stabilize the ID if the environment seed still varies.
+
+Aura resolves the environment seed from the first non-empty value (after
+trimming), in strict override order:
+
+1. `AURA_INSTANCE_ID`, an explicit override.
+2. `POD_NAMESPACE` and `POD_NAME` together, formatted `{namespace}/{name}`. Both
+   must be set and non-empty; otherwise Aura falls through to the next source.
+3. The OS machine ID (`/etc/machine-id` on Linux, `IOPlatformUUID` on macOS,
+   `MachineGuid` on Windows).
+4. A random per-process value, used only when no earlier source resolves.
+
+In Kubernetes, the Helm chart injects `POD_NAMESPACE` and `POD_NAME` through the
+downward API, so no manual step is needed to give each pod a stable identity.
+
+Changing either seed input — `instance_seed`, `AURA_INSTANCE_ID`, or the resolved
+environment seed such as `POD_NAME` — produces a new instance ID going forward,
+which breaks any correlation a consumer keyed on the old value. In Kubernetes, a
+Deployment gives a rescheduled pod a new name (and so a new ID), while a
+StatefulSet keeps its ordinal pod name (and so the same ID).
+
+Containers built from the same image can share an OS machine ID, so instances
+that also share a config seed can resolve to the same instance ID at the
+machine-ID tier. For multi-instance deployments that do not use the Helm chart's
+downward-API injection — Docker Compose, virtual machines, or bare processes — set
+`AURA_INSTANCE_ID` per instance (or give each a distinct `instance_seed`) so each
+instance stays distinct.
+
+When Aura falls back to a random per-process value, it logs a one-time warning at
+WARN level, so operators can grep for it. Set `AURA_INSTANCE_ID` to give the
+instance a stable identity across restarts.
+
+The Helm chart retains `SERVER_GUID` only as a backwards-compatible alias for
+external tooling. Aura does not read `SERVER_GUID` to derive the instance ID.
+
+The resolved ID is visible as `instance_id` per agent on
+[`/aura/info`](/aura/streaming-api-guide#server-info-endpoint) and in the [HITL
+webhook payload](/aura/hitl#webhook-request).
 
 ---
 
