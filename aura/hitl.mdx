@@ -251,8 +251,7 @@ url = "http://localhost:9988"
 timeout_secs = 300
 ```
 
-Use `mock_tool` (the tool name from the bundled math orchestration example config)
-so the glob matches a tool the worker actually calls. Put the webhook on a
+Use `mock_tool` so the glob matches a tool the worker actually calls. Put the webhook on a
 different port than the mock MCP server (9999) to avoid a collision.
 
 Ask an orchestration worker to use the gated tool. An approval should let the
