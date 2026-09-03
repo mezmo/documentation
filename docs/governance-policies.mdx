@@ -35,6 +35,7 @@ The **Policies** page lists every policy in your account. Each row describes one
 | ---- | ---- |
 | **Policy** | The policy name. |
 | **Rules** | The number of rules in the policy. |
+| **Agents** | A badge showing the number of agents that use the policy. Visible only when you have read access to agents. |
 | **Fallthrough** | The outcome applied to calls that no rule permits. |
 | **Draft** | A badge showing whether a draft exists for the policy and the state of that draft. |
 | **Warnings** | An indicator shown when the policy has one or more warnings. |
@@ -49,6 +50,8 @@ When no policies exist, the page prompts you to create one with **New Policy**. 
 ## View a Policy
 
 Click **View** on a policy in the **Policies** list to open its detail page. The detail page shows the policy's name, description, **Policy ID**, current revision (see [Change a Policy](#change-a-policy)), and created date, along with its compiled rules and fallthrough behavior.
+
+The detail page also shows an **Agents** section that lists the agents that use this policy. Each agent links to its edit page, or appears as plain text if you don't have write access to agents. If no agent uses the policy, the section shows **None**. The **Agents** section appears only when you have read access to agents.
 
 From the detail page you can start a new policy with **New Policy** or remove this one with **Delete Policy**. Starting a new policy requires write access; deleting one requires manage access. See [Access and Permissions](#access-and-permissions).
 
@@ -146,9 +149,15 @@ When the outcome is **Require Approval** or **Deny**, you can set an optional **
 
 ### Fallthrough
 
-The fallthrough decides what happens to a call that no rule permits. Choose **Deny Outright** or **Send for Approval**. There is no Allow option for the fallthrough.
+The fallthrough decides what happens to a call that no rule permits. Choose **Allow**, **Deny Outright**, or **Send for Approval**. Choose **Allow** for a policy that exists to block specific calls, where your rules are the exceptions and every other call should pass.
 
-You can also set an optional **Code**, which defaults to `NO_MATCHING_RULE`, and an optional **Message Shown to the Caller**. If you don't set one, Mezmo provides a default message.
+When you choose **Allow**, the call runs, and the **Code** and **Message Shown to the Caller** inputs are hidden. An **Allow** fallthrough returns nothing to the caller, so no code or message is sent. **Deny Outright** and **Send for Approval** return the **Code** and **Message Shown to the Caller** instead. Allowed fallthrough calls are still recorded in the audit log.
+
+<Note>
+Because an accepted policy takes effect immediately, an **Allow** fallthrough paired with an empty or thin rule set lets every call through. Confirm your rules before saving.
+</Note>
+
+For **Deny Outright** and **Send for Approval**, you can also set an optional **Code**, which defaults to `NO_MATCHING_RULE`, and an optional **Message Shown to the Caller**. If you don't set one, Mezmo provides a default message (see [Rule Outcome](#rule-outcome)).
 
 ## Related Topics
 
