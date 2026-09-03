@@ -36,7 +36,7 @@ AURA boots in orchestrator mode. A coordinator routes each request, answering si
 The [AURA CLI](/aura/cli-reference) ships in the same Docker image and connects to the in-container server automatically. Exec into the running container:
 
 ```bash
-docker exec -it aura ./aura
+docker exec -it aura ./aura --api-url http://localhost:8080
 ```
 
 It renders the coordinator's plan and worker activity as the response streams.
