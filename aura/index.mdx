@@ -1,22 +1,22 @@
 ---
 title: "AURA: open source agent harness for production SRE work"
 sidebarTitle: "AURA Overview"
-description: "Scoped tools, approval gates, MCP-native connectivity, and a trace of every call."
+description: "AURA is an open source SRE agent for investigating production incidents, with scoped tool access, human approval gates, and end-to-end OpenTelemetry tracing."
 ---
-
-<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-  <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '999px', background: '#f3eefc', color: '#503A82', fontSize: '12px', fontWeight: 600 }}>
-    Open source · Apache-2.0
-  </span>
-</div>
-
 Written in Rust and licensed Apache 2.0, AURA takes an LLM plus the tools you already run and turns them into an agent that can work a live incident: reading cluster state, querying logs and metrics, checking your runbooks, and reporting what it found.
-
+<div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '24px' }}>
+  <a href="/aura/quickstart" style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: '#503A82', color: '#ffffff', padding: '10px 18px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
+    Try the quickstart
+  </a>
+  <a href="https://github.com/mezmo/aura" style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: '#f3eefc', color: '#503A82', padding: '10px 18px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
+    View source on GitHub
+  </a>
+</div>
 You declare the agent in TOML. Workers are separate roles, each with its own prompt and tool list, so the worker that inspects a cluster is not the worker that changes it. Tools connect over MCP, so anything with an MCP server is reachable without writing an adapter.
 
 ## What it does
 
-Model output alone does not make an agent you can point at production. The harness decides which tools each worker can reach, what pauses before a write, what happens when a tool call fails, what state survives across turns, and what record you have when the run is over. 
+Model output alone does not make an agent you can point at production. The harness decides which tools each worker can reach, what pauses before a write, what happens when a tool call fails, what state survives across turns, and what record you have when the run is over.
 
 You own the config and deployment, and the telemetry goes where you point it. Nothing has to route through a vendor for the agent to work.
 
