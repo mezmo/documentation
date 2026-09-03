@@ -36,7 +36,7 @@ AURA boots in orchestrator mode. A coordinator routes each request, answering si
 The [AURA CLI](/aura/cli-reference) ships in the same Docker image and connects to the in-container server automatically. Exec into the running container:
 
 ```bash
-docker exec -it aura ./aura
+docker exec -it aura ./aura --api-url http://localhost:8080
 ```
 
 It renders the coordinator's plan and worker activity as the response streams.
@@ -229,7 +229,6 @@ Restart with `docker compose restart aura` and try asking a multi-step question.
 
 To run a single agent instead of orchestration, set `[orchestration].enabled = false` and configure a single `[agent]` — see [`examples/reference.toml`](https://github.com/mezmo/aura/blob/main/examples/reference.toml).
 
-For a fully self-contained orchestration example with a math MCP server, see the [Orchestration — Math MCP quickstart](/aura/quickstart-orchestration-math).
 
 ### Full configuration reference
 
@@ -239,7 +238,6 @@ See [`examples/reference.toml`](https://github.com/mezmo/aura/blob/main/examples
 
 Once the stack is running, try these more advanced setups:
 
-- **[Orchestration Quickstart](/aura/quickstart-orchestration-math)** — Multi-agent orchestration with a coordinator that dispatches tasks to specialized workers. Uses a math MCP server to demonstrate parallel task execution.
 - **[Kubernetes SRE Quickstart](/aura/quickstart-k8s-sre)** — Deploy an AI-powered SRE agent on a KIND cluster with real Kubernetes and Prometheus MCP servers.
 - **[Example Configs](/aura/example-configs)** — Minimal per-provider configs and complete agent compositions to use as starting points.
 
