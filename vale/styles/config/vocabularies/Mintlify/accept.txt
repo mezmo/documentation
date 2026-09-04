@@ -9,6 +9,7 @@ Ansible
 antimalware
 apiKey
 APIs
+approver(s?)
 Aptible
 arcsin
 arccos
@@ -123,6 +124,7 @@ Palo
 params
 passthrough
 performant
+plaintext
 pii
 Pino
 prepended
@@ -180,6 +182,8 @@ uninstallations
 [Uu]nmount(s|ed|ing)?
 [Uu]npause
 unparsed
+unredacted
+untrusted
 url
 userinfo
 uuid(s?)
@@ -188,6 +192,7 @@ Vercel
 vrl
 walkthrough(s?)
 webhook's
+webpage(s?)
 websocket(s?)
 whitepaper
 worker_reasoning
