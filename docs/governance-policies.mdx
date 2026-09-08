@@ -188,7 +188,7 @@ For **Tool-Call Argument**, provide the following:
 | **Comparison Operator** | One of **is**, **is not**, **greater than**, **at least**, **less than**, or **at most**. |
 | **Value** | Up to 512 characters. |
 
-You can also add optional **Argument Constraints**: additional argument-name and value pairs that the call must also match exactly (equality only), up to 25 per rule.
+You can also add optional **Argument Constraints**, up to 25 per rule: additional **Argument Name** and **Value** pairs that the call must match. Each constraint row carries its own **Comparison Operator**, drawn from the same set as the **Comparison Operator** above and defaulting to **is**. When an argument's **Comparison Operator** is set to **is not**, the rule also matches a tool call that omits that argument entirely.
 
 A policy can hold up to 250 rules.
 
