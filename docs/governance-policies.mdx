@@ -16,6 +16,11 @@ What you can do with policies depends on your access level.
 - To see the **Policies** link and list, you need read access to policies.
 - To create or edit a policy, you need write access.
 - To delete a policy, you need manage access.
+- To see approver information anywhere (the **Approvers** wizard step, the **Approvers** column, and the **Approvers** item on the detail page), you need read access to roles.
+- To assign an existing approving role, you need read access to roles.
+- To create a new approving role from the wizard, you need write access to roles.
+
+The last three are role permissions, separate from the policy access levels above.
 
 With read-only access, you can view policies, but you cannot create, edit, or delete them. If the list is empty, you see a message that no policies exist instead of the prompt to create one.
 
@@ -23,9 +28,27 @@ The feature must also be enabled for your account, as noted above.
 
 ## How a Policy Evaluates a Tool Call
 
-When an AI agent makes a tool call, the policy checks the call against each of its rules. Each matching rule yields an outcome: **Allow**, **Require Approval**, or **Deny**. A call that no rule permits goes to the policy's **fallthrough**. A policy with no rules sends every call to the fallthrough.
+When an AI agent makes a tool call, the policy checks the call against each of its rules. Each matching rule yields an outcome: **Allow**, **Require Approval**, or **Deny**. A call that no rule permits goes to the policy's **fallthrough**. A policy with no rules sends every call to the fallthrough. A policy can also name an approving role whose members can approve or deny the calls the policy holds for approval. See [Approvers](#approvers).
 
 Mezmo evaluates rules server-side, compiling each policy to AWS Cedar. To see the compiled preview for a policy, turn on the **View Compiled Rule** toggle.
+
+## Approvers
+
+An approving role designates who can approve or deny the tool calls a policy holds: the members of the assigned role. A call is held when a rule outcome is [Require Approval](#rule-outcome) or when the fallthrough is [Send for Approval](#fallthrough).
+
+Naming an approving role is optional, but it is recommended so that every held call has a clear owner.
+
+Viewing approver information requires read access to roles. Without it, the **Approvers** step, the **Approvers** column, and the **Approvers** item on the detail page do not appear, and the create or edit wizard shows four steps instead of five. See [Access and Permissions](#access-and-permissions).
+
+### Assign an Approving Role
+
+On the **Approvers** step of the create or edit wizard, choose one role from the **Approving role** dropdown, or leave it as **No approvers**. Only non-internal roles appear in the dropdown. The role you choose appears on the **Review** step. Assigning an existing approving role needs read access to roles. You can change or remove the approving role later by [editing the policy through a draft](#change-a-policy). See [Access and Permissions](#access-and-permissions).
+
+### Create an Approving Role
+
+With write access to roles, click **Create a role** on the **Approvers** step to create a governance-scoped approving role without leaving the wizard. The modal takes a role name and an optional parent role to inherit from. A role created this way can approve or deny tool calls and view policies. Without write access to roles, the **Create a role** option does not appear.
+
+A link on the step also opens the full role settings under **Settings > Organization > Roles**, where you can create a role with a custom permission set. Creating a role there also requires write access to roles. See [Create or Edit a Role](/docs/rbac#create-or-edit-a-role) and [Access and Permissions](#access-and-permissions).
 
 ## The Policies List
 
@@ -37,6 +60,7 @@ The **Policies** page lists every policy in your account. Each row describes one
 | **Rules** | The number of rules in the policy. |
 | **Agents** | A badge showing the number of agents that use the policy. Visible only when you have read access to agents. |
 | **Fallthrough** | The outcome applied to calls that no rule permits. |
+| **Approvers** | The approving role assigned to the policy, or **None**. Visible only when you have read access to roles. |
 | **Draft** | A badge showing whether a draft exists for the policy and the state of that draft. |
 | **Warnings** | An indicator shown when the policy has one or more warnings. |
 | **Created** | When the policy was created. |
@@ -53,6 +77,8 @@ Click **View** on a policy in the **Policies** list to open its detail page. The
 
 The detail page also shows an **Agents** section that lists the agents that use this policy. Each agent links to its edit page, or appears as plain text if you don't have write access to agents. If no agent uses the policy, the section shows **None**. The **Agents** section appears only when you have read access to agents.
 
+The detail page also shows an **Approvers** item that names the approving role assigned to this policy. The role name links to its entry under **Settings > Organization > Roles**, opening for editing when you have write access to roles, or for viewing otherwise. If no role is assigned, the item shows **None**. The **Approvers** item appears only when you have read access to roles.
+
 From the detail page you can start a new policy with **New Policy** or remove this one with **Delete Policy**. Starting a new policy requires write access; deleting one requires manage access. See [Access and Permissions](#access-and-permissions).
 
 To change the policy, you start or resume a draft from the draft banner on the detail page. The banner action matches the draft's current state. See [Change a Policy](#change-a-policy).
@@ -67,7 +93,10 @@ Before you begin, the AI Governance feature must be enabled for your account, an
 2. On the **Basics** step, enter a **Policy Name** and an optional **Description**.
 3. On the **Rules** step, click **Add Rule** to add one or more rules, or leave the list empty. For each rule, set what to match on, the rule outcome, and any argument constraints. See [Rule Fields and Limits](#rule-fields-and-limits) for the detail.
 4. On the **Fallthrough** step, choose what happens to a call that no rule permits.
-5. On the **Review** step, review the warnings and the summary, then click **Create Policy**.
+5. On the **Approvers** step, choose an **Approving role**, or leave it as **No approvers**. This step is optional. See [Approvers](#approvers).
+6. On the **Review** step, review the warnings and the summary, then click **Create Policy**.
+
+The wizard steps are **Basics**, **Rules**, **Fallthrough**, **Approvers**, and **Review**. Editors without read access to roles do not see the **Approvers** step and complete four steps instead of five. See [Approvers](#approvers).
 
 The new policy appears in the **Policies** list.
 
