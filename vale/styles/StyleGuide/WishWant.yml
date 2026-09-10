@@ -1,0 +1,8 @@
+# Rung: Stated, conditional (hedged: "for actions readers can take")
+# Source: KB style/client_style_guide.md:46 — "Prefer 'want' over 'wish' for actions readers can take"
+extends: existence
+message: "Prefer 'want' over '%s' for actions readers can take."
+level: warning
+ignorecase: true
+tokens:
+  - 'wish(es|ed|ing)?'

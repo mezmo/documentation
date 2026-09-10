@@ -1,0 +1,8 @@
+# Rung: Stated, unconditional
+# Source: KB style/client_style_guide.md:52 — "Avoid em-dashes (—). ... create separate sentences ..."
+extends: existence
+message: "Avoid the em-dash '%s'. Split into separate sentences for clarity."
+level: error
+nonword: true
+tokens:
+  - '—'
