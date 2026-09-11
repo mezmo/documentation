@@ -271,11 +271,15 @@ Configures Model Context Protocol (MCP) tool servers.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `sanitize_schemas` | bool | `true` | Sanitize tool schemas for OpenAI function-calling compatibility. Fixes `anyOf` unions, missing types, and optional parameters that strict mode rejects. |
+| `user_agent` | string | `"aura/<version>"` | Identity AURA presents to every MCP server, as a `product/version` token. Sent verbatim as the HTTP `User-Agent` header on `http_streamable` and `sse` connections, and split into `clientInfo.name` and `clientInfo.version` in the MCP `initialize` handshake on every transport, including `stdio`. A token with no version part reports the running AURA version. Must be printable ASCII with a non-empty product part; the config fails to load otherwise. Set it when your MCP servers track clients and you want to tell one AURA deployment from another. A server entry can set its own `user_agent` to replace this for that server alone. |
 
 ```toml
 [mcp]
 sanitize_schemas = true
+user_agent = "aura/0.2.15"  # default; override to tag a deployment, e.g. "aura-prod-us/0.2.15"
 ```
+
+A per-server `headers = { "User-Agent" = "..." }` entry replaces the header for that server only; the handshake still announces the name and version from `user_agent`.
 
 ### `[mcp.servers.<name>]`
 
@@ -325,6 +329,17 @@ MY_VAR = "value"
 # Script-based example:
 # cmd = ["python3", "/opt/mcp-servers/weather.py"]
 # args = ["--verbose"]
+```
+
+#### Per-server `user_agent`
+
+Every transport accepts an optional `user_agent` that replaces `[mcp].user_agent` for that server on both layers, the HTTP header and the handshake. Use it when one server expects a particular product token, or when you want one server to see a deployment tag that the others should not.
+
+```toml
+[mcp.servers.mezmo]
+transport = "http_streamable"
+url = "https://mcp.mezmo.com/mcp"
+user_agent = "aura-prod-us/0.2.15"
 ```
 
 #### Static Headers
