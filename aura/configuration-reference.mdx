@@ -31,7 +31,7 @@ Authorization = "Bearer {{ env.GITHUB_PERSONAL_ACCESS_TOKEN | default: '' }}"
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `memory_dir` | string | — | Base directory for scratchpad storage and orchestration artifact persistence. Required when scratchpad is enabled. |
+| `memory_dir` | string | — | Base directory for scratchpad storage and orchestration artifact persistence. Required when scratchpad is enabled. Also required for park mode (see [`[hitl.park]`](#hitl-park)). |
 
 ```toml
 memory_dir = "/tmp/aura-sessions"
@@ -545,6 +545,34 @@ mode = "webhook"
 url = "https://approvals.example.com/aura"
 timeout_secs = 300
 ```
+
+### `[hitl.park]`
+
+When `enabled = true` and the HITL route is conversational, a blocked orchestration run is persisted as a durable checkpoint on the local filesystem at run quiescence, instead of being held only in process memory.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | bool | `false` | Activate park mode for blocked conversational worker tool calls. |
+
+Park mode takes effect only when four conditions hold: `[orchestration].enabled = true`, `[hitl.park]` has `enabled = true`, the HITL route is `conversational`, and `memory_dir` is set at the root level, because the checkpoint is written under it. It applies to blocked orchestration worker tool calls; a single-agent run never parks. The webhook route never parks. If `memory_dir` is unset, the run cannot write a checkpoint and errors instead of parking.
+
+Observing the park-mode events (`aura.orchestrator.task_blocked`, `aura.orchestrator.run_parked`) requires `AURA_CUSTOM_EVENTS=true`. See [Orchestration Events](/aura/streaming-api-guide#orchestration-events).
+
+```toml
+memory_dir = "/tmp/aura-sessions"
+
+[hitl]
+require_approval = ["restart_*", "delete_*"]
+
+[hitl.park]
+enabled = true
+
+[hitl.route]
+mode = "conversational"
+timeout_secs = 120
+```
+
+`[hitl.park]` is distinct from a parked approval, described under [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments): a parked approval is the pre-existing pending-approval record held in the session store, while park mode persists a whole blocked orchestration run as a filesystem checkpoint. See [HITL](/aura/hitl#park-mode) for park-mode behavior and the no-resume constraint.
 
 ---
 

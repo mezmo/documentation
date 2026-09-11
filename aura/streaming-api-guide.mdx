@@ -527,6 +527,8 @@ When `orchestration.enabled = true` and `AURA_CUSTOM_EVENTS=true`, the server em
 | `aura.orchestrator.synthesizing` | Coordinator merging worker results (includes iteration number) |
 | `aura.orchestrator.tool_call_started` | A tool call began (coordinator or worker); see the tool-coverage note below |
 | `aura.orchestrator.tool_call_completed` | The matching tool call finished (duration, success) |
+| `aura.orchestrator.task_blocked` | A gate blocked a worker tool call awaiting approval and parked it (emitted once per pending blocked call) |
+| `aura.orchestrator.run_parked` | Orchestration run parked as a durable checkpoint after quiescence (terminal; emitted only after the checkpoint commit succeeds) |
 
 ### Orchestration Event Flow
 
@@ -773,6 +775,57 @@ data:
 Fires before the post-execute coordinator call. Bookends with `iteration_complete`, which fires after the coordinator's routing decision.
 
 Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish — see the [Custom Event Types](#custom-event-types) section above. This is a base `aura.*` event (not orchestration-specific) so the same event fires for single-agent deployments and workers alike.
+
+The next two events fire when park mode is active. See [Park
+mode](/aura/hitl#park-mode) for the no-resume constraint and how a parked run
+differs from a parked approval.
+
+**Task blocked** (a gated worker tool call was blocked and parked):
+```
+event: aura.orchestrator.task_blocked
+data:
+```
+```json
+{
+  "task_id": 2,
+  "tool_call_id": "call_abc123",
+  "decision_id": "019edc27-e4d2-7950-abbf-e37a9060887d",
+  "tool_name": "restart_deployment",
+  "orchestrator_id": "orch-1",
+  "worker_id": "operations",
+  "agent_id": "main",
+  "session_id": "sess_xyz"
+}
+```
+
+`task_id`, `tool_call_id`, `tool_name`, `orchestrator_id`, and `worker_id` identify the blocked call. `decision_id` is the parked approval's id, the same one resolved via `POST /v1/approvals/{decision_id}`. `agent_id` and `session_id` are always present. `agent_name`, `parent_agent_id`, and `trace_id` are omitted when absent.
+
+**Run parked** (blocked run persisted as a durable checkpoint):
+```
+event: aura.orchestrator.run_parked
+data:
+```
+```json
+{
+  "run_id": "019edc27-d7e1-73d2-ac33-1a1e21b3fffd",
+  "decision_ids": ["019edc27-e4d2-7950-abbf-e37a9060887d"],
+  "expires_at": "2026-09-11T12:00:00Z",
+  "iteration": 1,
+  "agent_id": "main",
+  "session_id": "sess_xyz"
+}
+```
+
+Terminal for the run.
+
+- `run_id`: the parked run.
+- `decision_ids`: the decisions still awaiting a human decision. Serializes as `[]` when empty, never omitted.
+- `expires_at` (RFC 3339): the deadline for recording the pending approval decisions (the decision window). It does not bound the checkpoint file's lifetime.
+- `iteration` (1-indexed): the plan-execute iteration the run parked in.
+
+Emitted only after the checkpoint commit succeeds, and not at all if the commit fails or no `memory_dir` is configured.
+
+Both events require `AURA_CUSTOM_EVENTS=true` and orchestration active, like the other orchestration events on this page.
 
 ### Orchestration Correlation
 

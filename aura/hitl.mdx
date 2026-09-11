@@ -236,6 +236,63 @@ The AURA CLI supports this flow in HTTP mode. It renders
 the server. One-shot CLI mode fails loud instead of prompting because it has no
 interactive approval surface.
 
+## Park mode
+
+Park mode persists a blocked orchestration run as a durable checkpoint once the
+run has no work left to do until a human decides. It keeps a gated run beyond the
+in-memory process state that would otherwise hold it. This release writes that
+checkpoint but cannot resume from it: there is no supported way to continue a
+parked run.
+
+Park mode extends the conversational route described above. Configure that route
+and set `memory_dir` before you enable it.
+
+It takes effect when all four conditions hold:
+
+- `[orchestration].enabled = true`. Park mode applies to blocked orchestration
+  worker tool calls. A single-agent run never parks, even with the other three
+  conditions met.
+- `[hitl.park]` sets `enabled = true`.
+- The HITL route is `conversational`. The webhook route never parks.
+- `memory_dir` is set at the root level. If `memory_dir` is unset, the run errors
+  instead of writing a checkpoint.
+
+The checkpoint is a JSON file written under `memory_dir`, not the session store.
+It persists on disk. This release does not garbage-collect or expire it,
+consistent with there being no resume.
+
+While a run parks, the orchestrator emits two events, both gated behind
+`AURA_CUSTOM_EVENTS=true` like the other orchestration events:
+
+- `aura.orchestrator.task_blocked`, once per pending blocked call.
+- `aura.orchestrator.run_parked`, after the checkpoint commit succeeds. It is
+  terminal for the run, and is not emitted if the commit fails or if no
+  `memory_dir` is configured.
+
+See [Orchestration Events](/aura/streaming-api-guide#orchestration-events) for
+the event payloads.
+
+The `expires_at` field on `run_parked` is the deadline for recording the pending
+approval decisions, the decision window derived from the conversational route
+timeout. It does not bound the checkpoint file's lifetime. Because resume is not
+available in this release, `expires_at` has no runtime effect on a parked run in
+v0.2.16; it is informational.
+
+Parking adds no span-level signal. The orchestration run's trace closes with a
+normal (`Ok`) status and no park-specific span or attribute. Observe a park
+through the `aura.orchestrator.task_blocked` and `aura.orchestrator.run_parked`
+SSE events instead. Each carries an optional `trace_id` you can use to correlate
+back to the run's trace.
+
+There is no supported way to resume a parked run in this release. No CLI command
+and no web-server endpoint continues a parked orchestration run.
+
+Park mode is distinct from a parked approval. A parked approval is a single
+pending conversational approval that a `POST /v1/approvals/{decision_id}`
+resolves. The Redis or Valkey session store makes that approval resolvable from
+any pod. Park mode instead persists a whole blocked run as a filesystem
+checkpoint.
+
 ## Webhook manual smoke test
 
 Start a webhook service that accepts the request shape above and returns an
@@ -284,5 +341,8 @@ Expected behavior:
   Redis or Valkey session store. A `POST /v1/approvals/{id}` request that lands on
   any instance then resolves an approval parked on another. See
   [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
+- A parked orchestration run cannot be resumed in this release. See [Park
+  mode](#park-mode) for the constraint and how it differs from resuming a parked
+  approval.
 - Webhook egress has no built-in authentication layer. Put auth, signing, or
   network controls in front of the webhook service.
