@@ -209,6 +209,9 @@ model = "gpt-4o"
 system_prompt = "You are a helpful assistant."
 enable_client_tools = true   # opt in to local tool execution; default is false
 log_file = "/tmp/aura.log"  # append-only; see Logging section below
+
+[status_line]
+segments = ["model", "server", "cwd", "git", "context", "tokens", "scratchpad", "mcp"]  # see Status Line section below
 ```
 
 <Note>**Note on system prompts:** In **HTTP mode**, `--system-prompt` is intended for OpenAI-compatible backends that support system messages. **AURA's server ignores system role messages** — the CLI will prompt you to confirm whether you're connecting to AURA or another service. In **standalone mode**, `--system-prompt` can append to or replace the agent's TOML-configured system prompt (you'll be asked which). In one-shot mode (`--query`), standalone silently appends; HTTP mode requires `--force`.</Note>
@@ -299,6 +302,71 @@ The wizard appends the `[mcp.servers.<name>]` block to your loaded single-file a
 | `Page Up` / `Page Down` | Jump 10 entries through input history                                |
 
 When the **stream panel** is visible, arrow keys and page keys scroll through SSE events instead. Press `Esc` to exit stream panel focus.
+
+---
+
+## Status Line
+
+The status line is the line rendered under the REPL input frame. It summarizes session state as a row of segments. It is REPL-only and does not affect [one-shot mode](#one-shot-mode) (`--query`) output. The CLI renders it locally from state it already holds, including the context meter, so it adds no requests and no tokens.
+
+| Segment        | What It Shows                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| `model`        | The selected model, or the model the server reports.                                                |
+| `server`       | The `--api-url` host in HTTP mode, with the scheme and any credentials removed, shown with a `⇄` prefix. |
+| `cwd`          | The working directory, abbreviated with `~`.                                                        |
+| `git`          | The current Git branch, read from `.git/HEAD`, shown with a `⎇` prefix.                              |
+| `context`      | The context meter or count. See [The Context Meter](#the-context-meter) below.                       |
+| `tokens`       | Cumulative token usage, shown as `in <in> / out <out>`.                                              |
+| `scratchpad`   | [Scratchpad](/aura/scratchpad) token usage, shown as `scratchpad in <in> / out <out>`.               |
+| `mcp`          | Connected and total MCP servers, shown as `mcp <connected>/<total>`.                                 |
+
+These eight names are the only valid segment names, the same names the CLI lists in its stderr warning when you mistype one.
+
+### Choosing and Ordering Segments
+
+You pick and order segments with the `segments` array under `[status_line]` in `cli.toml`, shown in the example in the [Configuration File](#configuration-file) section. The array order is the display order. The same project-overrides-global layering described in that section applies here, though for the `segments` array specifically a project `cli.toml` replaces the global `segments` wholesale rather than merging it element by element. Status-line segments have no CLI flag or environment variable, so they resolve only between `cli.toml` and the built-in defaults.
+
+A shorter list is valid, and its order still governs the display. This partial list drops several default segments and reorders the rest:
+
+```toml
+[status_line]
+segments = ["model", "context", "mcp"]
+```
+
+A shorter, prioritized list keeps the segments you care about (such as `context` and `mcp`) visible when the terminal is narrow, because trailing segments are dropped first.
+
+- Omit the `[status_line]` block to get the default set: all eight segments, in the order shown in the table above.
+- Set `segments = []` to hide every segment.
+- A segment with nothing to show is omitted automatically.
+- An unknown or misspelled segment name is skipped, and the rest of the list still applies. The CLI writes a warning to stderr listing the valid names.
+
+The CLI reads `cli.toml` once at startup. Edit the file and restart `aura` to apply a change to your segments.
+
+### Fitting to the Terminal Width
+
+When the line does not fit the terminal width, the CLI shortens `cwd` first, then drops trailing segments. A right-aligned label appears only once every remaining segment fits. The slot shows the label `AURA, by Mezmo!` when idle and `esc to stop` while a request is streaming.
+
+### The Context Meter
+
+A meter with a percentage appears only when the model's context window is known. That requires [`context_window`](/aura/configuration-reference#agentllm) in the agent config's `[agent.llm]` table, which the CLI learns from the `aura.session_info` event.
+
+- When the window is known, the `context` segment shows a meter plus `N% used/limit`. It turns the warning color (yellow) at 70% or more, and the error color (red) at 90% or more. These warning and error colors are the same across the `context` and `mcp` segments.
+- When no window is known, it shows a bare count with no percentage.
+- The meter is absent in orchestrated conversations, because usage there mixes several agent contexts.
+
+This meter replaces the earlier fixed-percentage display.
+
+### MCP Tally Color
+
+The `mcp` segment uses the normal color when every configured server is connected, the warning color when some are connected, and the error color when none are. These are the same warning and error colors used by [the context meter](#the-context-meter).
+
+### Themes
+
+Segments use per-segment colors under the `normal` style and bold text under `high-contrast`. Under `no-colors`, `server`, `cwd`, `git`, `tokens`, `scratchpad`, and a fully connected `mcp` render as dim text, while `model`, the `context` meter, and a degraded (warning or error) `mcp` render bold for legibility. Set the style with `/style` (see the [Interactive Commands](#interactive-commands) table).
+
+### Standalone and HTTP Differences
+
+In standalone mode (the default) the line shows `cwd` and `git`. The `git` segment appears only in standalone mode; it is not shown in HTTP mode. In HTTP mode (when you pass `--api-url`, see [Backends](#backends)) the line shows `server` instead, and keeps `cwd` only when [`--enable-client-tools`](#client-side-tools) runs local tools against the working tree. A segment with nothing to show is omitted (see [Choosing and Ordering Segments](#choosing-and-ordering-segments)), so `git` also drops out in a directory that is not a Git repository.
 
 ---
 
