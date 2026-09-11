@@ -564,7 +564,17 @@ export AURA_SESSION_STORE_TASK_TTL_SECS=86400            # optional; 0 = no expi
 
 The server pings the backend at startup and fails fast if it is unreachable; `/health` reports the backend and its ping latency.
 
-The Redis backend requires building with the `session-store-redis` cargo feature (`cargo build --release --features aura-cli/session-store-redis`). The in-memory backend is always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
+The Redis backend requires the `session-store-redis` cargo feature. The default release image ships with no optional cargo features, so a container started with `AURA_SESSION_STORE=redis` fails at startup because the Redis backend is not compiled in.
+
+For the multi-pod deployments this section targets, compile the feature into a release image. From a clone of the [AURA repository](https://github.com/mezmo/aura), where the Dockerfile lives, pass the feature through the `CARGO_FEATURES` build argument and target the `release` stage:
+
+```bash
+docker build --build-arg CARGO_FEATURES=session-store-redis --target release -t aura:redis .
+```
+
+`CARGO_FEATURES` takes a comma-separated list of cargo features and defaults to empty, so the default image build is unchanged. To build a local binary instead, run `cargo build --release --features aura-cli/session-store-redis`.
+
+The in-memory backend is always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
 
 ---
 
