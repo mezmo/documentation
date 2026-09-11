@@ -351,8 +351,8 @@ When the line does not fit the terminal width, the CLI shortens `cwd` first, the
 A meter with a percentage appears only when the model's context window is known. That requires [`context_window`](/aura/configuration-reference#agentllm) in the agent config's `[agent.llm]` table, which the CLI learns from the `aura.session_info` event.
 
 - When the window is known, the `context` segment shows a meter plus `N% used/limit`. It turns the warning color (yellow) at 70% or more, and the error color (red) at 90% or more. These warning and error colors are the same across the `context` and `mcp` segments.
-- When no window is known, it shows a bare count with no percentage.
-- The meter is absent in orchestrated conversations, because usage there mixes several agent contexts.
+- When no window is known, it shows a bare count with no percentage. Without a known context window, auto-compaction and the compaction prompt also do not fire.
+- In an orchestrated conversation the meter is shown, reflecting the conversation's context from the `main` `aura.context_usage` reading (the request's first planning call). Mid-turn `aura.tool_usage` estimates are ignored during orchestration, because they mix in worker turns.
 
 This meter replaces the earlier fixed-percentage display.
 
