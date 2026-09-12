@@ -130,7 +130,8 @@ wire shape with `kind` tags for `scope` and `origin`:
       "arguments": {
         "namespace": "prod",
         "deployment": "api"
-      }
+      },
+      "tool_call_intent": "Roll the api deployment to clear the stuck readiness probe reported in the incident."
     }
   ]
 }
@@ -146,6 +147,24 @@ Fields:
 | `scope` | Which agent surface is asking, independent of why. `kind = "single"` for a single-agent run or `kind = "worker"` for an orchestration worker. Both HITL origins carry a scope. |
 | `origin` | Why approval was requested. `kind = "config_gate"` (a configured glob matched the tool call, carries the matched glob) or `kind = "agent_requested"` (the agent called `request_approval`, carries the reason). |
 | `items` | Tool call payloads awaiting approval. One item per request. |
+
+Each object in `items` describes the tool call awaiting approval:
+
+- `tool_name` — the gated MCP tool being called.
+- `arguments` — the tool call arguments.
+- `tool_call_intent` — **Optional.** A short natural-language rationale the agent
+  may supply for why the tool was called, giving the human approver more context.
+  Aura does not act on it automatically. Because it is agent-generated free text,
+  a webhook receiver that displays it to a human approver should treat it as
+  untrusted and escape or sanitize it like any other model output.
+- Omitted entirely from the payload (not `null`, not an empty string) when the
+  agent supplies no rationale, so its absence does not change the protocol
+  `version`.
+
+`tool_call_intent` appears only in the webhook payload's `items[]`. It is not
+included in the `aura.approval_requested`, `aura.approval_pending`, or
+`aura.approval_completed` SSE events, or in the conversational route's pending
+prompt.
 
 ## Webhook response
 
@@ -171,6 +190,50 @@ Response behavior:
 | Non-2xx response | Tool does not run. | The worker receives a tool error: approval channel error. |
 | Invalid JSON response | Tool does not run. | The worker receives a tool error: approval channel error. |
 
+## Forward headers to the webhook
+
+The webhook route accepts two optional `[hitl.route]` keys (valid only when
+`mode = "webhook"`) that add headers to every approval POST:
+
+```toml
+[hitl.route]
+mode = "webhook"
+url = "https://approvals.example.com/aura"
+timeout_secs = 300
+headers = { "Authorization" = "Bearer {{ env.APPROVAL_WEBHOOK_TOKEN }}" }
+headers_from_request = { "x-request-id" = "x-request-id" }
+```
+
+This shows the two common patterns: use static `headers` (with `{{ env.VAR }}`
+interpolation) to authenticate Aura to your own approval service; use
+`headers_from_request` to forward a header from the incoming API request (for
+example a request or correlation id) onto the approval POST.
+
+<Warning>
+  Forwarding `authorization` or other sensitive headers sends them to your
+  third-party approval webhook. This is operator-controlled and intentional, but
+  there is no allowlist or header-classification guard, so be deliberate about
+  which headers you forward. Put auth, signing, or network controls in front of
+  the webhook service (see [Current limitations](#current-limitations)).
+</Warning>
+
+- `headers` — a static map; values are sent verbatim on every approval POST.
+- `headers_from_request` — maps **outgoing header name → incoming request header
+  name**; the incoming lookup is case-insensitive.
+- Precedence: when the mapped incoming request header is present, the forwarded
+  value overrides any static `headers` value for the same (case-normalized) name.
+- When the incoming header is absent, the static `headers` value remains as a
+  fallback.
+- Aura sends all resolved outgoing header names in lowercase.
+- Both keys are optional; when both are absent, the approval POST is unchanged.
+- Invalid header names or values are skipped with a warning and never abort the
+  request.
+- CLI-context caveat: outside the web-server chat endpoint there is no inbound
+  HTTP request. In [CLI standalone mode](/aura/cli-reference#backends),
+  `headers_from_request` resolves only against headers you supply via the
+  `AURA_EXTRA_HEADERS` environment variable (empty by default, so nothing is
+  forwarded unless you set it). Static `headers` always apply.
+
 ## SSE lifecycle events
 
 Approval routes emit lifecycle events on streaming responses. These events are
@@ -195,6 +258,9 @@ posting a decision. `aura.approval_completed` includes `decision_id`, terminal
 `outcome`, `duration_ms`, and `scope`. Outcome kinds are `approved`, `denied`,
 `timed_out`, `cancelled`, and `errored`; `errored` means the approval channel
 failed before a human decision was obtained.
+
+These approval events do not carry `tool_call_intent`; that field is part of the
+webhook payload only.
 
 Aura also stamps this `decision_id` on the `execute_tool` span for every gated
 call, regardless of outcome. This lets you
