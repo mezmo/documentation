@@ -142,6 +142,7 @@ replan(ned|ning)?
 replan_started
 repo
 repos
+rollout
 RSyslog
 ruleset
 runbook(s?)
@@ -186,6 +187,7 @@ uuid(s?)
 Valkey
 Vercel
 vrl
+wait_for
 walkthrough(s?)
 webhook's
 websocket(s?)
