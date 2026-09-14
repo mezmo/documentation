@@ -271,11 +271,15 @@ Configures Model Context Protocol (MCP) tool servers.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `sanitize_schemas` | bool | `true` | Sanitize tool schemas for OpenAI function-calling compatibility. Fixes `anyOf` unions, missing types, and optional parameters that strict mode rejects. |
+| `user_agent` | string | `"aura/<version>"` | The identity AURA presents to every MCP server, as a `product/version` token. AURA sends it verbatim as the HTTP `User-Agent` header on `http_streamable` and `sse` connections, and splits it into `clientInfo.name` and `clientInfo.version` for the MCP `initialize` handshake on every transport, including `stdio`. When the token has no version part, AURA reports the running AURA version instead. The value must be printable ASCII with a non-empty product part, or the configuration fails to load. Set it when your MCP servers track clients and you want to tell one AURA deployment from another. A server entry can set its own `user_agent` to replace this value for that server alone. |
 
 ```toml
 [mcp]
 sanitize_schemas = true
+user_agent = "aura-prod-us/1"  # default is "aura/<version>" (the running AURA version)
 ```
+
+A per-server `headers = { "User-Agent" = "..." }` entry replaces the header for that server only. The handshake still announces the name and version from `user_agent`.
 
 ### `[mcp.servers.<name>]`
 
@@ -325,6 +329,17 @@ MY_VAR = "value"
 # Script-based example:
 # cmd = ["python3", "/opt/mcp-servers/weather.py"]
 # args = ["--verbose"]
+```
+
+#### Per-Server `user_agent`
+
+Every transport accepts an optional `user_agent` that replaces `[mcp].user_agent` for that server. On `http_streamable` and `sse` it also replaces the HTTP `User-Agent` header; on every transport, including `stdio`, it replaces the handshake's `clientInfo.name` and `clientInfo.version`. Use it when one server expects a particular product token, or when you want one server to see a deployment tag that the others should not.
+
+```toml
+[mcp.servers.my_tools]
+transport = "http_streamable"
+url = "http://localhost:8081/mcp"
+user_agent = "aura-prod-us/1"
 ```
 
 #### Static Headers
