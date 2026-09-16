@@ -402,6 +402,7 @@
             "group": "Features",
             "pages": [
               "aura/streaming-api-guide",
+              "aura/wait-for",
               "aura/a2a-implementation",
               "aura/hitl",
               "aura/scratchpad",
