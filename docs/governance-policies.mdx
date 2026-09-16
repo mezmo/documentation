@@ -92,7 +92,7 @@ Before you begin, the AI Governance feature must be enabled for your account, an
 
 1. Open **Governance** > **Policies**, then click **New Policy**.
 2. On the **Basics** step, enter a **Policy Name** and an optional **Description**.
-3. On the **Rules** step, click **Add Rule** to add one or more rules, or leave the list empty. For each rule, set what to match on, the rule outcome, and any argument constraints. See [Rule Fields and Limits](#rule-fields-and-limits) for the detail.
+3. On the **Rules** step, click **Add Rule** to add one or more rules, or leave the list empty. For each rule, set what it matches on and the rule outcome. See [Rule Fields and Limits](#rule-fields-and-limits) for the detail.
 4. On the **Fallthrough** step, choose what happens to a call that no rule permits.
 5. On the **Approvers** step, choose an **Approving role**, or leave it as **No approvers**. This step is optional. See [Approvers](#approvers).
 6. On the **Review** step, review the warnings and the summary, then click **Create Policy**.
@@ -237,11 +237,21 @@ You cannot delete a policy while another editor holds an active draft for it. On
 
 ### Rule Matching
 
-The **Match On** setting determines what part of a tool call a rule applies to. Choose **Tool Namespace** or **Tool Name**.
+The **Match On** setting determines what part of a tool call a rule applies to. Choose one or more of **Tool Namespace**, **Tool Name**, and **Tool-Call Arguments**. Every selected match must hold for the rule to apply, and at least one is required.
 
-For either, provide a value and set the **Matches** or **Does Not Match** toggle.
+- **Tool Namespace** matches every tool in a namespace, such as `k8s_mcp`.
+- **Tool Name** matches one specific tool, such as `delete`.
+- **Tool-Call Arguments** matches the values the agent passed, each compared with its own operator.
 
-To match on a tool-call argument value, use **Argument Constraints**. You can add up to 25 per rule: **Argument Name** and **Value** pairs that the call must match. **Argument Name** accepts letters, digits, and underscores, must start with a letter or an underscore, and allows up to 64 characters; **Value** allows up to 512 characters. Each constraint row carries its own **Comparison Operator**, one of **is**, **is not**, **is one of** (`in`), **is not one of** (`nin`), **greater than**, **at least**, **less than**, or **at most**, and defaults to **is**. When a constraint's **Comparison Operator** is set to **is not**, the rule also matches a tool call that omits that argument entirely. When you choose **is one of** or **is not one of**, the single **Value** input becomes a multi-value input. Enter one or more values, pressing Enter after each. At least one value is required, and each value allows up to 512 characters. Each value is interpreted the same way other rule values are, so numbers and booleans are coerced.
+For **Tool Namespace** and **Tool Name**, provide a value and set the **Matches** or **Does Not Match** toggle. Because tool names can repeat across namespaces, combine **Tool Name** with **Tool Namespace** to pin down which one.
+
+For **Tool-Call Arguments**, add up to 25 argument rows per rule. Each row has an **Argument Name**, a **Comparison** operator, and a **Value**:
+
+- **Argument Name** accepts letters, digits, and underscores, must start with a letter or an underscore, and allows up to 64 characters.
+- **Value** allows up to 512 characters.
+- **Comparison** is one of **is**, **is not**, **is one of** (`in`), **is not one of** (`nin`), **greater than**, **at least**, **less than**, or **at most**, and defaults to **is**. When the operator is set to **is not**, the rule also matches a tool call that omits that argument entirely. When it is set to **is one of** or **is not one of**, the **Value** input becomes a multi-value input: enter one or more values, and press Enter after each value. At least one value is required, and each value allows up to 512 characters.
+
+Argument values are interpreted so that numbers and booleans are coerced.
 
 A policy can hold up to 250 rules.
 
