@@ -519,7 +519,7 @@ filesystem = true
 
 ## `[hitl]`
 
-Human-in-the-loop (HITL) approval gates let an agent ask for permission before running selected MCP tools. `[hitl]` is the enable bit — there is no separate `enabled` field; presence of the table turns it on, and `route` is required when it's present. See [HITL](/aura/hitl) for the full route contracts, SSE lifecycle events, and current scope (single-agent vs. orchestration worker gating).
+Human-in-the-loop (HITL) approval gates let an agent ask for permission before running selected MCP tools. `[hitl]` is the enable bit: there is no separate `enabled` field. Adding the table turns HITL on, and `route` is required whenever `[hitl]` is present. See [HITL](/aura/hitl) for the full route contracts, SSE lifecycle events, current scope (single-agent vs. orchestration worker gating), and webhook signing.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
@@ -545,6 +545,24 @@ mode = "webhook"
 url = "https://approvals.example.com/aura"
 timeout_secs = 300
 ```
+
+### Webhook Signing
+
+Unlike the rest of `[hitl]`, webhook signing is configured by environment
+variables rather than TOML. Signing is off by default; setting a secret enables
+it.
+
+| Environment variable | Default | Description |
+|---|---|---|
+| `AURA_HITL_WEBHOOK_SECRET` | none (signing off) | Primary HMAC key. Presence enables signing. Raw UTF-8 bytes are used as the key, with a minimum of 32 bytes. An empty or whitespace-only value is a startup error. |
+| `AURA_HITL_WEBHOOK_SECRET_SECONDARY` | none | Optional second key, used for verification only, to support zero-downtime key rotation. Setting it without a primary is a startup error. |
+| `AURA_HITL_WEBHOOK_TOLERANCE_SECS` | `300` | Allowed timestamp skew window, in seconds. Valid range is 1 to 86400. |
+
+When a secret is set together with an `http://` (unencrypted) webhook URL, Aura
+refuses to start. HTTPS is required when signing is on.
+
+See [HITL](/aura/hitl#sign-and-verify-approval-webhooks) for the header contract,
+the responder signing obligation, and key rotation.
 
 ---
 
