@@ -349,11 +349,12 @@ data:
   "prompt_tokens": 18777,
   "completion_tokens": 500,
   "total_tokens": 19277,
+  "agent_id": "main",
   "session_id": "sess_xyz"
 }
 ```
 
-Emitted from the `on_stream_completion_response_finish` hook when usage data is available. Associates the completed tool IDs with a token usage snapshot. No `agent_id` field (only `CorrelationContext`).
+Emitted from the `on_stream_completion_response_finish` hook when usage data is available. Associates the completed tool IDs with a token usage snapshot. Carries `agent_id` (`main` for single-agent, `coordinator` in orchestration mode), the same agent-context field the other agent-scoped `aura.*` events use, alongside its `CorrelationContext`.
 
 **Usage** (final token usage at stream end):
 ```
