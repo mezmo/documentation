@@ -271,10 +271,12 @@ Configures Model Context Protocol (MCP) tool servers.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `sanitize_schemas` | bool | `true` | Sanitize tool schemas for OpenAI function-calling compatibility. Fixes `anyOf` unions, missing types, and optional parameters that strict mode rejects. |
+| `connect_timeout_secs` | integer | `30` | Seconds to wait for a single MCP server's connect, initialize, and tool-discovery sequence to finish. If the server does not respond within this window, it is marked failed like any other connection error, rather than blocking the agent. Other servers are unaffected. |
 
 ```toml
 [mcp]
 sanitize_schemas = true
+connect_timeout_secs = 30
 ```
 
 ### `[mcp.servers.<name>]`
