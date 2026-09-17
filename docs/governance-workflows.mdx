@@ -14,9 +14,9 @@ AI Governance is available when the feature is enabled for your account. If the 
 What you can do with workflows depends on your access level.
 
 - To view the Workflows list and a workflow's detail, you need **read** access.
-- To make a decision on a workflow, you need **write** access.
+- To make a decision on a workflow, you need **write** access. If the workflow's policy names an approver role, you must also belong to that role. See [Making a Decision](#making-a-decision).
 
-With read-only access, you can view workflows, but you cannot approve or deny them. Someone with write access must make the decision, so you can share the workflow's URL with them.
+With read-only access, you can view workflows, but you cannot approve or deny them. To get a decision, share the workflow's URL with someone who can decide it.
 
 ## How a Workflow Is Created
 
@@ -54,6 +54,8 @@ Selecting a workflow opens its detail page, which shows:
 ## Making a Decision
 
 On a **Pending** workflow, when decision-making is enabled for your account, a reader with write access sees a **Decision Gate** with a **reason** field and **Deny** and **Approve Workflow** controls. A reader with read-only access can open the workflow but does not see the Decision Gate.
+
+You also need to belong to the approver role that the workflow's policy requires. The policy names this role when it's configured. See [AI Governance Policies](/docs/governance-policies). Without that role, write access alone does not let you decide. If the policy names no approver role, write access is enough. The required role is fixed when the workflow is created, so editing or deleting the policy later does not change who can decide on a pending workflow. You can still change who can decide by updating who belongs to that role. See [Role-Based Access Control](/docs/rbac).
 
 <Note>
 The ability to approve or deny workflows is still rolling out and may not yet be available for your account.
