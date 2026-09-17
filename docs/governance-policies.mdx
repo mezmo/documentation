@@ -43,7 +43,7 @@ Viewing approver information requires read access to roles. Without it, the **Ap
 
 ### Assign an Approving Role
 
-On the **Approvers** step of the create or edit wizard, choose one role from the **Approving role** dropdown, or leave it as **No approvers**. Only non-internal roles appear in the dropdown. The role you choose appears on the **Review** step. Assigning an existing approving role needs read access to roles. You can change or remove the approving role later by [editing the policy through a draft](#change-a-policy). See [Access and Permissions](#access-and-permissions).
+On the **Approvers** step of the create or edit wizard, choose one role from the **Approving role** dropdown, or leave it as **Anyone can approve**. Only non-internal roles appear in the dropdown. The role you choose appears on the **Review** step. Assigning an existing approving role needs read access to roles. You can change or remove the approving role later by [editing the policy through a draft](#change-a-policy). See [Access and Permissions](#access-and-permissions).
 
 ### Create an Approving Role
 
@@ -94,7 +94,7 @@ Before you begin, the AI Governance feature must be enabled for your account, an
 2. On the **Basics** step, enter a **Policy Name** and an optional **Description**.
 3. On the **Rules** step, click **Add Rule** to add one or more rules, or leave the list empty. For each rule, set what it matches on and the rule outcome. See [Rule Fields and Limits](#rule-fields-and-limits) for the detail.
 4. On the **Fallthrough** step, choose what happens to a call that no rule permits.
-5. On the **Approvers** step, choose an **Approving role**, or leave it as **No approvers**. This step is optional. See [Approvers](#approvers).
+5. On the **Approvers** step, choose an **Approving role**, or leave it as **Anyone can approve**. This step is optional. See [Approvers](#approvers).
 6. On the **Review** step, review the warnings and the summary, then click **Create Policy**.
 
 The wizard steps are **Basics**, **Rules**, **Fallthrough**, **Approvers**, and **Review**. Editors without read access to roles do not see the **Approvers** step and complete four steps instead of five. See [Approvers](#approvers).
