@@ -15,7 +15,7 @@ Organization administrators can:
 
 ## Members
 
-The Members screen shows each Mezmo Organization member with their email and [roles](/docs/rbac). The **Roles** column shows a role-name badge for each role a member holds, and the owner shows an **Owner** badge. You can also see how many people your plan lets you have on your team. From the [Roles](/docs/rbac) page, you can open this page filtered by member or by role.
+The Members screen shows each Mezmo Organization member with their email and [roles](/docs/rbac). The **Roles** column shows a role-name badge for each role a member holds. The owner shows an **Owner** badge plus a badge for each additional role the owner holds. You can also see how many people your plan lets you have on your team. From the [Roles](/docs/rbac) page, you can open this page filtered by member or by role.
 
 ## Invite Members
 
@@ -33,6 +33,14 @@ To add a member:
 The same modal handles inviting and editing members. Open the edit view from the inline **Edit** (pencil) action on the member row. You can edit a member at any time, including while they have an outstanding invitation.
 
 The email address is read-only when editing. Change a member's roles through the roles selector. At least one role is required to save.
+
+### Edit the Account Owner
+
+Only the owner can edit the owner. Other administrators can't. The owner adds and removes additional roles the same way as any other member, and the owner's email address is read-only when editing.
+
+The **Owner** role is always kept and never appears in the roles selector, so the owner can save without selecting any additional role.
+
+To change who the owner is, go to **Settings &gt; Organization &gt; General**. See [Change the Organization Owner](/docs/organization-management-overview#change-the-organization-owner) for details. You can't transfer ownership from the Members screen.
 
 ## Remove a Member
 
