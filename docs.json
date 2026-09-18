@@ -127,6 +127,7 @@
             "pages": [
               "docs/organization-management-overview",
               "docs/manage-access",
+              "docs/audit-events",
               "docs/manage-usage",
               "docs/manage-usage-quotas",
               "docs/manage-enterprise-organizations",

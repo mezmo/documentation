@@ -1,0 +1,58 @@
+---
+title: "Audit Events"
+description: "Review a record of the changes made in your Mezmo account: what happened, who or what did it, and what it affected."
+---
+
+Use Audit Events to review a record of the changes made in your Mezmo account, for audit and compliance. You can also confirm that a change to the account took effect. For example, you can see who changed an account setting, a role, or an access configuration, and when. This record is also called an audit log or an audit trail. This page covers how to view Audit Events in the Mezmo web app. It does not cover the underlying audit service, its API, or its event schema.
+
+## What Audit Events Are
+
+Audit Events is an account-scoped, read-only record of the changes made in your account. Each event captures what happened, who or what did it, and what it affected. The actor that made a change can be a user, a service, or the system itself.
+
+Audit Events has two parts. A list view shows every event in your account, and a detail view shows a single event. You can only view these records. You cannot create, edit, or delete an audit event.
+
+## Availability
+
+<Note>
+Audit Events is rolling out and might not be available in every account yet. If you do not see it in Settings, it is not enabled for your account yet.
+</Note>
+
+Once Audit Events is enabled for your account, any member can view it. No specific role is required. Your permissions affect only whether an id in an event's detail view links to the related item in Mezmo.
+
+## Open Audit Events
+
+- In **Settings &gt; Manage**, select **Audit Events**.
+
+## Review the List
+
+The list shows the audit events in your account, one row per event, with these columns:
+
+- **Time** - when the event occurred.
+- **Event** - the event name and a short summary of what happened.
+- **Actor** - who or what performed the change, shown with an identifier. The actor is a user, a service, or the system.
+- **Entity** - the affected item, shown with its id and type.
+
+Events appear newest first, and you cannot change this order. The list is paginated. Use **Previous** and **Next** to move through it. To open a single event, select the event's name or its **View** action.
+
+## Filter the List
+
+Filter the list using these fields:
+
+- **Event Name** - an exact match on a three-part dotted name in the form `component.resource.action`, for example `auth.accesskey.update`.
+- **Correlation Id** - the identifier that groups events from the same request. Filtering by it requires a date range of 24 hours or less.
+- **Date Range** - a from and to time range.
+- **Reset** - clears the active filters.
+
+There is no free-text or keyword search. Filter with these fields only.
+
+## View an Event's Details
+
+Select an event to open its detail view. It is organized into these sections:
+
+- **Actor** - the actor type (user, service, or system) and its identifier and account.
+- **Entity** - the entity type and id. When the entity type supports links, and you have permission to view the item, the id links to that item in Mezmo. Otherwise, the id appears as plain text.
+- **Changes** - the fields that changed, each with its before and after values. Each field is marked Created, Updated, or Removed. A created field shows only the new value, and a removed field shows only the previous value.
+- **Event** - the event's metadata: the Occurred and Received times, Event Name, Event Id, and Correlation Id. It also has a **View events from the same request** action that shows the other events sharing that correlation id.
+- **Source** - the name and version of the application that emitted the event.
+- **Additional Context** - any extra details the event's source attached.
+- **Raw Event** - the complete event as JSON, for inspection.
