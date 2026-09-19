@@ -360,6 +360,90 @@ Gets details for a specific AI investigation by id. A returned investigation inc
 **Example:**
 "Show me the details for investigation 66f1a2b3c4d5e6f7a8b9c0d1"
 
+### 11. Log Pattern Analysis
+
+These tools analyze masked log patterns, also called templates (log lines grouped by structure, with their variable values masked out), rather than raw log lines. They support root-cause analysis by summarizing which log patterns occur, how their volume changed against a baseline, and where errors grew. An agent uses that summary to find the time ranges, apps, and patterns worth investigating. Start with `get_log_overview` to find a time range, then narrow it with `find_log_patterns`. From there, drill into a single template with `get_log_pattern_series`, or rank the biggest movers with `get_log_dimension_changes`. All times are RFC3339, with `from_time` inclusive and `to_time` exclusive.
+
+Template text is masked, so it is not a search query. To read the raw lines behind a pattern, pass the app, host, severity, and time range from a result to the log analysis tools such as `analyze_logs_for_root_cause_time_range`.
+
+<Note>
+These log tools appear in the tool list, and are callable, only when Mezmo reports that your account has distilled log data. If your account has no such data, the tools are hidden and do not appear. Mezmo evaluates availability automatically per account, and there is no feature flag or toggle to turn on. If an agent calls one of these tools while it is unavailable, the server responds with a `tool not found` error, the same as for an unknown tool.
+</Note>
+
+#### `get_log_overview`
+
+Returns per-window totals, severity counts, distinct hosts, novel-pattern counts (novel patterns are those first seen in the current range, not present in the baseline), and the apps with the most errors over a time range. Use it first to pick a range to narrow with `find_log_patterns`.
+
+**Parameters:**
+
+- `from_time` (required): Start of the range, as an RFC3339 timestamp.
+- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 30 days into the past.
+- `top_apps_limit` (optional): Number of top-error apps to return, from 1 to 20. Defaults to `5`.
+
+`novel_patterns` is null during your account's warm-up period, near its first window; `query_info.history_insufficient` reports this.
+
+**Example:**
+"Give me a log overview for the checkout-api over the last hour"
+
+#### `find_log_patterns`
+
+Finds ranked log patterns (templates) in a time range against a baseline. By default it orders changed patterns first, then by severity, then deviation, then count. Deviation is a pattern's count divided by its baseline count, so it measures how far the pattern's volume moved from the baseline. A pattern counts as changed when it is novel with at least `min_count` events, or its deviation passes the service's change threshold.
+
+**Parameters:**
+
+- `from_time` (required): Start of the range, as an RFC3339 timestamp.
+- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 90 days.
+- `baseline_from_time` and `baseline_to_time` (optional): The baseline window to compare against. Set both or neither. Defaults to a same-length window immediately before `from_time`.
+- `apps` (optional): Limit results to specific apps.
+- `severities` (optional): Limit results to one or more severity levels.
+- `q` (optional): Case-insensitive substring filter on the masked template text.
+- `novel_only` (optional): Return only novel patterns. Defaults to `false`.
+- `min_count` (optional): Minimum pattern count to include. Defaults to `5`.
+- `min_deviation` (optional): Minimum deviation to include.
+- `min_sample_count` (optional): Minimum sample count to include. Defaults to `10`.
+- `sort` (optional): Sort field. One of `deviation`, `count`, or `first_seen`.
+- `limit` (optional): Maximum number of patterns to return, from 1 to 500. Defaults to `50`.
+
+When the baseline history is insufficient (`query_info.history_insufficient`), the deviation, novel, and changed fields are null, and results fall back to severity-then-count order.
+
+**Example:**
+"Find the log patterns that changed most in the payment-service in the last 2 hours"
+
+#### `get_log_pattern_series`
+
+Returns one template's per-window counts over a time range, for a `template_id` from `find_log_patterns`.
+
+**Parameters:**
+
+- `template_id` (required): The template to chart, from a `find_log_patterns` result. A value of `"0"` is rejected.
+- `from_time` (required): Start of the range, as an RFC3339 timestamp.
+- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 90 days.
+- `app` (optional): Limit the series to one app.
+- `version` (optional): Limit the series to one app version. Requires `app`; providing `version` without `app` is rejected.
+- `breakdown` (optional): Add one series per app or per app version. One of `app` or `version`.
+
+**Example:**
+"Show the per-hour trend for that template over the last day"
+
+#### `get_log_dimension_changes`
+
+Ranks apps, hosts, or nodes by how much their errors grew against a baseline.
+
+**Parameters:**
+
+- `dimension` (required): What to rank. One of `apps`, `hosts`, or `nodes`.
+- `from_time` (required): Start of the range, as an RFC3339 timestamp.
+- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 30 days into the past.
+- `baseline_from_time` and `baseline_to_time` (optional): The baseline window to compare against. Set both or neither. Defaults to a same-length window immediately before `from_time`.
+- `app`, `host`, and `node` (optional): Limit results to a single app, host, or node.
+- `min_sample_count` (optional): Minimum sample count to include. Defaults to `10`.
+- `limit` (optional): Maximum number of records to return, from 1 to 500. Defaults to `50`.
+
+Host and node results carry their apps, which you can use to filter a `find_log_patterns` call.
+
+**Example:**
+"Which hosts had the biggest jump in errors over the last 6 hours compared to the day before?"
+
 ---
 
 ## Query Syntax
