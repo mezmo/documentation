@@ -140,6 +140,7 @@ AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 | `aura.progress` | MCP progress notifications during long-running tools | ✅ Implemented |
 | `aura.session_info` | Session metadata (model, context window) emitted at stream start | ✅ Implemented |
 | `aura.mcp_status` | Per-server MCP connection status emitted at stream start (connected/failed/not_attempted, with failure reason) | ✅ Implemented |
+| `aura.remote_agent_answer` | One remote agent's answer from a batched `ask_agent` call, emitted as soon as it lands (single-agent mode) | ✅ Implemented |
 | `aura.worker_phase` | Worker phase transitions in multi-agent mode (planning/executing/analyzing) | ✅ Implemented |
 | `aura.tool_usage` | Usage snapshot after tool execution (associates tool IDs with token counts) | ✅ Implemented |
 | `aura.usage` | Final token usage emitted at stream end (prompt/completion/total) | ✅ Implemented |
@@ -320,6 +321,24 @@ data:
 Note: `status` is one of `connected`, `failed`, or `not_attempted`. This lets a client distinguish a server that is configured but unavailable (`failed`, with a `reason`) from one that connected and legitimately exposes no tools (`connected`, `tools_count: 0`). `reason` is present only for failed servers. The event is omitted entirely when no servers are configured. `aura.mcp_status` includes only `CorrelationContext` fields (`session_id`, `trace_id`) — no `agent_id`.
 
 In orchestration mode all workers share a single `McpManager`, so one `aura.mcp_status` reports the whole run's server status. The wire shape is identical to single-agent mode; it just arrives slightly later (after the manager connects, before planning) rather than at stream start. Requires `AURA_CUSTOM_EVENTS=true` in both modes.
+
+**Remote agent answer** (one per entry of a batched [`ask_agent`](/aura/a2a-remote-agents#asking-several-agents-at-once) call, as each answer lands):
+```
+event: aura.remote_agent_answer
+data:
+```
+```json
+{
+  "remote": "dev",
+  "success": true,
+  "text": "checkout, default, inventory, ...\n\n---\nremote agent \"dev\" · completed · task 7f3c... · context_id 91ab...",
+  "elapsed_ms": 26400,
+  "agent_id": "main",
+  "session_id": "sess_xyz"
+}
+```
+
+Note: `remote` is the configured `[a2a.remote.<name>]` name. `text` is that entry's section of the tool result: the answer and its trailer, or the error when `success` is `false`. `elapsed_ms` is measured from the start of the batch. The event is emitted only for calls with two or more `calls` entries, only in single-agent mode, and only with `AURA_CUSTOM_EVENTS=true`. The final `aura.tool_complete` for the same call still carries the whole result.
 
 **Worker phase** (phase transitions in multi-agent mode):
 ```

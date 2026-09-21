@@ -1,0 +1,232 @@
+---
+title: "Calling Remote Agents (A2A)"
+description: "Let an Aura agent delegate work to other Aura agents over A2A with the ask_agent tool: hub-and-spoke configuration, per-worker access, batching, timeouts, and events."
+---
+
+An Aura agent can call other Aura agents over the [A2A protocol](https://github.com/a2a-protocol) as a tool. This is the sending half of A2A. [A2A Integration](/aura/a2a-implementation) covers the receiving half.
+
+The common shape is **hub and spoke**. One hub agent talks to the user. Spoke agents run next to the systems they manage, for example one Aura per environment or per cluster, each with its own MCP tools and credentials. The hub asks a spoke a question, the spoke does the work with its own tools, and the hub gets the answer back as a tool result.
+
+You list the remote agents in an `[a2a]` section. Aura exposes all of them to the model through one tool, `ask_agent`.
+
+## Quick start
+
+On each spoke, enable the A2A endpoints and set the address the hub will reach it at:
+
+```bash
+AURA_ENABLE_A2A=true AURA_SERVER_URL=http://dev-aura:8080 \
+  aura webserver --config dev-agent.toml
+```
+
+On the hub, name each spoke under `[a2a.remote.<name>]`:
+
+```toml
+[agent]
+name = "Hub"
+system_prompt = """
+You coordinate the dev and stage environments. Use ask_agent to put any
+question about an environment to that environment's agent. The remote agent
+cannot see this conversation, so write a self-contained prompt.
+"""
+
+[agent.llm]
+provider = "openai"
+api_key = "{{ env.OPENAI_API_KEY }}"
+model = "gpt-5.5"
+
+[a2a.remote.dev]
+url = "http://dev-aura:8080"
+description = "Aura in the dev environment"
+
+[a2a.remote.stage]
+url = "http://stage-aura:8080"
+description = "Aura in the stage environment"
+```
+
+Then ask the hub about an environment. The model calls `ask_agent` with `agent = "dev"` and a prompt, waits for the dev agent's answer, and replies with it.
+
+## How a call works
+
+1. The hub sends the prompt with `SendMessage` to the spoke's A2A v1.0 JSON-RPC endpoint, `{url}/a2a/v1/rpc`.
+2. The spoke answers with a task. The hub polls it with `GetTask` every `poll_interval_secs` until the task settles.
+3. The hub reads the answer from the task's final artifact and returns it to the model as the tool result.
+
+A task is settled when it is `completed`, `failed`, `canceled`, or `rejected`, or when the spoke needs more from the caller (`input_required` or `auth_required`). If the spoke replies with a message instead of a task, that message is the answer and there is nothing to poll.
+
+The spoke must serve the A2A v1.0 JSON-RPC binding. An Aura web server started with `AURA_ENABLE_A2A=true` does.
+
+## Configuration
+
+`[a2a]` holds the defaults. Each `[a2a.remote.<name>]` entry is one remote agent. See [`[a2a]`](/aura/configuration-reference#a2a) in the configuration reference for the full field tables.
+
+```toml
+[a2a]
+poll_interval_secs = 2        # seconds between GetTask polls
+timeout_secs = 600            # budget for one remote call, send to answer
+max_response_bytes = 65536    # cap on the answer text given to the model
+
+[a2a.remote.dev]
+url = "https://aura.dev.example.com"
+description = "Verifies deployments in the dev cluster"
+model = "release-verifier"
+timeout_secs = 900            # this remote's own budget
+headers = { Authorization = "Bearer {{ env.DEV_AURA_KEY }}" }
+headers_from_request = { "x-request-id" = "x-request-id" }
+```
+
+- **The name** is how the model addresses the remote, so it appears in the tool's schema. It may use only letters, digits, `_`, and `-`.
+- **`url`** is the spoke's origin. Aura appends `/a2a/v1/rpc`. A trailing slash, or a URL that already ends in `/a2a/v1/rpc`, is accepted. Credentials in the URL, a query string, or a fragment are refused. Put credentials in `headers` instead.
+- **`description`** tells the model what the remote is for. It is listed in the `ask_agent` tool description, so write it for the model.
+- **`model`** selects an agent on a spoke that loads several configs. It is sent as the `x-aura-model` header and matched against `agent.alias`, then `agent.name`, as described in [Model selection](/aura/a2a-implementation#model-selection-x-aura-model). The model cannot choose a different agent; only this setting does.
+
+Aura validates the whole section at startup with the same URL and header parsers the client uses, so a config that loads will not fail later when a request builds the tool.
+
+### Headers
+
+`headers` are sent on every request to that remote. `headers_from_request` copies headers from the request that reached the hub. It maps an outgoing header name to an incoming header name, the same way as [MCP header forwarding](/aura/configuration-reference#header-forwarding-headers_from_request). A forwarded header takes precedence over a static header of the same name. When the incoming request lacks the header, the static value is sent.
+
+Some header names are reserved and cannot appear in either table: `x-aura-model` (use `model`), `a2a-version`, `host`, `content-length`, and `content-type`.
+
+<Warning>
+The A2A endpoints on a spoke have no built-in authentication. Put the spoke behind a gateway, mTLS, or network policy, and use `headers` to send whatever credential that layer expects.
+</Warning>
+
+## The `ask_agent` tool
+
+The model calls one remote with `agent` and `prompt`:
+
+```json
+{ "agent": "dev", "prompt": "List the namespaces in the dev cluster." }
+```
+
+The prompt must be self-contained. The remote agent sees only the prompt, not the hub's conversation.
+
+### Results
+
+A successful call returns the remote's answer followed by a one-line trailer:
+
+```
+checkout, default, inventory, kube-node-lease, kube-public, kube-system, ...
+
+---
+remote agent "dev" · completed · task 7f3c… · context_id 91ab…
+```
+
+A task that ends `failed`, `rejected`, or `canceled` returns a tool error that starts with `Tool returned an error:` and includes the remote's explanation.
+
+### Continuing a conversation
+
+To follow up with the same remote, the model calls `ask_agent` again with the same `agent` and the `context_id` from the trailer. The remote then treats the new prompt as part of the same conversation. This is also how the model answers a remote that stopped in `input_required` or `auth_required` to ask a question.
+
+```json
+{ "agent": "dev", "prompt": "Which of those have pods restarting?", "context_id": "91ab…" }
+```
+
+### Asking several agents at once
+
+To put requests to several remotes in parallel, the model passes `calls` instead of `agent` and `prompt`, with one entry per request (at most 8):
+
+```json
+{
+  "calls": [
+    { "agent": "dev",   "prompt": "List the namespaces in the dev cluster." },
+    { "agent": "stage", "prompt": "Do a 2-minute sweep of the stage cluster." }
+  ]
+}
+```
+
+Every entry runs its own call, with its own timeout and cancellation, and the batch waits for all of them. The result has one section per entry under a `## <agent>` heading, each with its own trailer. One failed entry appears as an error in its own section. The call fails only when every entry fails.
+
+In a single-agent stream, each entry's answer is also sent as an [`aura.remote_agent_answer`](/aura/streaming-api-guide#custom-event-types) event as soon as it lands, so a client can show the fast answers while slower ones are still running. The Aura CLI prints each one as it arrives.
+
+Without `calls`, two `ask_agent` calls in the same turn run one after the other.
+
+## Orchestration: per-worker remotes
+
+In [orchestration mode](/aura/configuration-reference#orchestration), remote access is opt-in per worker. A worker gets `ask_agent` only when its `remotes` field names entries from `[a2a.remote]`, and its tool covers exactly those remotes. A worker that names none gets no `ask_agent`, like `vector_stores`.
+
+```toml
+[a2a.remote.dev]
+url = "http://dev-aura:8080"
+description = "Aura in the dev environment"
+
+[a2a.remote.stage]
+url = "http://stage-aura:8080"
+description = "Aura in the stage environment"
+
+[orchestration]
+enabled = true
+tools_in_planning = "full"
+
+[orchestration.worker.dev]
+description = "Anything about the dev environment"
+preamble = "Use ask_agent with agent dev. Relay its answer verbatim."
+remotes = ["dev"]
+
+[orchestration.worker.stage]
+description = "Anything about the stage environment"
+preamble = "Use ask_agent with agent stage. Relay its answer verbatim."
+remotes = ["stage"]
+
+[orchestration.worker.local]
+description = "General questions that need no environment"
+preamble = "Answer from your own knowledge."
+```
+
+- **Workers are pinned to their remotes.** The dev worker's tool lists only `dev`. If it asks for `stage`, the call fails with `unknown remote agent "stage"; configured agents: dev`.
+- **Names are checked at startup.** A `remotes` entry that is not in `[a2a.remote]` fails to load, as does `remotes` without an `[a2a]` section.
+- **`mcp_filter` does not apply.** It selects MCP tools only. A worker's remote access comes only from `remotes`.
+- **The generic worker has no remotes.** Tasks the coordinator assigns to no named worker run without `ask_agent`.
+- **The coordinator plans; it does not call.** The coordinator lists `ask_agent` under each worker that has it. With `tools_in_planning = "full"`, each listing names only that worker's remotes, so the coordinator can see which worker reaches which environment.
+- **Single agents are unaffected.** An agent without orchestration gets every configured remote.
+
+### Tips for orchestrated hubs
+
+- **Keep `allow_direct_answers` at its default, `true`.** With `false`, a question about the deployment itself, such as "which remotes can you reach?", becomes a task for the generic worker, which has no remotes and cannot answer it.
+- **Order the timeouts.** A worker's whole run is bounded by `[orchestration.timeouts].per_call_timeout_secs` when it is set, and the request by the server's `STREAMING_TIMEOUT_SECS` (default 900). Keep `[a2a].timeout_secs` below `per_call_timeout_secs`, and `per_call_timeout_secs` below `STREAMING_TIMEOUT_SECS`. If the per-call timeout is at or above the streaming timeout, the request stops after one iteration with `Time budget exhausted`. For spokes that take minutes to answer, raise `STREAMING_TIMEOUT_SECS` on the hub.
+- **Results arrive together.** The coordinator writes its answer after every task in a wave finishes, so a fast worker's result is shown with the slowest one's. For answers that stream in as they land, use a single agent and the `calls` batch.
+
+## Timeouts, cancellation, and limits
+
+| Behavior | Details |
+|---|---|
+| Call budget | `timeout_secs` covers one call from send to answer. When it runs out, the call fails with `remote agent "<name>" did not finish within <n>s`. |
+| Remote cancellation | When a call gives up, whether on its budget, a cancelled request, or a disconnected client, Aura sends a best-effort `CancelTask` to the spoke. This also covers a cancel that arrives while `SendMessage` is still in flight. |
+| Poll retries | A `GetTask` that fails with a transport error, a 5xx, or a 429 is retried twice before the call fails. |
+| HTTP timeouts | Each HTTP request has a 10-second connect timeout and a 60-second request timeout. |
+| Redirects | Never followed. A 3xx is an error, so a credential header cannot be sent to another host. |
+| Response bodies | Capped at 8 MiB per HTTP response. |
+| Answer size | An answer longer than `max_response_bytes` is cut and ends with `[truncated by ask_agent: the remote answer was <n> bytes, limit <m>]`. Answers are not offloaded to the [scratchpad](/aura/scratchpad). |
+
+`poll_interval_secs` and `timeout_secs` must be at least 1, and the poll interval must be below the timeout. `max_response_bytes` must be at least 1024.
+
+## Events
+
+With `AURA_CUSTOM_EVENTS=true`, a single-agent hub streams the usual [tool events](/aura/streaming-api-guide#custom-event-types) for `ask_agent`: `aura.tool_requested`, `aura.tool_start`, and `aura.tool_complete`. Batched calls also emit one `aura.remote_agent_answer` per entry as each answer lands.
+
+In orchestration mode, workers report `ask_agent` through the [orchestration events](/aura/streaming-api-guide#orchestration-events) like any other tool. Workers do not emit `aura.remote_agent_answer`.
+
+## Name collisions
+
+If an MCP server exposes a tool that is also named `ask_agent`, and the agent's effective `mcp_filter` lets it through, the agent fails to build rather than silently letting one tool replace the other. Exclude that MCP tool with `mcp_filter`, or remove `[a2a.remote]`.
+
+## Testing locally
+
+Run two Aura processes on one machine, a spoke and a hub:
+
+```bash
+# spoke (8081)
+AURA_ENABLE_A2A=true AURA_SERVER_URL=http://127.0.0.1:8081 PORT=8081 \
+  CONFIG_PATH=spoke.toml aura webserver
+
+# hub (8080)
+AURA_CUSTOM_EVENTS=true PORT=8080 CONFIG_PATH=hub.toml aura webserver
+```
+
+With `url = "http://127.0.0.1:8081"` in the hub's `[a2a.remote.<name>]`, connect the CLI to the hub and ask it to use `ask_agent`:
+
+```bash
+aura --api-url http://localhost:8080
+```
+
+With `--debug` on the spoke, its log shows each `SendMessage` arriving as a task, with the hub's `GetTask` polls after it. Cancelling a hub request mid-call, for example with Ctrl-C on a streaming `curl`, sends a `CancelTask` to the spoke.

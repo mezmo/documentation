@@ -363,6 +363,54 @@ Override when a tool's output gets intercepted by the scratchpad system. Keys ar
 
 ---
 
+## `[a2a]`
+
+Remote Aura agents this agent can call over A2A through the `ask_agent` tool. See [Calling Remote Agents](/aura/a2a-remote-agents) for how calls work, batching, and orchestration.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `poll_interval_secs` | integer | `2` | Seconds between `GetTask` polls. Must be at least 1 and below the timeout. |
+| `timeout_secs` | integer | `600` | Budget in seconds for one remote call, from send to answer. Must be at least 1. |
+| `max_response_bytes` | integer | `65536` | Cap in bytes on the answer text given to the model. Minimum `1024`. |
+
+### `[a2a.remote.<name>]`
+
+One remote agent. `<name>` is how the model addresses it and may use only letters, digits, `_`, and `-`.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `url` | string | — | **Required.** Absolute `http` or `https` origin of the remote Aura web server. Aura appends `/a2a/v1/rpc`. Credentials, a query string, or a fragment in the URL are refused. |
+| `description` | string | — | What the remote agent can do, shown to the model in the `ask_agent` tool description. |
+| `model` | string | — | Agent name or alias to select on the remote, sent as `x-aura-model`. |
+| `headers` | table | `{}` | Static headers sent on every request to this remote. |
+| `headers_from_request` | table | `{}` | Outgoing header name → incoming request header name, as in [MCP header forwarding](#header-forwarding-headers_from_request). A forwarded header takes precedence over a static one of the same name. |
+| `poll_interval_secs` | integer | _(inherits `[a2a]`)_ | This remote's poll interval. |
+| `timeout_secs` | integer | _(inherits `[a2a]`)_ | This remote's call budget. |
+
+`x-aura-model`, `a2a-version`, `host`, `content-length`, and `content-type` are reserved and cannot appear in `headers` or `headers_from_request`.
+
+```toml
+[a2a]
+poll_interval_secs = 2
+timeout_secs = 600
+
+[a2a.remote.dev]
+url = "https://aura.dev.example.com"
+description = "Verifies deployments in the dev cluster"
+model = "release-verifier"
+headers = { Authorization = "Bearer {{ env.DEV_AURA_KEY }}" }
+headers_from_request = { "x-request-id" = "x-request-id" }
+
+[a2a.remote.stage]
+url = "https://aura.stage.example.com"
+description = "Verifies deployments in the stage cluster"
+timeout_secs = 900
+```
+
+A single agent gets every remote. In orchestration mode, only workers that list remotes in [`remotes`](#orchestrationworkername) get `ask_agent`.
+
+---
+
 ## `[agent.scratchpad]`
 
 Controls context window management. When enabled, large MCP tool outputs are saved to disk and replaced with a file pointer. The agent then uses eight exploration tools (`head`, `slice`, `grep`, `schema`, `item_schema`, `get_in`, `iterate_over`, `read`) to selectively read the data it needs. See [Scratchpad](/aura/scratchpad) for the full feature guide.
@@ -654,8 +702,9 @@ Defines a specialized worker. Worker names must be unique case-insensitively (to
 |---|---|---|---|
 | `description` | string | — | **Required.** One-line description shown to the coordinator during planning. |
 | `preamble` | string | — | **Required.** Complete system prompt for this worker (replaces the generic worker template). |
-| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. |
+| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. Applies to MCP tools only, not to `ask_agent`. |
 | `vector_stores` | list of strings | `[]` (none) | Names of vector stores this worker can access. Workers have no RAG access by default. |
+| `remotes` | list of strings | `[]` (none) | Names of `[a2a.remote.<name>]` entries this worker can call through `ask_agent`. Workers have no remote access by default. Each name must be a configured remote. See [Calling Remote Agents](/aura/a2a-remote-agents#orchestration-per-worker-remotes). |
 | `turn_depth` | integer | _(inherits `[agent].turn_depth`)_ | Max tool-call rounds for this worker. |
 
 ```toml
