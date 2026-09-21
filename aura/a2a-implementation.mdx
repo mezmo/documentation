@@ -5,6 +5,8 @@ description: "A2A protocol endpoints, transport modes, the agent card URL, task 
 
 This module wires the [A2A RC 1.0](https://github.com/a2a-protocol) protocol into the Aura web server via [`a2a-rs-server`](https://github.com/a2aproject/a2a-rs). Aura also serves a v0.3 JSON-RPC binding at the root for pre-1.0 clients (see [A2A v0.3 Root Binding](#a2a-v03-root-binding)).
 
+This page covers Aura as an A2A server that receives requests. For an Aura agent that calls other Aura agents, such as a hub delegating to per-environment spokes, see [Calling Remote Agents](/aura/a2a-remote-agents).
+
 ## Enabling A2A
 
 A2A is **disabled by default**. Enable it with the `--enable-a2a` flag or `AURA_ENABLE_A2A` environment variable:

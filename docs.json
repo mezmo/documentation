@@ -403,6 +403,7 @@
             "pages": [
               "aura/streaming-api-guide",
               "aura/a2a-implementation",
+              "aura/a2a-remote-agents",
               "aura/hitl",
               "aura/scratchpad",
               "aura/skills",
