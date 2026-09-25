@@ -29,11 +29,44 @@ Registering an agent uses a wizard with three steps. A step rail above the form 
 1. Open **Governance** > **Agents** to open the **AURA Agents** page, then choose to register an agent.
 2. On the **Details** step, complete the required agent fields and the optional description. See [Agent Fields](#agent-fields) for the detail.
 3. On the **Policy** step, assign a governance policy, or choose to assign one later. See [Assign a Governance Policy](#assign-a-governance-policy).
-4. The **Finished** step opens after a successful save. Copy the one-time access key, note the agent ID and service account ID, and use the configuration snippet to connect the agent to AURA.
+4. The **Finished** step opens after a successful save. Copy the one-time access key, and note the agent ID and service account ID.
+5. Add the configuration snippet from the **Finished** step to your AURA agent. See [Connect the Agent to AURA](#connect-the-agent-to-aura).
 
 <Warning title="Copy the access key now">
 The access key is shown only once, at registration. Copy it and store it securely before you leave the page, because Mezmo does not show it again, including when you edit the agent.
 </Warning>
+
+## Connect the Agent to AURA
+
+The **Finished** step shows a `config.toml` snippet to add to your AURA agent's configuration. The snippet routes the agent's tool calls to your Mezmo account for approval, where the agent's governance policy decides whether each call runs, waits for a person, or is refused.
+
+The snippet looks like this example. Copy it from the **Finished** step, because the wizard fills in your account's API host.
+
+```toml config.toml
+[hitl]
+require_approval = ["*"]
+
+[hitl.park]
+enabled = true
+
+[hitl.route]
+mode = "webhook"
+delivery = "poll"
+url = "https://api.mezmo.com/governance/workflow/authorize"
+poll_url = "https://api.mezmo.com/governance/workflow/authorize"
+timeout_secs = 100
+headers = { Authorization = "Bearer {{ env.MEZMO_GOVERNANCE_TOKEN }}" }
+```
+
+| Setting | What it does |
+| ---- | ---- |
+| `require_approval = ["*"]` | Sends every tool call the agent makes to Mezmo for a decision. |
+| `[hitl.park]` | Lets the agent pause a tool call while it waits for the decision. |
+| `mode`, `delivery`, `url`, and `poll_url` | Send each tool call to the Mezmo governance authorize endpoint, then poll that endpoint for the decision. |
+| `timeout_secs` | Sets how many seconds AURA waits for a decision. If no decision arrives in time, the tool call does not run. |
+| `headers` | Authenticates each request with a bearer token that AURA reads from the `MEZMO_GOVERNANCE_TOKEN` environment variable. Set that variable in the agent's environment before you start it. |
+
+For how AURA approval gates work, see [Human-in-the-Loop Approval Gates](../aura/hitl). The **Finished** step also links to a complete AURA example configuration on GitHub.
 
 ## Agent Fields
 
@@ -43,7 +76,7 @@ Get these values from whoever deployed or operates the agent runtime.
 | ---- | ---- |
 | **Name** | Required. A name for the agent. |
 | **Runtime Name** (`runtime_name`) | Required. The name of the runtime the agent runs on, for example `aura`. |
-| **Instance ID** (`instance_id`) | Required. Identifies the running instance of the agent. It only needs to be unique within your account — the same instance ID can be registered under more than one account. |
+| **Instance ID** (`instance_id`) | Required. Identifies the running instance of the agent. It only needs to be unique within your account. The same instance ID can be registered under more than one account. |
 | **Version** | Required. The agent's version. |
 | **Description** | Optional. A description of the agent. |
 
@@ -69,7 +102,7 @@ If no policies exist yet, the step shows an empty state that directs you to crea
 3. The **Details** step opens with the agent's current values already entered. Change the fields you want. See [Agent Fields](#agent-fields) for the detail.
 4. The **Policy** step opens with the agent's current policy pre-filled. Assign or change the policy. See [Assign a Governance Policy](#assign-a-governance-policy).
 5. Save your changes.
-6. The **Finished** step opens and shows the configuration snippet for connecting the agent to AURA. The access key is not shown when you edit an agent, so you cannot retrieve it in edit mode.
+6. The **Finished** step opens and shows the configuration snippet for connecting the agent to AURA. See [Connect the Agent to AURA](#connect-the-agent-to-aura). The access key is not shown when you edit an agent, so you cannot retrieve it in edit mode.
 
 ## Delete an Agent
 
