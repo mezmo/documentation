@@ -387,7 +387,9 @@ Returns per-window totals, severity counts, distinct hosts, novel-pattern counts
 
 #### `find_log_patterns`
 
-Finds ranked log patterns (templates) in a time range against a baseline. By default it orders changed patterns first, then by severity, then deviation, then count. Deviation is a pattern's count divided by its baseline count, so it measures how far the pattern's volume moved from the baseline. A pattern counts as changed when it is novel with at least `min_count` events, or its deviation passes the service's change threshold.
+Finds ranked log patterns (templates) in a time range against a baseline. By default it orders changed patterns first, then by severity, then by how far each pattern's volume rose against the baseline, then by count. The ranking smooths small counts, so a sudden burst of a pattern that was rare or absent in the baseline ranks near the top. A pattern counts as changed when it is novel with at least `min_count` events, or its rise against the baseline passes the service's change threshold.
+
+Each pattern also reports a deviation: its count divided by its baseline count, with the baseline scaled to the length of the current range. Deviation is null when the baseline count is below `min_sample_count`.
 
 **Parameters:**
 
@@ -398,9 +400,9 @@ Finds ranked log patterns (templates) in a time range against a baseline. By def
 - `severities` (optional): Limit results to one or more severity levels.
 - `q` (optional): Case-insensitive substring filter on the masked template text.
 - `novel_only` (optional): Return only novel patterns. Defaults to `false`.
-- `min_count` (optional): Minimum pattern count to include. Defaults to `5`.
+- `min_count` (optional): The fewest events a novel pattern needs to count as changed. Defaults to `5`.
 - `min_deviation` (optional): Minimum deviation to include.
-- `min_sample_count` (optional): Minimum sample count to include. Defaults to `10`.
+- `min_sample_count` (optional): The smallest baseline count a deviation is computed from. Patterns with a smaller baseline count report a null deviation. Defaults to `10`.
 - `sort` (optional): Sort field. One of `deviation`, `count`, or `first_seen`.
 - `limit` (optional): Maximum number of patterns to return, from 1 to 500. Defaults to `50`.
 
@@ -436,7 +438,7 @@ Ranks apps, hosts, or nodes by how much their errors grew against a baseline.
 - `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 30 days into the past.
 - `baseline_from_time` and `baseline_to_time` (optional): The baseline window to compare against. Set both or neither. Defaults to a same-length window immediately before `from_time`.
 - `app`, `host`, and `node` (optional): Limit results to a single app, host, or node.
-- `min_sample_count` (optional): Minimum sample count to include. Defaults to `10`.
+- `min_sample_count` (optional): The smallest baseline error count a deviation is computed from. Records with a smaller baseline error count report a null deviation. Defaults to `10`.
 - `limit` (optional): Maximum number of records to return, from 1 to 500. Defaults to `50`.
 
 Host and node results carry their apps, which you can use to filter a `find_log_patterns` call.
