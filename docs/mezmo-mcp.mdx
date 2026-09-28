@@ -372,7 +372,9 @@ These log tools appear in the tool list, and are callable, only when Mezmo repor
 
 #### `get_log_overview`
 
-Returns per-window totals, severity counts, distinct hosts, novel-pattern counts (novel patterns are those first seen in the current range, not present in the baseline), and the apps with the most errors over a time range. Use it first to pick a range to narrow with `find_log_patterns`.
+Returns per-window totals, severity counts, distinct hosts, novel-pattern counts, and the apps with the most errors over a time range. Use it first to pick a range to narrow with `find_log_patterns`.
+
+A window's `novel_patterns` count includes each template first seen in that window, in any app, that had at least 5 events in that window. The threshold matches the `find_log_patterns` default `min_count`, so a template too small to rank as a change there isn't counted here either.
 
 **Parameters:**
 
@@ -389,6 +391,8 @@ Returns per-window totals, severity counts, distinct hosts, novel-pattern counts
 
 Finds ranked log patterns (templates) in a time range against a baseline. By default it orders changed patterns first, then by severity, then by how far each pattern's volume rose against the baseline, then by count. The ranking smooths small counts, so a sudden burst of a pattern that was rare or absent in the baseline ranks near the top. A pattern counts as changed when it is novel with at least `min_count` events, or its rise against the baseline passes the service's change threshold.
 
+A pattern is novel when its template was first seen inside the range, in the apps the query covers. Each template is judged on its own, so a new variant of a familiar message, such as one with a new URL path, reads as novel. A novel pattern with fewer than `min_count` events is still flagged `novel`, but it isn't ranked as changed.
+
 Each pattern also reports a deviation: its count divided by its baseline count, with the baseline scaled to the length of the current range. Deviation is null when the baseline count is below `min_sample_count`.
 
 **Parameters:**
@@ -399,7 +403,7 @@ Each pattern also reports a deviation: its count divided by its baseline count, 
 - `apps` (optional): Limit results to specific apps.
 - `severities` (optional): Limit results to one or more severity levels.
 - `q` (optional): Case-insensitive substring filter on the masked template text.
-- `novel_only` (optional): Return only novel patterns. Defaults to `false`.
+- `novel_only` (optional): Return only novel patterns with at least `min_count` events. Defaults to `false`.
 - `min_count` (optional): The fewest events a novel pattern needs to count as changed. Defaults to `5`.
 - `min_deviation` (optional): Minimum deviation to include.
 - `min_sample_count` (optional): The smallest baseline count a deviation is computed from. Patterns with a smaller baseline count report a null deviation. Defaults to `10`.
