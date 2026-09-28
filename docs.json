@@ -96,6 +96,7 @@
               "docs/parse-logs-with-custom-templates",
               "docs/exclusion-rules",
               "docs/view-log-data-by-timeline",
+              "docs/log-insights",
               "docs/create-and-edit-views",
               "docs/add-alerts-to-views",
               "docs/search-json-fields",

@@ -1,0 +1,56 @@
+---
+title: "Log Insights"
+description: "Review how your log patterns change over time, compare them with an earlier period, and share a link to the view you're looking at."
+---
+
+Log Insights groups your account's log lines into patterns and shows how those patterns change over a time range. Use it to see what changed in your logs compared with an earlier period, and to share that view with your team.
+
+Log Insights shows data once Mezmo has processed your account's log lines into patterns. If you have just started sending logs, check back in a few minutes.
+
+## Open Log Insights
+
+Open Log Insights in either of these ways:
+
+- In the left navigation, open **Live Tail**, then select **Log Insights**.
+- On the Home page, select the **Log Insights** quick link.
+
+Log Insights opens on the **Overview** tab. Its tabs are:
+
+| Tab | What it shows |
+| --- | --- |
+| **Overview** | The account timeline and a summary of what changed across your logs. |
+| **Patterns** | The log patterns in the selected period, which you can filter and search by pattern text. |
+| **Apps, hosts, nodes** | How the apps, hosts, and nodes sending your logs changed. |
+
+## Choose a Time Range and Comparison
+
+The time range and comparison you choose apply to every tab.
+
+1. At the top of the page, select a time range: **1h**, **6h**, **24h**, or **3d**. The default is **24h**.
+2. In the **compared with** list, choose the period to compare against:
+   - **the period before**: the same length of time immediately before the selected range
+   - **the same time yesterday**
+   - **the same day last week**
+
+## Share or Bookmark a View
+
+The page URL keeps the tab you're on, the time range, and the comparison. Reload the page or open a shared link and Log Insights opens on the same view.
+
+To share a view, copy the URL from your browser's address bar. For example, this URL opens the **Patterns** tab for the last 6 hours compared with the same time yesterday:
+
+```text
+https://app.mezmo.com/<account-id>/log-insights/patterns?range=6h&compare=yesterday
+```
+
+The URL uses these query parameters:
+
+| Parameter | Values |
+| --- | --- |
+| `range` | `1h`, `6h`, `24h`, or `3d` |
+| `compare` | `prev` (the period before), `yesterday` (the same time yesterday), or `lastweek` (the same day last week) |
+
+If a link leaves out a parameter or gives a value that isn't listed, Log Insights uses your current selection, which starts at **24h** compared with the period before.
+
+The URL doesn't keep a focused slice of the timeline or an app filter, so a shared link opens on the whole time range for all apps.
+
+Changing the time range or comparison updates the URL without adding an entry to your browser history. Selecting **Back** in your browser skips your earlier time range and comparison selections.
