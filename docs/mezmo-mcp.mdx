@@ -364,7 +364,9 @@ Gets details for a specific AI investigation by id. A returned investigation inc
 
 These tools analyze masked log patterns, also called templates (log lines grouped by structure, with their variable values masked out), rather than raw log lines. They support root-cause analysis by summarizing which log patterns occur, how their volume changed against a baseline, and where errors grew. An agent uses that summary to find the time ranges, apps, and patterns worth investigating. Start with `get_log_overview` to find a time range, then narrow it with `find_log_patterns`. From there, drill into a single template with `get_log_pattern_series`, or rank the biggest movers with `get_log_dimension_changes`. All times are RFC3339, with `from_time` inclusive and `to_time` exclusive.
 
-Template text is masked, so it is not a search query. To read the raw lines behind a pattern, pass the app, host, severity, and time range from a result to the log analysis tools such as `analyze_logs_for_root_cause_time_range`.
+Template text is masked, so it is not a search query. To read the raw lines behind a pattern, pass the app, host, severity, and time range from a result to the log analysis tools such as `analyze_logs_for_root_cause_time_range`. Add keywords from the pattern's exemplar, an example raw line that `find_log_patterns` and `get_log_pattern_series` return when you set `include_exemplars` to `true`.
+
+Counts are written as each window fills and trail real time by seconds. A window or point marked `partial: true` is still filling, for example while a backlog drains, so its lower count is not a drop in traffic.
 
 <Note>
 These log tools appear in the tool list, and are callable, only when Mezmo reports that your account has distilled log data. If your account has no such data, the tools are hidden and do not appear. Mezmo evaluates availability automatically per account, and there is no feature flag or toggle to turn on. If an agent calls one of these tools while it is unavailable, the server responds with a `tool not found` error, the same as for an unknown tool.
@@ -372,15 +374,17 @@ These log tools appear in the tool list, and are callable, only when Mezmo repor
 
 #### `get_log_overview`
 
-Returns per-window totals, severity counts, distinct hosts, novel-pattern counts, and the apps with the most errors over a time range. Use it first to pick a range to narrow with `find_log_patterns`.
+Returns per-window totals, severity counts, distinct hosts, novel-pattern counts, and the error counts of the apps with the most errors over a time range. Use it first to pick a range to narrow with `find_log_patterns`.
 
-A window's `novel_patterns` count includes each template first seen in that window, in any app, that had at least 5 events in that window. The threshold matches the `find_log_patterns` default `min_count`, so a template too small to rank as a change there isn't counted here either.
+A window's `novel_patterns` count includes each template first seen in that window, in any app, that had at least 5 events in that window. The threshold matches the `find_log_patterns` default `min_count`, so a template too small to rank as a change there isn't counted here either. The count is taken at the resolution the overview reads, so it can be lower than the number of novel patterns `find_log_patterns` returns for the same range.
 
 **Parameters:**
 
 - `from_time` (required): Start of the range, as an RFC3339 timestamp.
 - `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 30 days into the past.
-- `top_apps_limit` (optional): Number of top-error apps to return, from 1 to 20. Defaults to `5`.
+- `top_apps_limit` (optional): Number of top-error apps to list per window, from 0 to 20. At `0`, no window lists any apps. Defaults to `5`. Can't be combined with `error_apps`.
+- `error_apps` (optional): From 1 to 20 app names whose errors each window lists in place of the top-error apps, so you can follow those apps across windows. An app with no errors in a window is left out of that window. Can't be combined with `top_apps_limit`.
+- `resolution` (optional): The window width, either `5m` or `1h`. Without it, the service chooses. This setting can only coarsen the service's choice, so `5m` is rejected for a range the service reads at `1h`. Use `1h` for ranges of a day or more.
 
 `novel_patterns` is null during your account's warm-up period, near its first window; `query_info.history_insufficient` reports this.
 
@@ -389,28 +393,33 @@ A window's `novel_patterns` count includes each template first seen in that wind
 
 #### `find_log_patterns`
 
-Finds ranked log patterns (templates) in a time range against a baseline. By default it orders changed patterns first, then by severity, then by how far each pattern's volume rose against the baseline, then by count. The ranking smooths small counts, so a sudden burst of a pattern that was rare or absent in the baseline ranks near the top. A pattern counts as changed when it is novel with at least `min_count` events, or its rise against the baseline passes the service's change threshold.
+Finds ranked log patterns (templates) in a time range against a baseline. By default it orders changed patterns first, then by severity, then by change score, then by count. The change score measures how far a pattern's volume rose against the baseline, smoothing small counts so that a sudden burst of a pattern that was rare or absent in the baseline still scores high. A pattern counts as changed when it is novel with at least `min_count` events, or its change score passes the service's change threshold.
 
 A pattern is novel when its template was first seen inside the range, in the apps the query covers. Each template is judged on its own, so a new variant of a familiar message, such as one with a new URL path, reads as novel. A novel pattern with fewer than `min_count` events is still flagged `novel`, but it isn't ranked as changed.
 
-Each pattern also reports a deviation: its count divided by its baseline count, with the baseline scaled to the length of the current range. Deviation is null when the baseline count is below `min_sample_count`.
+Each pattern also reports a deviation: its count divided by its baseline count, with the baseline scaled to the length of the current range. Deviation is null when the baseline count is below `min_sample_count`. Because a burst from nothing has a null deviation, use `changed_only` or `sort` set to `change_score` to find one. `min_deviation` and `sort` set to `deviation` don't surface it.
+
+Each pattern lists the apps that emitted it, with each app's versions and namespaces. The response also includes overflow: per-app counts of line-unique output that didn't reduce to a template.
 
 **Parameters:**
 
 - `from_time` (required): Start of the range, as an RFC3339 timestamp.
-- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 90 days.
-- `baseline_from_time` and `baseline_to_time` (optional): The baseline window to compare against. Set both or neither. Defaults to a same-length window immediately before `from_time`.
-- `apps` (optional): Limit results to specific apps.
+- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 90 days into the past.
+- `baseline_from_time` and `baseline_to_time` (optional): The baseline window to compare against. Set both or neither. Defaults to a same-length window immediately before `from_time`. The baseline can reach up to 90 days into the past.
+- `apps` (optional): Limit results to specific apps. Novelty is judged within these apps.
+- `namespaces` (optional): Limit results to specific namespaces. Unlike `apps`, this doesn't narrow novelty, so a pattern is novel only if it is new to the queried apps in every namespace.
 - `severities` (optional): Limit results to one or more severity levels.
 - `q` (optional): Case-insensitive substring filter on the masked template text.
 - `novel_only` (optional): Return only novel patterns with at least `min_count` events. Defaults to `false`.
+- `changed_only` (optional): Return only changed patterns. Defaults to `false`.
 - `min_count` (optional): The fewest events a novel pattern needs to count as changed. Defaults to `5`.
-- `min_deviation` (optional): Minimum deviation to include.
+- `min_deviation` (optional): Minimum deviation to include. Leaves out patterns whose deviation is null.
 - `min_sample_count` (optional): The smallest baseline count a deviation is computed from. Patterns with a smaller baseline count report a null deviation. Defaults to `10`.
-- `sort` (optional): Sort field. One of `deviation`, `count`, or `first_seen`.
+- `sort` (optional): Sort field, highest first. One of `change_score`, `deviation`, `count`, or `first_seen`. With `deviation`, patterns with a null deviation sort last.
 - `limit` (optional): Maximum number of patterns to return, from 1 to 500. Defaults to `50`.
+- `include_exemplars` (optional): Return one example raw line, with its host, per pattern and overflow entry. Defaults to `false`. Exemplars add a third to a half to the response size, so request them once a pattern is worth reading a raw line for.
 
-When the baseline history is insufficient (`query_info.history_insufficient`), the deviation, novel, and changed fields are null, and results fall back to severity-then-count order.
+When the baseline history is insufficient (`query_info.history_insufficient`), the deviation, change score, novel, and changed fields are null, and results fall back to severity-then-count order. If `query_info` reports `truncated`, narrow the range or raise `limit`.
 
 **Example:**
 "Find the log patterns that changed most in the payment-service in the last 2 hours"
@@ -423,25 +432,28 @@ Returns one template's per-window counts over a time range, for a `template_id` 
 
 - `template_id` (required): The template to chart, from a `find_log_patterns` result. A value of `"0"` is rejected.
 - `from_time` (required): Start of the range, as an RFC3339 timestamp.
-- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 90 days.
+- `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 90 days into the past.
 - `app` (optional): Limit the series to one app.
 - `version` (optional): Limit the series to one app version. Requires `app`; providing `version` without `app` is rejected.
-- `breakdown` (optional): Add one series per app or per app version. One of `app` or `version`.
+- `namespace` (optional): Limit the series to one namespace. Doesn't require `app`.
+- `breakdown` (optional): Add one series per app, per app version, or per app and namespace. One of `app`, `version`, or `namespace`. Use it to find which app carries a template or to compare a rollout. With `namespace`, events with an unknown namespace appear as their own series.
+- `include_exemplars` (optional): Return one example raw line per point. Defaults to `false`.
 
 **Example:**
 "Show the per-hour trend for that template over the last day"
 
 #### `get_log_dimension_changes`
 
-Ranks apps, hosts, or nodes by how much their errors grew against a baseline.
+Ranks apps, hosts, or nodes by how much their errors grew against a baseline. Changed records come first, then records are ordered by change score, errors, and count. As with `find_log_patterns`, a burst of errors from a value with no baseline errors shows in the change score, not the deviation. Each record's `share` is its portion of all errors that match the filters.
 
 **Parameters:**
 
 - `dimension` (required): What to rank. One of `apps`, `hosts`, or `nodes`.
 - `from_time` (required): Start of the range, as an RFC3339 timestamp.
 - `to_time` (required): End of the range, as an RFC3339 timestamp. The range can reach up to 30 days into the past.
-- `baseline_from_time` and `baseline_to_time` (optional): The baseline window to compare against. Set both or neither. Defaults to a same-length window immediately before `from_time`.
-- `app`, `host`, and `node` (optional): Limit results to a single app, host, or node.
+- `baseline_from_time` and `baseline_to_time` (optional): The baseline window to compare against. Set both or neither. Defaults to a same-length window immediately before `from_time`. The baseline can reach up to 30 days into the past.
+- `app`, `host`, and `node` (optional): Limit results to a single app, host, or node. Filter to one value to check whether errors on that host, for example, rose.
+- `namespace` (optional): Limit results to one namespace. Otherwise, an app's record sums all its namespaces.
 - `min_sample_count` (optional): The smallest baseline error count a deviation is computed from. Records with a smaller baseline error count report a null deviation. Defaults to `10`.
 - `limit` (optional): Maximum number of records to return, from 1 to 500. Defaults to `50`.
 
