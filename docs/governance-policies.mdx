@@ -17,6 +17,7 @@ What you can do with policies depends on your access level.
 - To create or edit a policy, you need write access.
 - To delete a policy, you need manage access.
 - To evaluate a policy, you need read access to policies. The agent picker on the evaluation page needs read access to agents.
+- To view a policy's test suite or saved test cases, you need read access to policies. To edit a test suite, save a test case, or run a test suite, you need write access. See [Test a Policy](#test-a-policy).
 - To see approver information anywhere (the **Approvers** wizard step, the **Approvers** column, and the **Approvers** item on the detail page), you need read access to roles.
 - To assign an existing approving role, you need read access to roles.
 - To create a new approving role from the wizard, you need write access to roles.
@@ -163,6 +164,51 @@ The results appear alongside the batch in three parts:
 - A **Per Rule** list shows how each rule acted: how many calls it decided, whether it matched but was overruled, or whether it made no match.
 
 If the evaluation engine fails closed, the rules did not run, so the result is shown as an error rather than a normal outcome. Do not rely on an error result. Run the evaluation again.
+
+## Test a Policy
+
+An evaluation checks a batch of tool calls once. A test suite keeps a set of tool calls and the outcomes you expect them to produce, so you can rerun the same checks every time you change the policy. Run the suite against a draft before you accept it to confirm the change doesn't alter decisions you rely on.
+
+You manage test suites and test cases through the [Mezmo API](/docs/api). Viewing a suite or saved test cases requires read access to policies. Editing a suite, saving a test case, or running a suite requires write access. See [Access and Permissions](#access-and-permissions).
+
+### Test Suites and Test Cases
+
+Every policy has exactly one test suite. Mezmo creates the suite, with no cases, when you create the policy, and deletes it when you delete the policy.
+
+A suite holds up to 50 test cases. Each test case has a name and up to 100 tool calls. You describe each tool call by its tool name, namespace, and arguments, as in an [evaluation](#evaluate-a-policy). You can set expectations at two levels:
+
+- **Case expectation.** The overall outcome the whole case must produce: `allow`, `approval_required`, or `deny`. The overall outcome is the most restrictive outcome of the case's calls. It must be at least as restrictive as every outcome you expect from an individual call, because a less restrictive expectation can never pass.
+- **Call expectation.** The outcome a single call must produce, and optionally the code its verdict must return.
+
+A case passes when its case expectation is met and every call with an expectation meets it. A case with no expectation at either level is ungraded and does not count as a failure.
+
+### Save Reusable Test Cases
+
+To reuse a test case across policies, save it to your account's test case library. You can write a case by hand, or base it on a recorded AI Governance workflow and record that workflow's ID as the case's source.
+
+A suite holds its own copy of each case, not a link to the saved case. To add a saved case to a suite, include its contents in the suite's cases. Because of this, changes to a saved case never change the results of a suite that already holds a copy.
+
+| Task | Endpoint |
+| ---- | ---- |
+| Save a test case | `POST /v3/governance/test/case` |
+| List saved test cases, newest first | `GET /v3/governance/test/case` |
+| Get one saved test case | `GET /v3/governance/test/case/{test_case_id}` |
+
+### Edit and Run a Policy's Test Suite
+
+| Task | Endpoint |
+| ---- | ---- |
+| Get the policy's test suite | `GET /v3/governance/policy/{policy_id}/test` |
+| Change the suite's name, description, or cases | `PATCH /v3/governance/policy/{policy_id}/test` |
+| Run the suite | `POST /v3/governance/policy/{policy_id}/test/run` |
+
+When you update the suite's cases, the list you send replaces the current cases. To keep an existing case, include it with its `test_case_id`. A case without an ID is added as a new case.
+
+A run grades the suite against the policy's live rules by default. Set the `draft=true` query parameter to also grade the policy's open draft, or set `live=false` and `draft=true` to grade only the draft. A run must grade at least one of them. Mezmo saves each run unless you set `persist=false`.
+
+For the live rules and the draft, the run reports how many cases passed, failed, and were ungraded, and how many of the policy's rules the cases exercised. The run passes when no graded case fails. A suite with no cases always passes.
+
+If the policy or saved test case doesn't exist in your account, the request fails with the `ENOENT` code. Check the ID in the request path.
 
 ## View Revision History
 
