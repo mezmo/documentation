@@ -14,6 +14,24 @@ You can access the Mezmo Assistant from two locations:
 
 The assistant is available throughout your Mezmo workspace and provides context-aware help based on where you access it.
 
+### Open the AI Assistant with a Prompt Link
+
+You can open the homepage AI Assistant and automatically send a prompt by adding a `q` query parameter to the homepage URL. This is the same AI Assistant you open under From the homepage above.
+
+Use the following URL form, where the prompt value must be URL-encoded:
+
+`https://<host>/<accountID>/homepage?q=<URL-encoded prompt>`
+
+For example, the following URL encodes the prompt "I have a question about this page":
+
+`https://<host>/<accountID>/homepage?q=I%20have%20a%20question%20about%20this%20page`
+
+On load, the AI Assistant places a non-empty `q` prompt in its input and sends it automatically. The prompt is submitted for you, not just pre-filled. An empty or whitespace-only `q` value is ignored, and nothing is sent.
+
+<Note>
+After the page loads, the `q` parameter is removed from the address bar, so refreshing the page does not resend the prompt. The URL shown after landing is no longer a shareable prompt link. To share a prompt link, use the original URL you constructed, not the one shown after the page loads.
+</Note>
+
 ## Ask Questions
 
 Type your questions or requests in plain language. The Mezmo Assistant can help with:
