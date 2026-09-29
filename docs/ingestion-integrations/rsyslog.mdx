@@ -1,0 +1,64 @@
+---
+title: "Rsyslog"
+description: "Forward Rsyslog logs to an OpenTelemetry Collector over TCP+TLS, TCP, or UDP, which relays them to the Mezmo OTEL Source."
+---
+
+Mezmo ingests Rsyslog data through an OpenTelemetry (OTel) Collector placed between your Rsyslog hosts and Mezmo. Rsyslog forwards logs to the Collector's `syslog` receiver over TCP+TLS, TCP, or UDP, and the Collector relays them to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) with the `otlphttp` exporter. The Collector's `syslog` receiver accepts the Rsyslog default format, [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) and [RFC 3164](https://datatracker.ietf.org/doc/html/rfc3164), for auto parsing.
+
+```
+Rsyslog (omfwd)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+```
+
+## Set Up the OpenTelemetry Collector
+
+1. Log in to the [Mezmo Web App](https://app.mezmo.com), create (or open) a Pipeline, and add an [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source). Note the ingestion key — you'll use it as `apikey`.
+2. Download the `otelcol-contrib` distribution, which includes the `syslog` receiver, from [the OpenTelemetry website](https://github.com/open-telemetry/opentelemetry-collector-releases).
+3. Create a `config.yaml`:
+
+```yaml
+receivers:
+  syslog:
+    protocol: rfc5424
+    tcp:
+      listen_address: "0.0.0.0:514"
+      # tls:
+      #   cert_file: /path/to/cert.pem
+      #   key_file: /path/to/key.pem
+
+exporters:
+  otlphttp/mezmo:
+    endpoint: "https://logs.mezmo.com/otel"
+    compression: gzip
+    headers:
+      apikey: "<YOUR_INGESTION_KEY>"
+
+service:
+  pipelines:
+    logs:
+      receivers: [syslog]
+      exporters: [otlphttp/mezmo]
+```
+
+Uncomment the `tls` block to require TCP+TLS, or replace the `tcp` block with a `udp` block to accept UDP instead.
+
+4. Start the Collector:
+
+```bash
+./otelcol-contrib --config /path/to/config.yaml
+```
+
+## Point Rsyslog at the Collector
+
+Configure Rsyslog's forwarding output (`omfwd`) to send to the host and port where the Collector's `syslog` receiver is listening, instead of directly to Mezmo. For example, in `/etc/rsyslog.d/22-mezmo.conf`:
+
+```none
+*.* action(type="omfwd" target="<OTEL_COLLECTOR_HOST>" port="514" protocol="tcp")
+```
+
+<Tip>
+If possible, we highly recommend setting up a keepalive inside your rsyslog forwarding configuration. This helps make sure that bad connections are properly terminated and re-initiated, and increases the reliability of log delivery. You can learn about rsyslog keepalive options [here](https://www.rsyslog.com/doc/v8-stable/configuration/modules/omfwd.html#keepalive).
+</Tip>
+
+## Tagging Hosts
+
+Authentication now happens between the Collector and Mezmo, via the `apikey` header on the `otlphttp` exporter, rather than being embedded in each Syslog line. As a result, the legacy `logdna@48950` STRUCTURED-DATA tagging format is no longer needed. To group or tag hosts, add a processor (such as an [`attributes` or `resource` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor)) to your Collector's logs pipeline, and use fields the `syslog` receiver already extracts from RFC 5424/3164 messages, such as `HOSTNAME` and `APP-NAME`, to set attributes for grouping in Mezmo.

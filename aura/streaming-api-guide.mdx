@@ -27,16 +27,16 @@ The server supports three streaming modes, configured via CLI or environment var
 
 ```bash
 # Spec-compliant mode (default)
-cargo run --bin aura-web-server
+cargo run --bin aura -- webserver
 
 # OpenWebUI compatibility mode
-cargo run --bin aura-web-server -- --tool-result-mode open-web-ui
+cargo run --bin aura -- webserver --tool-result-mode open-web-ui
 
 # AURA events mode (requires AURA_CUSTOM_EVENTS=true)
-AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server -- --tool-result-mode aura
+AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver --tool-result-mode aura
 
 # Via environment variable
-TOOL_RESULT_MODE=aura AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server
+TOOL_RESULT_MODE=aura AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 ```
 
 ### Environment Variables
@@ -126,7 +126,7 @@ HITL approval lifecycle events are the exception: the server emits them whenever
 an approval route needs clients to observe or act on approval state.
 
 ```bash
-AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server
+AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 ```
 
 ### Custom Event Types
@@ -242,7 +242,7 @@ Note:
 
 **Reasoning** (requires both flags):
 ```bash
-AURA_CUSTOM_EVENTS=true AURA_EMIT_REASONING=true cargo run --bin aura-web-server
+AURA_CUSTOM_EVENTS=true AURA_EMIT_REASONING=true cargo run --bin aura -- webserver
 ```
 ```
 event: aura.reasoning
@@ -1046,10 +1046,10 @@ Configure the grace period:
 
 ```bash
 # Allow 60 seconds for in-flight requests to finish
-SHUTDOWN_TIMEOUT_SECS=60 cargo run --bin aura-web-server
+SHUTDOWN_TIMEOUT_SECS=60 cargo run --bin aura -- webserver
 
 # Or via CLI flag
-cargo run --bin aura-web-server -- --shutdown-timeout-secs 60
+cargo run --bin aura -- webserver --shutdown-timeout-secs 60
 ```
 
 **K8s tip**: Set `terminationGracePeriodSeconds` to at least `SHUTDOWN_TIMEOUT_SECS + 15` (default: 45s). The total shutdown budget is grace period + 10s Actix buffer. During Phase 1, `/health` returns 503 — readiness probes will fail immediately, removing the pod from service endpoints.

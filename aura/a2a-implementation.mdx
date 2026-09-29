@@ -14,9 +14,9 @@ A2A is **disabled by default**. Enable it with the `--enable-a2a` flag or `AURA_
 | `--enable-a2a` | `AURA_ENABLE_A2A` | `false` |
 
 ```bash
-AURA_ENABLE_A2A=true cargo run --bin aura-web-server
+AURA_ENABLE_A2A=true cargo run --bin aura -- webserver
 # or
-cargo run --bin aura-web-server -- --enable-a2a
+cargo run --bin aura -- webserver --enable-a2a
 ```
 
 When disabled, the A2A endpoints (`/.well-known/agent-card.json`, `/a2a/v1/*`, and `POST /`) are not mounted and return 404.
@@ -83,7 +83,7 @@ Aura builds the interface URLs from a single canonical origin, configured via:
 When `AURA_SERVER_URL` is unset, the origin is derived from the bind host/port, with a wildcard bind (`0.0.0.0` / `::`) mapped to `127.0.0.1`. That default is fine for local development but **wrong whenever the server is reached at a different address than it binds** — behind a reverse proxy, load balancer, Kubernetes Service/Ingress, or when the container port is remapped. In those cases set `AURA_SERVER_URL` to the externally-reachable origin clients actually use (scheme + host + optional port, **no path**):
 
 ```bash
-AURA_SERVER_URL=https://aura.example.com cargo run --bin aura-web-server
+AURA_SERVER_URL=https://aura.example.com cargo run --bin aura -- webserver
 ```
 
 The card then advertises absolute endpoints under that origin:

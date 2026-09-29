@@ -11,7 +11,7 @@ OpenAI-compatible web API server that exposes AURA agents through a standard cha
 
 ## When to run the server
 
-The [CLI](/aura/cli-reference) starts an agent per terminal session, which suits interactive work. Running `aura-web-server` instead keeps agents resident behind an HTTP API, so a caller that isn't a person at a keyboard can start a run: an alert pipeline reacting to a firing monitor, a scheduled job, a CI step, or a chat client such as LibreChat or OpenWebUI.
+The [CLI](/aura/cli-reference) starts an agent per terminal session, which suits interactive work. Running `aura webserver` instead keeps agents resident behind an HTTP API, so a caller that isn't a person at a keyboard can start a run: an alert pipeline reacting to a firing monitor, a scheduled job, a CI step, or a chat client such as LibreChat or OpenWebUI.
 
 Requests arrive as OpenAI chat completions, so any system that already speaks that format can call AURA directly. The server exposes no alert-specific receiver, so a monitoring tool that posts its own schema (Alertmanager and PagerDuty webhooks, for example) needs a small adapter to translate its payload into a chat completion request. Long-running investigations can stream progress back over SSE; see the [Streaming API Guide](/aura/streaming-api-guide).
 
@@ -26,20 +26,20 @@ Requests arrive as OpenAI chat completions, so any system that already speaks th
 ## Quick Start
 
 ```bash
-# Build the server
-cargo build --release --bin aura-web-server
+# Build
+cargo build --release --bin aura
 
 # Start with default config (config.toml)
-cargo run --bin aura-web-server
+cargo run --bin aura -- webserver
 
 # Or with custom configuration file
-CONFIG_PATH=my-config.toml cargo run --bin aura-web-server
+CONFIG_PATH=my-config.toml cargo run --bin aura -- webserver
 
 # Or with a directory of configs (serves multiple agents)
-CONFIG_PATH=configs/ cargo run --bin aura-web-server
+CONFIG_PATH=configs/ cargo run --bin aura -- webserver
 
 # Custom host/port
-HOST=0.0.0.0 PORT=3000 cargo run --bin aura-web-server
+HOST=0.0.0.0 PORT=3000 cargo run --bin aura -- webserver
 ```
 
 ## API Endpoints
