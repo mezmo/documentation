@@ -38,6 +38,23 @@ You can configure the Data Profiler to normalize the paths for your app and host
 | Level Path(s) | The paths to fields containing log levels. | `.level` | 
 | Line Path(s) | The paths to fields containing log lines. | `.lines .message` | 
 
+### Log Level Values
+
+Sources name the same log level in different ways, such as `WARN`, `warning`, or `WRN`. The Profiler maps each level value onto one of six standard levels, so the Data Profile counts these variations as one level. The standard levels are `trace`, `debug`, `info`, `warn`, `error`, and `fatal`.
+
+Matching ignores case. The Profiler recognizes each standard level name, the aliases in this table, and numbered forms of the level names from 2 to 4, such as `ERROR2` or `info3`.
+
+| Standard Level | Aliases |
+| ---- | ---- |
+| `trace` | `finest`, `vrb` |
+| `debug` | `config`, `dbg`, `fine`, `finer`, `verbose` |
+| `info` | `inf`, `information`, `informational`, `notice` |
+| `warn` | `warning`, `wrn` |
+| `error` | `alert`, `dpanic`, `err`, `panic`, `severe` |
+| `fatal` | `crit`, `critical`, `emerg`, `emergency`, `ftl` |
+
+The Log Metrics report groups any other level value under `unknown`. Log patterns with an unrecognized level don't show a level.
+
 ## View the Data Profile
 
 Once a Data Profile has been generated for the Source, you can access it through both the Processor itself, and the navigation in the Mezmo Web App. Check out [Create a Data Profile](/telemetry-pipelines/data-profiling) for more information on the reports created for the profile.
