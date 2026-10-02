@@ -20,7 +20,7 @@ A pipeline can include only one OpenTelemetry Source because it reads a shared a
 
 ## Configuration
 
-There is no specific configuration values needed when adding this source to your pipeline.  The OpenTelemetry source uses a shared endpoint to ingest data.  It will route data to your pipeline based on your [Ingestion key](/docs/ingestion-key#ingestion-keys) (`apikey`).
+There is no specific configuration values needed when adding this source to your pipeline. The OpenTelemetry source uses a shared endpoint to ingest data. It will route data to your pipeline based on your [Ingestion key](/docs/ingestion-key#ingestion-keys) (`apikey`).
 
 You can obtain this key under Setting | API Keys In App.
 
@@ -29,7 +29,7 @@ You can obtain this key under Setting | API Keys In App.
 | Option | Description |
 | --- | --- |
 | url / endpoint | [https://logs.mezmo.com/otel](https://logs.mezmo.com/otel) |
-| apiKey | aka: Ingestion Key.  Token used for authorization for your OTLP source |
+| apiKey | aka: Ingestion Key. Token used for authorization for your OTLP source |
 
 ### OpenTelemetry Collector Configuration
 
@@ -70,6 +70,22 @@ The endpoint accepts gzip-compressed OTLP payloads in both protobuf and JSON for
 </warning>
 
 For more details, visit [OpenTelemetry Collector](./otel-collector)
+
+### Connection Confirmation
+
+Some OTLP clients test the connection during setup by sending an empty payload, so sending a request whose JSON body parses to an empty object (`{}`) lets you confirm connectivity to the endpoint without publishing any records. For example, SAP Cloud Integration's External Logging activation sends an empty payload during connection setup.
+
+When the endpoint accepts such a request, it returns HTTP status `207` with the following response body, and no records are processed or published:
+
+```json
+{"status":"ok","message":"Connection confirmed, no records processed."}
+```
+
+A successful publish of real records returns HTTP status `200` instead; `207` appears only for this connection-confirmation case.
+
+<Note>
+The body must parse to an empty JSON object. `{}` with surrounding whitespace works, but a zero-byte body, a whitespace-only body with no braces, and an empty JSON array (`[]`) are still rejected with HTTP status `400`.
+</Note>
 
 ## Payload Size
 

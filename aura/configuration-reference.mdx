@@ -1,6 +1,6 @@
 ---
 title: "Configuration Reference"
-description: "Complete TOML field reference for AURA — agent identity, LLM providers, MCP, vector stores, scratchpad, skills, orchestration, HITL, and session storage."
+description: "Complete TOML field reference for AURA. Agent identity, LLM providers, MCP, vector stores, scratchpad, skills, orchestration, HITL, and session storage."
 ---
 
 AURA is configured with a single TOML file. The file path defaults to `config.toml` in the working directory; override it with the `CONFIG_PATH` environment variable.
@@ -9,7 +9,7 @@ AURA is configured with a single TOML file. The file path defaults to `config.to
 CONFIG_PATH=configs/my-agent.toml cargo run --bin aura -- webserver
 ```
 
-To validate a config file, start the web server or CLI against it — both validate immediately and exit with a clear error if parsing fails, before binding to any port or entering the REPL:
+To validate a config file, start the web server or CLI against it. Both validate immediately and exit with a clear error if parsing fails, before binding to any port or entering the REPL:
 
 ```bash
 cargo run --bin aura -- webserver --config your-config.toml   # exits on parse error before binding
@@ -31,7 +31,7 @@ Authorization = "Bearer {{ env.GITHUB_PERSONAL_ACCESS_TOKEN | default: '' }}"
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `memory_dir` | string | — | Base directory for scratchpad storage and orchestration artifact persistence. Required when scratchpad is enabled. |
+| `memory_dir` | string | - | Base directory for scratchpad storage and orchestration artifact persistence. Required when scratchpad is enabled. |
 
 ```toml
 memory_dir = "/tmp/aura-sessions"
@@ -46,15 +46,15 @@ Defines the agent identity, system prompt, and behavioral settings.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `name` | string | *required* | Display name. Doubles as the model identifier clients send in requests. |
-| `alias` | string | — | Stable identifier for model selection. Clients send this as the `model` field. Useful when the name contains spaces. |
-| `description` | string | — | Optional one-line, human-readable summary of the agent. Use it to distinguish multiple loaded configs that would otherwise differ only by `name` or `alias`. Display-only. It appears in `/v1/models`, `/aura/info`, and the CLI `/model` picker, but is never part of runtime settings and never sent to the model. Omitted from `/v1/models` and `/aura/info` responses when unset. Not to be confused with the required per-worker `description` under `[orchestration]`, which guides planning and is not shown to people. It is free-form text with no enforced length limit; the CLI `/model` picker collapses whitespace and truncates it to fit the terminal. |
+| `alias` | string | - | Stable identifier for model selection. Clients send this as the `model` field. Useful when the name contains spaces. |
+| `description` | string | - | Optional one-line, human-readable summary of the agent. Use it to distinguish multiple loaded configs that would otherwise differ only by `name` or `alias`. Display-only. It appears in `/v1/models`, `/aura/info`, and the CLI `/model` picker, but is never part of runtime settings and never sent to the model. Omitted from `/v1/models` and `/aura/info` responses when unset. Not to be confused with the required per-worker `description` under `[orchestration]`, which guides planning and is not shown to people. It is free-form text with no enforced length limit; the CLI `/model` picker collapses whitespace and truncates it to fit the terminal. |
 | `system_prompt` | string | *required* | The agent's system prompt. Multi-line strings use TOML `"""..."""` syntax. |
 | `turn_depth` | integer | `5` | Max tool-call rounds per user turn. Acts as a failsafe to prevent models from spinning out in unbounded tool-call loops. |
 | `nudge_last_turn` | bool | `false` | Append a wrap-up warning to tool output on the final turn before `turn_depth` terminates the run (orchestration workers are told to call `submit_result`), rather than silently losing all gathered work. |
-| `nudge_turns_remaining` | integer | — | Start wrap-up warnings when N or fewer tool-calling turns remain. Independent of `nudge_last_turn`; both default to off and can be enabled separately. |
-| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools to expose. When omitted, all tools are included. |
+| `nudge_turns_remaining` | integer | - | Start wrap-up warnings when N or fewer tool-calling turns remain. Independent of `nudge_last_turn`; both default to off and can be enabled separately. |
+| `mcp_filter` | list of strings | - | Glob patterns selecting which MCP tools to expose. When omitted, all tools are included. |
 | `enable_client_tools` | bool | `false` | Allow the agent to invoke client-side tools advertised in the request. See [Client-Side Tools](/aura/client-side-tools) for security implications. |
-| `client_tool_filter` | list of strings | — | Glob patterns narrowing which client tools are allowed (requires `enable_client_tools = true`). |
+| `client_tool_filter` | list of strings | - | Glob patterns narrowing which client tools are allowed (requires `enable_client_tools = true`). |
 | `model_owner` | string | _(LLM provider name)_ | Overrides the `owned_by` field in `/v1/models` responses. |
 | `created_at` | integer | _(current time)_ | Creation timestamp in milliseconds since epoch. Shown in `/v1/models` responses. |
 | `hidden` | bool | `false` | Hides this agent from the `/v1/models` list. Useful for agents meant only for internal callers. |
@@ -91,7 +91,7 @@ configs/
 CONFIG_PATH=configs/ cargo run --bin aura -- webserver
 ```
 
-Each agent is identified by its `alias` (if set) or `name`. Clients discover available agents via `GET /v1/models` and select one by passing its identifier as the `model` field in chat completion requests — the same field tools like LibreChat, OpenWebUI, and CLI clients use to present a model picker.
+Each agent is identified by its `alias` (if set) or `name`. Clients discover available agents via `GET /v1/models` and select one by passing its identifier as the `model` field in chat completion requests. The same field tools like LibreChat, OpenWebUI, and CLI clients use to present a model picker.
 
 Agent selection follows this order:
 1. If only one config is loaded, it is always used (the `model` field is ignored).
@@ -131,12 +131,12 @@ These fields are available on all providers except where noted.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `provider` | string | — | **Required.** One of: `openai`, `anthropic`, `bedrock`, `gemini`, `ollama`, `openrouter`. |
-| `model` | string | — | **Required.** Model identifier (e.g. `gpt-4o`, `claude-sonnet-4-20250514`). |
-| `max_tokens` | integer | — | Maximum tokens in the response. |
-| `context_window` | integer | — | Context window size in tokens. Required when scratchpad is enabled. Used for usage reporting in `aura.session_info` events. |
-| `temperature` | float | — | Sampling temperature (0.0–2.0). Higher values increase randomness. |
-| `additional_params` | table | — | Provider-specific parameters merged into the API request body. Useful for features like extended thinking. |
+| `provider` | string | - | **Required.** One of: `openai`, `anthropic`, `bedrock`, `gemini`, `ollama`, `openrouter`. |
+| `model` | string | - | **Required.** Model identifier (e.g. `gpt-4o`, `claude-sonnet-4-20250514`). |
+| `max_tokens` | integer | - | Maximum tokens in the response. |
+| `context_window` | integer | - | Context window size in tokens. Required when scratchpad is enabled. Used for usage reporting in `aura.session_info` events. |
+| `temperature` | float | - | Sampling temperature (0.0–2.0). Higher values increase randomness. |
+| `additional_params` | table | - | Provider-specific parameters merged into the API request body. Useful for features like extended thinking. |
 
 ### `provider = "openai"`
 
@@ -156,9 +156,9 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** OpenAI API key. |
-| `base_url` | string | — | Override the API base URL (useful for compatible proxies). |
-| `reasoning_effort` | string | — | `none`, `minimal`, `low`, `medium`, `high`, or `xhigh`. Controls reasoning depth. Support varies by model and version. Aura passes the value straight to the OpenAI API, which returns a 400 error for combinations of `model` and `reasoning_effort` that it does not support. |
+| `api_key` | string | - | **Required.** OpenAI API key. |
+| `base_url` | string | - | Override the API base URL (useful for compatible proxies). |
+| `reasoning_effort` | string | - | `none`, `minimal`, `low`, `medium`, `high`, or `xhigh`. Controls reasoning depth. Support varies by model and version. Aura passes the value straight to the OpenAI API, which returns a 400 error for combinations of `model` and `reasoning_effort` that it does not support. |
 
 ### `provider = "anthropic"`
 
@@ -178,8 +178,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** Anthropic API key. |
-| `base_url` | string | — | Override the API base URL. |
+| `api_key` | string | - | **Required.** Anthropic API key. |
+| `base_url` | string | - | Override the API base URL. |
 
 ### `provider = "bedrock"`
 
@@ -198,8 +198,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
-| `profile` | string | — | AWS profile name. Uses the default credential chain if omitted. |
+| `region` | string | - | **Required.** AWS region (e.g. `us-east-1`). |
+| `profile` | string | - | AWS profile name. Uses the default credential chain if omitted. |
 
 ### `provider = "gemini"`
 
@@ -215,8 +215,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** Google API key. |
-| `base_url` | string | — | Override the API base URL. |
+| `api_key` | string | - | **Required.** Google API key. |
+| `base_url` | string | - | Override the API base URL. |
 
 ### `provider = "ollama"`
 
@@ -259,8 +259,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** OpenRouter API key. |
-| `base_url` | string | — | Override the base URL. |
+| `api_key` | string | - | **Required.** OpenRouter API key. |
+| `base_url` | string | - | Override the base URL. |
 
 ---
 
@@ -281,7 +281,7 @@ sanitize_schemas = true
 
 Each server is a named entry under `[mcp.servers]`. The `transport` field selects the connection type.
 
-Tool names are not namespaced by server. If two servers register a tool with the same name, registration overwrites the earlier entry — since registration order is not the same as config declaration order, which tool ends up callable is effectively arbitrary, not deterministically "first" or "last" in TOML order ([#186](https://github.com/mezmo/aura/issues/186)).
+Tool names are not namespaced by server. If two servers register a tool with the same name, registration overwrites the earlier entry. Since registration order is not the same as config declaration order, which tool ends up callable is effectively arbitrary, not deterministically "first" or "last" in TOML order ([#186](https://github.com/mezmo/aura/issues/186)).
 
 #### `transport = "http_streamable"` (recommended)
 
@@ -471,12 +471,12 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `knowledge_base_id` | string | — | **Required.** Bedrock Knowledge Base ID. |
-| `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
-| `profile` | string | — | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
+| `knowledge_base_id` | string | - | **Required.** Bedrock Knowledge Base ID. |
+| `region` | string | - | **Required.** AWS region (e.g. `us-east-1`). |
+| `profile` | string | - | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
 | `managed` | bool | `false` | Set to `true` when the store points at a Bedrock managed knowledge base; Aura then sends `managedSearchConfiguration` instead of `vectorSearchConfiguration` on retrieve requests. Leave it `false` or omit it for a classic vector-store-backed knowledge base. |
 
-When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment — for example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
+When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment. For example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
 
 Both managed and classic Bedrock knowledge bases handle embeddings for you. The `managed` flag only selects which kind of knowledge base the store points at. If you leave `managed` unset or `false` for a managed knowledge base, retrieve requests fail with a `ValidationException`. The full error reads: `Incompatible configuration: vectorSearchConfiguration is not supported for managed knowledge bases. Use managedSearchConfiguration instead.` Set `managed = true` to resolve it.
 
@@ -524,7 +524,7 @@ Human-in-the-loop (HITL) approval gates let an agent ask for permission before r
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `require_approval` | list of glob patterns | `[]` | Tool-name globs that gate a matching call behind approval. |
-| `route` | table | *required* | The decision route — see `[hitl.route]` below. |
+| `route` | table | *required* | The decision route: see `[hitl.route]` below. |
 
 ### `[hitl.route]`
 
@@ -532,9 +532,9 @@ Tagged by `mode`: `"conversational"` or `"webhook"`.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `mode` | string | — | **Required.** `"conversational"` (attended, over an open SSE stream) or `"webhook"` (unattended, posts to a URL). |
+| `mode` | string | - | **Required.** `"conversational"` (attended, over an open SSE stream) or `"webhook"` (unattended, posts to a URL). |
 | `timeout_secs` | integer | `60` (conversational) / `300` (webhook) | Seconds to wait for a decision before failing closed. |
-| `url` | string | — | **Required for `webhook` mode only.** Must start with `http://` or `https://`. |
+| `url` | string | - | **Required for `webhook` mode only.** Must start with `http://` or `https://`. |
 
 ```toml
 [hitl]
@@ -550,9 +550,9 @@ timeout_secs = 300
 
 ## Session Store (Durable and Multi-Pod Deployments)
 
-Unlike every other section on this page, the session store is **not configured in TOML** — it's deployment infrastructure (one instance per server, not per-agent), so it's configured only via environment variables.
+Unlike every other section on this page, the session store is **not configured in TOML**. It's deployment infrastructure (one instance per server, not per-agent), so it's configured only via environment variables.
 
-By default, cross-request session state (A2A tasks, parked HITL approvals) lives in process memory — correct for a single pod, the CLI, and local dev. Behind a load balancer with multiple replicas, configure a shared Redis/Valkey backend and every cross-request flow works no matter which pod serves each request: A2A `message:send` → poll → `list` → history-by-context, A2A `subscribe`/`cancel` against a task executing on another pod, and conversational HITL approvals resolved by a `POST /v1/approvals/{id}` that lands away from the pod that parked them.
+By default, cross-request session state (A2A tasks, parked HITL approvals) lives in process memory. Correct for a single pod, the CLI, and local dev. Behind a load balancer with multiple replicas, configure a shared Redis/Valkey backend and every cross-request flow works no matter which pod serves each request: A2A `message:send` → poll → `list` → history-by-context, A2A `subscribe`/`cancel` against a task executing on another pod, and conversational HITL approvals resolved by a `POST /v1/approvals/{id}` that lands away from the pod that parked them.
 
 ```bash
 export AURA_SESSION_STORE=redis                          # memory (default) | redis
@@ -592,7 +592,7 @@ Workers run with isolated task context windows and filtered MCP/vector-store acc
 | `tools_in_planning` | string | `"summary"` | How much tool info is shown during planning: `"none"`, `"summary"` (tool names per worker), or `"full"` (names + descriptions). |
 | `max_tools_per_worker` | integer | `10` | Truncates the tool list per worker in the planning prompt with a `(+N more)` suffix. |
 | `coordinator_vector_stores` | list of strings | `[]` | Names of vector stores the coordinator can access. |
-| `worker_system_prompt` | string | — | Custom system prompt injected into generic (non-specialized) workers. |
+| `worker_system_prompt` | string | - | Custom system prompt injected into generic (non-specialized) workers. |
 | `duplicate_call_nudge_threshold` | integer | `3` | Consecutive identical tool calls before appending a guidance annotation. |
 | `duplicate_call_block_threshold` | integer | `5` | Consecutive identical tool calls before appending an abort annotation. |
 
@@ -627,7 +627,7 @@ Controls persistence and artifact promotion.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `memory_dir` | string | — | Base directory for run artifacts. Alias: `memory_path`. (Prefer top-level `memory_dir`.) |
+| `memory_dir` | string | - | Base directory for run artifacts. Alias: `memory_path`. (Prefer top-level `memory_dir`.) |
 | `result_artifact_threshold` | integer | `4000` | Character threshold for writing worker results to artifact files instead of inlining them. |
 | `result_summary_length` | integer | `2000` | Max inline summary length when a result is promoted to an artifact. |
 | `session_history_turns` | integer | `3` | Max prior run manifests injected as session context in the coordinator preamble. Set to `0` to disable. |
@@ -652,9 +652,9 @@ Defines a specialized worker. Worker names must be unique case-insensitively (to
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `description` | string | — | **Required.** One-line description shown to the coordinator during planning. |
-| `preamble` | string | — | **Required.** Complete system prompt for this worker (replaces the generic worker template). |
-| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. |
+| `description` | string | - | **Required.** One-line description shown to the coordinator during planning. |
+| `preamble` | string | - | **Required.** Complete system prompt for this worker (replaces the generic worker template). |
+| `mcp_filter` | list of strings | - | Glob patterns selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. |
 | `vector_stores` | list of strings | `[]` (none) | Names of vector stores this worker can access. Workers have no RAG access by default. |
 | `turn_depth` | integer | _(inherits `[agent].turn_depth`)_ | Max tool-call rounds for this worker. |
 
