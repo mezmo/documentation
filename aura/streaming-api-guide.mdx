@@ -27,16 +27,16 @@ The server supports three streaming modes, configured via CLI or environment var
 
 ```bash
 # Spec-compliant mode (default)
-cargo run --bin aura-web-server
+cargo run --bin aura -- webserver
 
 # OpenWebUI compatibility mode
-cargo run --bin aura-web-server -- --tool-result-mode open-web-ui
+cargo run --bin aura -- webserver --tool-result-mode open-web-ui
 
 # AURA events mode (requires AURA_CUSTOM_EVENTS=true)
-AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server -- --tool-result-mode aura
+AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver --tool-result-mode aura
 
 # Via environment variable
-TOOL_RESULT_MODE=aura AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server
+TOOL_RESULT_MODE=aura AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 ```
 
 ### Environment Variables
@@ -73,6 +73,7 @@ curl http://localhost:8080/aura/info | jq
     {
       "id": "orch",
       "model": "gpt-4o",
+      "description": "General-purpose assistant with tool access",
       "workers": [
         { "name": "planner", "description": "Plans work" },
         { "name": "writer", "description": "Writes summaries", "model": "gpt-4o-mini" }
@@ -95,14 +96,20 @@ curl http://localhost:8080/aura/info | jq
 }
 ```
 
+<Note>The `description` on each agent object is the agent's own summary. It is distinct from the `description` inside each `workers` entry, which describes an orchestration worker.</Note>
+
 Each agent's `id` matches the `id` field in `/v1/models` (alias if set,
-otherwise agent name). The `workers` array is omitted for non-orchestration
-agents. Each worker's `model` is included only when it overrides the
-coordinator model.
+otherwise agent name). Each agent object can also carry a `description`: the agent's human-readable
+summary from its `[agent].description` config (see the [configuration
+reference](/aura/configuration-reference#agent)). It is omitted from the response when
+that config field is unset. Omitting it when
+unset keeps older servers and clients compatible. This is the same value returned by `/v1/models` (see the [web server reference](/aura/web-server-reference)); use `/aura/info` when a client also wants the worker or MCP-server metadata this endpoint provides. The `workers` array is
+omitted for non-orchestration agents. Each worker's `model` is included only
+when it overrides the coordinator model.
 
 `mcp_servers` is a credential-free view of the agent's configured MCP servers,
 keyed by name and tagged by `transport` (`stdio`, `http_streamable`, or `sse`).
-URLs are reduced to their origin (`scheme://host:port`) — path, query,
+URLs are reduced to their origin (`scheme://host:port`): path, query,
 fragment, and userinfo are all dropped, since any of them can carry a token. A
 stdio server shows only the executable basename as `command`; its arguments
 and environment are never included, and neither are `headers` or
@@ -119,7 +126,7 @@ HITL approval lifecycle events are the exception: the server emits them whenever
 an approval route needs clients to observe or act on approval state.
 
 ```bash
-AURA_CUSTOM_EVENTS=true cargo run --bin aura-web-server
+AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 ```
 
 ### Custom Event Types
@@ -235,7 +242,7 @@ Note:
 
 **Reasoning** (requires both flags):
 ```bash
-AURA_CUSTOM_EVENTS=true AURA_EMIT_REASONING=true cargo run --bin aura-web-server
+AURA_CUSTOM_EVENTS=true AURA_EMIT_REASONING=true cargo run --bin aura -- webserver
 ```
 ```
 event: aura.reasoning
@@ -282,9 +289,9 @@ data:
 }
 ```
 
-Note: `aura.session_info` includes only `CorrelationContext` fields (`session_id`, `trace_id`) — no `agent_id`. `model_context_limit` comes from the `context_window` field in the `[agent.llm]` TOML config section (or `[orchestration.worker.<name>.llm]` for per-worker overrides). If `context_window` is not set, `model_context_limit` is omitted from the event.
+Note: `aura.session_info` includes only `CorrelationContext` fields (`session_id`, `trace_id`). No `agent_id`. `model_context_limit` comes from the `context_window` field in the `[agent.llm]` TOML config section (or `[orchestration.worker.<name>.llm]` for per-worker overrides). If `context_window` is not set, `model_context_limit` is omitted from the event.
 
-**MCP status** (emitted once when at least one MCP server is configured — at stream start in single-agent mode, or just after the shared manager connects in orchestration mode):
+**MCP status** (emitted once when at least one MCP server is configured. At stream start in single-agent mode, or just after the shared manager connects in orchestration mode):
 ```
 event: aura.mcp_status
 data:
@@ -575,8 +582,8 @@ data:
 ```
 
 The `routing_mode` field indicates how the coordinator routed the query:
-- `"routed"` — classified to a single worker
-- `"orchestrated"` — multi-task DAG with continuation
+- `"routed"`: classified to a single worker
+- `"orchestrated"`: multi-task DAG with continuation
 
 The optional `planning_response` field contains the coordinator's raw planning text and is omitted when empty.
 
@@ -728,7 +735,7 @@ The `reasoning` and `gaps` fields are included only when non-empty (i.e., when r
 | Field | Meaning |
 |-------|---------|
 | `planning_ms` | Prompt → plan created. Includes planning-correction retries. For replanned iterations this is the prior iteration's continuation-decision latency (that call produced this iteration's plan). |
-| `execution_ms` | Plan ready → continuation-prompt entrypoint — one iteration's execution span (worker waves + persistence drain + result consolidation), measured as wall-clock. |
+| `execution_ms` | Plan ready → continuation-prompt entrypoint. One iteration's execution span (worker waves + persistence drain + result consolidation), measured as wall-clock. |
 | `task_compute_ms` | Sum of per-task wall durations across the iteration (aggregate compute; exceeds `execution_ms` when tasks run in parallel). |
 | `tool_ms` | Sum of tool-call durations recorded for the iteration's tasks. |
 
@@ -1039,13 +1046,13 @@ Configure the grace period:
 
 ```bash
 # Allow 60 seconds for in-flight requests to finish
-SHUTDOWN_TIMEOUT_SECS=60 cargo run --bin aura-web-server
+SHUTDOWN_TIMEOUT_SECS=60 cargo run --bin aura -- webserver
 
 # Or via CLI flag
-cargo run --bin aura-web-server -- --shutdown-timeout-secs 60
+cargo run --bin aura -- webserver --shutdown-timeout-secs 60
 ```
 
-**K8s tip**: Set `terminationGracePeriodSeconds` to at least `SHUTDOWN_TIMEOUT_SECS + 15` (default: 45s). The total shutdown budget is grace period + 10s Actix buffer. During Phase 1, `/health` returns 503 — readiness probes will fail immediately, removing the pod from service endpoints.
+**K8s tip**: Set `terminationGracePeriodSeconds` to at least `SHUTDOWN_TIMEOUT_SECS + 15` (default: 45s). The total shutdown budget is grace period + 10s Actix buffer. During Phase 1, `/health` returns 503. Readiness probes will fail immediately, removing the pod from service endpoints.
 
 <Note>The `/health` endpoint returns 503 during shutdown (same middleware gate as all routes). This is intentional — it signals load balancers and K8s readiness probes to stop routing traffic to this instance.</Note>
 

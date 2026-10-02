@@ -13,7 +13,7 @@ This feature is only available for customers on an Enterprise plan, and is restr
 
 ## How SCIM works with Enterprise Accounts and Child Orgs
 
-Mezmo's implementation of SCIM allows you to map Groups in your IDP with Child Organizations in Mezmo.  It also maps users in your IDP to users in Mezmo.  Assignments of these users to groups in your IDP will be reflected by Mezmo assigning these users to the matching Org.
+Mezmo's implementation of SCIM allows you to map Groups in your IDP with Child Organizations in Mezmo. It also maps users in your IDP to users in Mezmo. Assignments of these users to groups in your IDP will be reflected by Mezmo assigning these users to the matching Org.
 
 <Note>
 The Groups on this page are identity-provider groups used to provision users into child organizations. They are unrelated to the RBAC access-control groups that have been removed from Mezmo.
@@ -56,13 +56,13 @@ For more information about transferring ownership, contact your Customer Support
 
 ## General Setup
 
-To utilize SCIM, you will need to obtain an Enterprise Service Key.  You can find this in the  **Access Management** section of the Mezmo Web App in your **Enterprise Dashboard**.  You will need this key, as well as our SCIM endpoint:
+To utilize SCIM, you will need to obtain an Enterprise Service Key. You can find this in the  **Access Management** section of the Mezmo Web App in your **Enterprise Dashboard**. You will need this key, as well as our SCIM endpoint:
 
 `https://api.mezmo.com/v1/enterprise/scim`
 
 ## Support
 
-While our SCIM endpoint was built to SCIM 2.0 specifications, we have only tested it with the following IDPs.  You may use other IDPs, but we cannot guarantee support for untested providers.
+While our SCIM endpoint was built to SCIM 2.0 specifications, we have only tested it with the following IDPs. You may use other IDPs, but we cannot guarantee support for untested providers.
 
 Please note that while we support group sync, we do not support creation and deletion of groups.
 
@@ -163,7 +163,7 @@ Any users assigned to this group on the Entra side will be synced with the corre
     - name.familyName
     - name.formatted
 
-3. Edit attribute **userName** by replacing **Source attribute** from **userPrincipalName** to **mail**.  Mezmo assumes **userName** is a unique user ID which must be the user's email address.
+3. Edit attribute **userName** by replacing **Source attribute** from **userPrincipalName** to **mail**. Mezmo assumes **userName** is a unique user ID which must be the user's email address.
 4. Click **Save.**
 
 <Note>
@@ -182,7 +182,7 @@ Otherwise they will be skipped during the sync
 
 1. Under **Mezmo SCIM**, click **Users and groups**.
 2. Click **Add user/group.**
-3. Choose the group(s) you want to sync and click **select.**
+3. Choose the groups you want to sync and click **select.**
 4. Click **Assign**
 
 ### Start Provisioning

@@ -18,7 +18,7 @@ You can view the errors for any Pipeline by accessing its **Error History**.
 1. Log in to the [Mezmo Web App](https://app.mezmo.com). 
 2. Click **Pipelines** in the Admin Panel. 
 3. Under **Deployed Pipelines**, click the arrow next to the Pipeline you want to view to open the **Pipeline Menu**. 
-4. Click **Error History**. You will see a list of errors in order by **Timestamp,** along with information about the type, the affected node, and the error message.   You can also search errors using character and term matching. 
+4. Click **Error History**. You will see a list of errors in order by **Timestamp,** along with information about the type, the affected node, and the error message. You can also search errors using character and term matching. 
 
 <Frame caption="An example error">
   ![Image](/images/telemetry-pipelines/3fye3anp5vhbzmi39w6va5nadgykhojx79vjikcosqhwqy440p058gexilyjaqub.png)
@@ -37,5 +37,5 @@ You can view the specific log lines that have caused errors.
 
 ## Error Retention
 
-- Pipeline error logs are retained for 10 days.  A scheduled task runs every 12 hours and deletes logs that are over 10 days old. 
+- Pipeline error logs are retained for 10 days. A scheduled task runs every 12 hours and deletes logs that are over 10 days old. 
 - If a repeat error occurs, only the timestamp is updated , and the additional log entries are not retained

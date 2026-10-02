@@ -1,9 +1,9 @@
 ---
 title: "AURA Web Server Reference"
-description: "OpenAI-compatible web API server that exposes AURA agents through a standard chat completions endpoint — endpoints, deployment env vars, and architecture."
+description: "OpenAI-compatible web API server that exposes AURA agents through a standard chat completions endpoint: endpoints, deployment env vars, and architecture."
 ---
 
-<Note>**Active development** — APIs and configuration may change between releases as AURA evolves. [Issues and feature requests](https://github.com/mezmo/aura/issues) are welcome — we'd love your feedback.</Note>
+<Note>**Active development**: APIs and configuration may change between releases as AURA evolves. [Issues and feature requests](https://github.com/mezmo/aura/issues) are welcome. We'd love your feedback.</Note>
 
 <Note>**Part of the [AURA Project](https://github.com/mezmo/aura)** - A production-ready framework for building AI agents with declarative TOML configuration.</Note>
 
@@ -11,7 +11,7 @@ OpenAI-compatible web API server that exposes AURA agents through a standard cha
 
 ## When to run the server
 
-The [CLI](/aura/cli-reference) starts an agent per terminal session, which suits interactive work. Running `aura-web-server` instead keeps agents resident behind an HTTP API, so a caller that isn't a person at a keyboard can start a run: an alert pipeline reacting to a firing monitor, a scheduled job, a CI step, or a chat client such as LibreChat or OpenWebUI.
+The [CLI](/aura/cli-reference) starts an agent per terminal session, which suits interactive work. Running `aura webserver` instead keeps agents resident behind an HTTP API, so a caller that isn't a person at a keyboard can start a run: an alert pipeline reacting to a firing monitor, a scheduled job, a CI step, or a chat client such as LibreChat or OpenWebUI.
 
 Requests arrive as OpenAI chat completions, so any system that already speaks that format can call AURA directly. The server exposes no alert-specific receiver, so a monitoring tool that posts its own schema (Alertmanager and PagerDuty webhooks, for example) needs a small adapter to translate its payload into a chat completion request. Long-running investigations can stream progress back over SSE; see the [Streaming API Guide](/aura/streaming-api-guide).
 
@@ -26,20 +26,20 @@ Requests arrive as OpenAI chat completions, so any system that already speaks th
 ## Quick Start
 
 ```bash
-# Build the server
-cargo build --release --bin aura-web-server
+# Build
+cargo build --release --bin aura
 
 # Start with default config (config.toml)
-cargo run --bin aura-web-server
+cargo run --bin aura -- webserver
 
 # Or with custom configuration file
-CONFIG_PATH=my-config.toml cargo run --bin aura-web-server
+CONFIG_PATH=my-config.toml cargo run --bin aura -- webserver
 
 # Or with a directory of configs (serves multiple agents)
-CONFIG_PATH=configs/ cargo run --bin aura-web-server
+CONFIG_PATH=configs/ cargo run --bin aura -- webserver
 
 # Custom host/port
-HOST=0.0.0.0 PORT=3000 cargo run --bin aura-web-server
+HOST=0.0.0.0 PORT=3000 cargo run --bin aura -- webserver
 ```
 
 ## API Endpoints
@@ -59,12 +59,16 @@ GET /v1/models
 ```
 Returns all loaded agents. Each agent's `alias` (or `name` if no alias is set) is its model `id`. The `owned_by` field defaults to the underlying LLM provider (e.g. `"openai"`, `"anthropic"`) and can be overridden with `model_owner` in the agent config. Clients like LibreChat and OpenWebUI use this endpoint to populate their model picker.
 
+Each entry can also carry a `description`, a human-readable summary sourced from the agent's `[agent].description` config (see the [configuration reference](/aura/configuration-reference#agent)). This extends the OpenAI model object. The key is omitted when `[agent].description` is unset, so strict OpenAI clients can ignore it.
+
+The `/aura/info` endpoint reports this same per-agent `description`; both read the agent's `[agent].description` config value rather than computing it independently. `/v1/models` alone is enough to populate a model picker in an OpenAI-compatible client.
+
 Response:
 ```json
 {
   "object": "list",
   "data": [
-    {"id": "devops", "object": "model", "created": 1677649963, "owned_by": "mezmo"},
+    {"id": "devops", "object": "model", "created": 1677649963, "owned_by": "mezmo", "description": "General-purpose assistant with tool access"},
     {"id": "research-assistant", "object": "model", "created": 1677649963, "owned_by": "mezmo"}
   ]
 }
@@ -152,7 +156,7 @@ The server uses the AURA TOML configuration system. See the [configuration refer
 - Vector store and RAG integration
 - Agent settings and prompts
 
-Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tree/main/examples) directory — see [Example Configs](/aura/example-configs).
+Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tree/main/examples) directory. See [Example Configs](/aura/example-configs).
 
 ## Architecture
 
@@ -171,8 +175,8 @@ Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tr
 | `CONFIG_PATH` | `config.toml` | Path to a config file or directory of configs |
 | `HOST` | `127.0.0.1` | Server bind address |
 | `PORT` | `8080` | Server port |
-| `AURA_ENABLE_A2A` | `false` | Enable A2A protocol endpoints (`/a2a/v1/*`, `/.well-known/agent-card.json`). Disabled by default — see [A2A Integration](/aura/a2a-implementation) |
-| `AURA_SERVER_URL` | host/port | Canonical public origin published in the A2A agent card. Set when running behind a proxy, load balancer, or in Kubernetes — see [A2A Integration](/aura/a2a-implementation#agent-card-url-aura_server_url) |
+| `AURA_ENABLE_A2A` | `false` | Enable A2A protocol endpoints (`/a2a/v1/*`, `/.well-known/agent-card.json`). Disabled by default. See [A2A Integration](/aura/a2a-implementation) |
+| `AURA_SERVER_URL` | host/port | Canonical public origin published in the A2A agent card. Set when running behind a proxy, load balancer, or in Kubernetes. See [A2A Integration](/aura/a2a-implementation#agent-card-url-aura_server_url) |
 | `DEFAULT_AGENT` | *(none)* | Agent name or alias used when `model` is omitted. Not needed when only one config is loaded. |
 | `AURA_CUSTOM_EVENTS` | `false` | Emit `aura.*` SSE events alongside OpenAI-compatible chunks |
 | `AURA_EMIT_REASONING` | `false` | Emit `aura.reasoning` events (requires `AURA_CUSTOM_EVENTS=true`) |
@@ -183,8 +187,8 @@ Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tr
 | `STREAM_INACTIVITY_TIMEOUT_SECS` | `0` | Max silence between stream items after the first chunk before the server fails the streaming request (0 = disabled). Applies to single-agent streaming; tool execution is exempt. For orchestrated deployments, use the TOML `stream_inactivity_timeout_secs` instead. See [request lifecycle](/aura/request-lifecycle#timeout-configuration) for tuning guidance, and the [configuration reference](/aura/configuration-reference) for the TOML field. |
 | `SHUTDOWN_TIMEOUT_SECS` | `30` | Grace period for in-flight streams after SIGTERM/SIGINT |
 | `STREAMING_BUFFER_SIZE` | `400` | SSE chunk buffer size; higher values reduce latency but increase memory use |
-| `AURA_DEBUG_PROVIDER_ERRORS` | `false` | **Dev only.** Surface raw upstream provider errors to clients (capped). Keep off when public-facing — error bodies can echo request content. Raw error is always in logs/OTel. |
+| `AURA_DEBUG_PROVIDER_ERRORS` | `false` | **Dev only.** Surface raw upstream provider errors to clients (capped). Keep off when public-facing. Error bodies can echo request content. Raw error is always in logs/OTel. |
 
 ## See Also
 
-- [AURA on GitHub](https://github.com/mezmo/aura) — source, issues, and contributing
+- [AURA on GitHub](https://github.com/mezmo/aura): source, issues, and contributing

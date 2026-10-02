@@ -40,7 +40,7 @@ Set the criteria for evaluation of the metric or event data.
 
 ## Alert Condition Configuration
 
-Set the conditions that will trigger an alert based on the data evaluation.  All conditions are based on an IF statement. 
+Set the conditions that will trigger an alert based on the data evaluation. All conditions are based on an IF statement. 
 
 1. Enter the **Field** to use for the conditional statement. 
 2. Select the **Operator** to use in the statement. 
@@ -97,6 +97,8 @@ The Alert Payload enables you to customize the alert message based on the incomi
 
 The available services to send alerts are Slack, PagerDuty, Webhook or Mezmo Log Analysis. These are the options for each service:
 
+<Note>Additional notification services can appear when related features are enabled for your account. If your account has AI Investigations enabled, you can select the **Mezmo AURA Investigation** service to start an [AI Investigation](/docs/ai-investigations) when the alert fires.</Note>
+
 #### Slack
 
 - URI - The full URI for the Slack API
@@ -135,7 +137,3 @@ If a Source, Destination, or Processor has an alert configured, you will see an 
 ![](/images/telemetry-pipelines/dbw00srjvvdcwlbkhnzrfz54yc9l4vykv74emopel8l2vou3399wiltfeiiojmkh.jpg)
 
 You can see the alert configuration by clicking on the alert indicator.
-
-## Interactive Demo
-
-[This demo](https://capture.navattic.com/clz0byns1000109ia0c8x8vib) illustrates the configuration of an in-stream alert for a Pipeline node. 

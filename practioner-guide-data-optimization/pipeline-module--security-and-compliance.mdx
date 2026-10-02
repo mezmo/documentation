@@ -5,18 +5,9 @@ description: "Build a compliance processor group that routes events to Encrypt F
 
 ## The Situation
 
-This Pipette depicts the typical configuration of a Data Compliance processor group within a Telemetry Pipeline.  In this situation, the objectives are to send financial transaction and account access data to a storage location in case it is needed for later analysis, and to redact or encrypt Personally Identifying Information (PII). 
+This Pipette depicts the typical configuration of a Data Compliance processor group within a Telemetry Pipeline. In this situation, the objectives are to send financial transaction and account access data to a storage location in case it is needed for later analysis, and to redact or encrypt Personally Identifying Information (PII). 
 
 This group uses the [Route Processor](/telemetry-pipelines/route-processor) to send specific events to the [Redact Processor](/telemetry-pipelines/redact-processor) and the [Encrypt Field Processor](/telemetry-pipelines/encrypt-fields-processor), before storage, to obfuscate user IDs and credit card numbers, and to also enable the decryption of credit card numbers in case they are needed for specific analysis. 
-
-## Interactive Demo
-
-This demo demonstrates the configuration of a processor chain for encrypting and redacting data. You will need to have pop-ups enabled for your browser or docs.mezmo.com to view the demo. You can also view [this demo on the mezmo.com website](https://www.mezmo.com/demos/mask-encrypt-data) without a pop-up. 
-
-&lt;!-- To open the pop-up on clicking a button, add the following data-navattic attributes to an existing button on your page -->
-<button data-navattic-open="https://capture.navattic.com/clvgzc9yx000n0aicccy36c4b" data-navattic-title="Mask and Encrypt Data">
-  View the demo in a pop-up
-</button>
 
 ## Overview
 

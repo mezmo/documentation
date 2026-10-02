@@ -41,6 +41,10 @@ Mezmo services use domain name system (DNS) routing, so you do not need to updat
 
 **syslog-a.mezmo.com and syslog-u.mezmo.com:**
 
+<Note>
+These endpoints are for legacy direct Syslog ingestion. Mezmo's [Syslog](/docs/ingestion-integrations/syslog), [Rsyslog](/docs/ingestion-integrations/rsyslog), [Syslog-ng](/docs/ingestion-integrations/syslog-ng), and [NXLog](/docs/ingestion-integrations/nxlog-for-windows) ingestion integrations now recommend forwarding through an OpenTelemetry Collector to the Mezmo OTEL Source instead, which uses the **logs.mezmo.com** addresses listed above.
+</Note>
+
 107.21.191.159
 
 18.210.196.184
