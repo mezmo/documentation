@@ -5,7 +5,7 @@ description: "Build a compliance processor group that routes events to Encrypt F
 
 ## The Situation
 
-This Pipette depicts the typical configuration of a Data Compliance processor group within a Telemetry Pipeline.  In this situation, the objectives are to send financial transaction and account access data to a storage location in case it is needed for later analysis, and to redact or encrypt Personally Identifying Information (PII). 
+This Pipette depicts the typical configuration of a Data Compliance processor group within a Telemetry Pipeline. In this situation, the objectives are to send financial transaction and account access data to a storage location in case it is needed for later analysis, and to redact or encrypt Personally Identifying Information (PII). 
 
 This group uses the [Route Processor](/telemetry-pipelines/route-processor) to send specific events to the [Redact Processor](/telemetry-pipelines/redact-processor) and the [Encrypt Field Processor](/telemetry-pipelines/encrypt-fields-processor), before storage, to obfuscate user IDs and credit card numbers, and to also enable the decryption of credit card numbers in case they are needed for specific analysis. 
 
