@@ -25,8 +25,8 @@ When disabled, the A2A endpoints (`/.well-known/agent-card.json`, `/a2a/v1/*`, a
 
 | Method | Path | Transport | Description |
 |--------|------|-----------|-------------|
-| `GET` | `/.well-known/agent-card.json` | — | Agent card (capability discovery) |
-| `GET` | `/health` | — | Health check |
+| `GET` | `/.well-known/agent-card.json` | - | Agent card (capability discovery) |
+| `GET` | `/health` | - | Health check |
 | `POST` | `/a2a/v1/message:send` | REST (HTTP+JSON) | Send a message; returns task in `Working` state immediately |
 | `POST` | `/a2a/v1/message:stream` | REST (SSE) | Send a message and stream task updates |
 | `GET` | `/a2a/v1/tasks` | REST | List tasks |
@@ -38,7 +38,7 @@ When disabled, the A2A endpoints (`/.well-known/agent-card.json`, `/a2a/v1/*`, a
 | `POST` | `/a2a/v1/rpc` | JSON-RPC 2.0 | All of the above via JSON-RPC envelope |
 | `POST` | `/` | JSON-RPC 2.0 (v0.3) | A2A v0.3 JSON-RPC binding for pre-1.0 clients (for example, kagent); see [A2A v0.3 Root Binding](#a2a-v03-root-binding) |
 
-### `message:send` — immediate return
+### `message:send`: immediate return
 
 `AuraRequestHandler` forces `return_immediately = true` on every `message:send` request. The HTTP response returns as soon as the task is queued in `Working` state, without waiting for the agent to finish. Poll `GET /a2a/v1/tasks/{id}` or subscribe via `message:stream` / `tasks/{id}:subscribe` to track completion.
 
@@ -112,7 +112,7 @@ When the server is started with multiple agent configs (e.g. `--config agent-a.t
 
 | Scenario | Behavior |
 |----------|----------|
-| Single config loaded | Header is ignored — the only config is always used |
+| Single config loaded | Header is ignored: the only config is always used |
 | Multi-config, header present | Matches against `agent.alias` (if set), otherwise `agent.name` |
 | Multi-config, header absent | Falls back to the server's default agent (`--default-agent` / `AURA_DEFAULT_AGENT`) |
 | No matching config found | Returns an `invalid_params` A2A error |
@@ -168,7 +168,7 @@ curl http://localhost:8080/health
 
 ---
 
-### REST — send a message
+### REST: send a message
 
 ```bash
 # Single-config server — no x-aura-model needed
@@ -199,19 +199,19 @@ curl -s -X POST http://localhost:8080/a2a/v1/message:send \
 
 The response is a task object in `Working` state. Grab the `id` field for follow-up calls.
 
-### REST — get a task by ID
+### REST: get a task by ID
 
 ```bash
 curl -s http://localhost:8080/a2a/v1/tasks/<task-id> | jq .
 ```
 
-### REST — list tasks
+### REST: list tasks
 
 ```bash
 curl -s http://localhost:8080/a2a/v1/tasks | jq .
 ```
 
-### REST — cancel a task
+### REST: cancel a task
 
 ```bash
 curl -s -X POST http://localhost:8080/a2a/v1/tasks/<task-id>:cancel | jq .
@@ -219,7 +219,7 @@ curl -s -X POST http://localhost:8080/a2a/v1/tasks/<task-id>:cancel | jq .
 
 ---
 
-### JSON-RPC — send a message
+### JSON-RPC: send a message
 
 ```bash
 curl -s -X POST http://localhost:8080/a2a/v1/rpc \
@@ -240,7 +240,7 @@ curl -s -X POST http://localhost:8080/a2a/v1/rpc \
   }' | jq .
 ```
 
-### JSON-RPC — get a task
+### JSON-RPC: get a task
 
 ```bash
 curl -s -X POST http://localhost:8080/a2a/v1/rpc \
@@ -254,7 +254,7 @@ curl -s -X POST http://localhost:8080/a2a/v1/rpc \
   }' | jq .
 ```
 
-### JSON-RPC — cancel a task
+### JSON-RPC: cancel a task
 
 ```bash
 curl -s -X POST http://localhost:8080/a2a/v1/rpc \
@@ -270,7 +270,7 @@ curl -s -X POST http://localhost:8080/a2a/v1/rpc \
 
 ---
 
-### JSON-RPC (v0.3) — send a message
+### JSON-RPC (v0.3): send a message
 
 This is the endpoint that pre-1.0 clients like kagent use automatically. The v0.3 binding uses the v0.3 wire format, which differs from the v1.0 examples above: `role` is lowercase (`user`), each part carries a `kind` discriminator (`{ "kind": "text", ... }`), and responses come back with v0.3 spellings (for example, kebab-case task states).
 
@@ -295,7 +295,7 @@ curl -s -X POST http://localhost:8080/ \
 
 ---
 
-### JSON-RPC (v0.3) — get a task
+### JSON-RPC (v0.3): get a task
 
 This polls a task created by the v0.3 `message/send` call above. The same task is also reachable through the REST endpoint `GET /a2a/v1/tasks/{id}`.
 
@@ -317,7 +317,7 @@ curl -s -X POST http://localhost:8080/ \
 
 - **`A2A-Version` is optional** — when present on `/a2a/v1/rpc` requests, the version is validated. An unsupported value returns `-32009 Version not supported`. REST endpoints do not enforce the header.
 - **`messageId` and `role` are required** on the `Message` object — malformed bodies return `-32602 Invalid params`.
-- **Text-only parts** — the executor only accepts `text` parts; `file` and `data` parts return an error.
+- **Text-only parts**: the executor only accepts `text` parts; `file` and `data` parts return an error.
 - By default, tasks are stored in the `a2a-rs-server` in-memory `TaskStore` for the lifetime of the process. A Redis or Valkey [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments) persists tasks for durable or multi-pod deployments. Use `GET /a2a/v1/tasks/{id}` or `GetTask` to poll after `message:send` returns.
 - Request headers passed to `/a2a/v1/message:send` are forwarded to the agent's MCP connections (same `headers_from_request` mechanism as the OpenAI-compatible endpoint). This includes `x-aura-model`.
-- **`x-aura-model` is an Aura extension**, not part of the A2A spec. It selects the agent configuration when multiple configs are loaded — see [Model selection](#model-selection-x-aura-model).
+- **`x-aura-model` is an Aura extension**, not part of the A2A spec. It selects the agent configuration when multiple configs are loaded: see [Model selection](#model-selection-x-aura-model).

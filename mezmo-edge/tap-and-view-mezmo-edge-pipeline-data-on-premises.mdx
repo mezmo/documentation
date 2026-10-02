@@ -238,7 +238,7 @@ subscription {
 
 ## Disabling Tap from the Edge Helm Configuration
 
-To disable tap from the Edge itself, simply edit the `statefulset` and set two environment variables to `https://localhost`.  This will cause the vector pod to emit error logs when it cannot fetch tasks, but otherwise functionality of the Edge instance is not affected other than to prevent data egress to the SaaS Control Plane from within an environment.
+To disable tap from the Edge itself, simply edit the `statefulset` and set two environment variables to `https://localhost`. This will cause the vector pod to emit error logs when it cannot fetch tasks, but otherwise functionality of the Edge instance is not affected other than to prevent data egress to the SaaS Control Plane from within an environment.
 
 ```none
 # edit the statefulset
