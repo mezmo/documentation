@@ -109,7 +109,7 @@ when it overrides the coordinator model.
 
 `mcp_servers` is a credential-free view of the agent's configured MCP servers,
 keyed by name and tagged by `transport` (`stdio`, `http_streamable`, or `sse`).
-URLs are reduced to their origin (`scheme://host:port`) — path, query,
+URLs are reduced to their origin (`scheme://host:port`): path, query,
 fragment, and userinfo are all dropped, since any of them can carry a token. A
 stdio server shows only the executable basename as `command`; its arguments
 and environment are never included, and neither are `headers` or
@@ -289,9 +289,9 @@ data:
 }
 ```
 
-Note: `aura.session_info` includes only `CorrelationContext` fields (`session_id`, `trace_id`) — no `agent_id`. `model_context_limit` comes from the `context_window` field in the `[agent.llm]` TOML config section (or `[orchestration.worker.<name>.llm]` for per-worker overrides). If `context_window` is not set, `model_context_limit` is omitted from the event.
+Note: `aura.session_info` includes only `CorrelationContext` fields (`session_id`, `trace_id`). No `agent_id`. `model_context_limit` comes from the `context_window` field in the `[agent.llm]` TOML config section (or `[orchestration.worker.<name>.llm]` for per-worker overrides). If `context_window` is not set, `model_context_limit` is omitted from the event.
 
-**MCP status** (emitted once when at least one MCP server is configured — at stream start in single-agent mode, or just after the shared manager connects in orchestration mode):
+**MCP status** (emitted once when at least one MCP server is configured. At stream start in single-agent mode, or just after the shared manager connects in orchestration mode):
 ```
 event: aura.mcp_status
 data:
@@ -582,8 +582,8 @@ data:
 ```
 
 The `routing_mode` field indicates how the coordinator routed the query:
-- `"routed"` — classified to a single worker
-- `"orchestrated"` — multi-task DAG with continuation
+- `"routed"`: classified to a single worker
+- `"orchestrated"`: multi-task DAG with continuation
 
 The optional `planning_response` field contains the coordinator's raw planning text and is omitted when empty.
 
@@ -735,7 +735,7 @@ The `reasoning` and `gaps` fields are included only when non-empty (i.e., when r
 | Field | Meaning |
 |-------|---------|
 | `planning_ms` | Prompt → plan created. Includes planning-correction retries. For replanned iterations this is the prior iteration's continuation-decision latency (that call produced this iteration's plan). |
-| `execution_ms` | Plan ready → continuation-prompt entrypoint — one iteration's execution span (worker waves + persistence drain + result consolidation), measured as wall-clock. |
+| `execution_ms` | Plan ready → continuation-prompt entrypoint. One iteration's execution span (worker waves + persistence drain + result consolidation), measured as wall-clock. |
 | `task_compute_ms` | Sum of per-task wall durations across the iteration (aggregate compute; exceeds `execution_ms` when tasks run in parallel). |
 | `tool_ms` | Sum of tool-call durations recorded for the iteration's tasks. |
 
@@ -1052,7 +1052,7 @@ SHUTDOWN_TIMEOUT_SECS=60 cargo run --bin aura -- webserver
 cargo run --bin aura -- webserver --shutdown-timeout-secs 60
 ```
 
-**K8s tip**: Set `terminationGracePeriodSeconds` to at least `SHUTDOWN_TIMEOUT_SECS + 15` (default: 45s). The total shutdown budget is grace period + 10s Actix buffer. During Phase 1, `/health` returns 503 — readiness probes will fail immediately, removing the pod from service endpoints.
+**K8s tip**: Set `terminationGracePeriodSeconds` to at least `SHUTDOWN_TIMEOUT_SECS + 15` (default: 45s). The total shutdown budget is grace period + 10s Actix buffer. During Phase 1, `/health` returns 503. Readiness probes will fail immediately, removing the pod from service endpoints.
 
 <Note>The `/health` endpoint returns 503 during shutdown (same middleware gate as all routes). This is intentional — it signals load balancers and K8s readiness probes to stop routing traffic to this instance.</Note>
 

@@ -77,7 +77,7 @@ Client POST /v1/chat/completions
 | Stream timeout | 15 min | `STREAMING_TIMEOUT_SECS` | Max request duration |
 | Stream inactivity timeout | Disabled (`0`) | `STREAM_INACTIVITY_TIMEOUT_SECS` | Max silence between stream items after the first chunk |
 | Shutdown grace period | 30 sec | `SHUTDOWN_TIMEOUT_SECS` | Time for in-flight requests to finish on shutdown |
-| Heartbeat | 15 sec | — | Disconnect detection |
+| Heartbeat | 15 sec | - | Disconnect detection |
 
 ### Rationale
 
@@ -106,13 +106,13 @@ Aura pins OpenAI to Chat Completions, which streams nothing while the model is t
 
 ## Tool Event Correlation
 
-Rig spawns tool execution in separate tokio tasks. The hook context (where the LLM decides to call a tool) and the execution context (where MCP actually runs) are decoupled, requiring a mechanism to correlate `tool_call_id` across these boundaries — AURA does this with a per-request FIFO queue. This relies on Rig's streaming mode executing tools sequentially within a request; see [Rig Fork Changes](https://github.com/mezmo/aura/blob/main/docs/rig-fork-changes.md) for the validation methodology if you're tracking Rig upstream compatibility.
+Rig spawns tool execution in separate tokio tasks. The hook context (where the LLM decides to call a tool) and the execution context (where MCP actually runs) are decoupled, requiring a mechanism to correlate `tool_call_id` across these boundaries. AURA does this with a per-request FIFO queue. This relies on Rig's streaming mode executing tools sequentially within a request; see [Rig Fork Changes](https://github.com/mezmo/aura/blob/main/docs/rig-fork-changes.md) for the validation methodology if you're tracking Rig upstream compatibility.
 
 ---
 
 ## Cleanup Mechanism
 
-Request resources (cancellation registration, progress/tool-event subscriptions) are cleaned up via an RAII guard that ensures cleanup runs even on panic. If the async runtime is already gone (process exit), cleanup is skipped — resources are reclaimed with the process.
+Request resources (cancellation registration, progress/tool-event subscriptions) are cleaned up via an RAII guard that ensures cleanup runs even on panic. If the async runtime is already gone (process exit), cleanup is skipped. Resources are reclaimed with the process.
 
 ---
 
@@ -140,9 +140,9 @@ The server uses a two-phase shutdown with separate cancellation tokens:
 ### Shutdown Sequence
 
 1. **SIGTERM/SIGINT** received
-2. **Phase 1 (immediate)**: `shutdown_token` cancelled — middleware returns 503 for all new requests
+2. **Phase 1 (immediate)**: `shutdown_token` cancelled. Middleware returns 503 for all new requests
 3. **Grace period**: In-flight streams continue running for up to `SHUTDOWN_TIMEOUT_SECS` (default 30s). Streams that complete naturally during this window are unaffected.
-4. **Phase 2 (drain)**: `stream_shutdown_token` cancelled — remaining streams:
+4. **Phase 2 (drain)**: `stream_shutdown_token` cancelled. Remaining streams:
    - Cancel hook + request registry (stops in-flight MCP tool execution)
    - Send `[DONE]` to client (before MCP cleanup, so client gets clean termination)
    - Run MCP cleanup (send `notifications/cancelled`, close connections)
@@ -155,4 +155,4 @@ The server uses a two-phase shutdown with separate cancellation tokens:
 |----------|-------------------|----------|
 | Pool eviction | Yes | No (pool is dying) |
 | `[DONE]` timing | After MCP cleanup (Timeout) / skipped (Disconnect) | Before MCP cleanup |
-| Grace period | None — immediate cancel | Configurable (`SHUTDOWN_TIMEOUT_SECS`) |
+| Grace period | None: immediate cancel | Configurable (`SHUTDOWN_TIMEOUT_SECS`) |
