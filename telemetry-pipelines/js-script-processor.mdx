@@ -36,7 +36,7 @@ With the JavaScript processor you can define a single function to encapsulate th
 | ---- | ---- | 
 | `message` | This is a reference to the actual message that flows through this processor | 
 | `metadata` (optional) | The metadata associated with the event | 
-| `timestamp`<br /><br />(optional) | The timestamp associated with this event.  In some automated parsing sources we will try and extract the timestamp from the incoming event, but for the most part this timestamp will be set to the time we received the event. | 
+| `timestamp`<br /><br />(optional) | The timestamp associated with this event. In some automated parsing sources we will try and extract the timestamp from the incoming event, but for the most part this timestamp will be set to the time we received the event. | 
 | `annotations` (optional) | The annotations object for the event. In scenarios where you have created a [Data Profile](/telemetry-pipelines/data-profiling), classification information such as event type, message type, and total bytes will be present. | 
 
 The function must return a value on all paths. The returned object (modified, replaced, or otherwise) becomes the message downstream. Returning `null` causes the message to be dropped (no event is propagated). Modified metadata is propagated with the message.
@@ -50,7 +50,7 @@ These functions are available to use on any respective value. At this time, thes
 | `Date.now()` | Returns the number of milliseconds elapsed since the [epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_epoch_timestamps_and_invalid_date), which is defined as the midnight at the beginning of January 1, 1970, UTC. | 
 | `Date.parse(date_string, unit)` | Parses a string representation of a date, and returns and returns the number of milliseconds elapsed since the [epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_epoch_timestamps_and_invalid_date). It defaults to `null` when parsing fails.<br /><br />Unit indicates the scale of units to return (`seconds`, `milliseconds` or `nanoseconds`) and defaults to `milliseconds`. | 
 | `new Date()` | Returns a timestamp representing the time of processing of this script. | 
-| `new Date(date_string)` | Parses `date_string` to produce a timestamp.  The following formats are supported - ISO8601, W3C, Apache, nginx:<br /><br />`%+`<br /><br />`%Y-%m-%d %T%.f%#z`<br /><br />`%Y-%m-%d %T%.f`<br /><br />`%d/%b/%Y:%T%.f %z`<br /><br />`%Y/%m/%d %T%.f`<br /><br />`%Y/%m/%d %T%.f#z` | 
+| `new Date(date_string)` | Parses `date_string` to produce a timestamp. The following formats are supported - ISO8601, W3C, Apache, nginx:<br /><br />`%+`<br /><br />`%Y-%m-%d %T%.f%#z`<br /><br />`%Y-%m-%d %T%.f`<br /><br />`%d/%b/%Y:%T%.f %z`<br /><br />`%Y/%m/%d %T%.f`<br /><br />`%Y/%m/%d %T%.f#z` | 
 | `JSON.parse(json_string)` | Parses a JSON string into a JS type. It defaults to `null` when parsing fails. | 
 | `JSON.stringify(value)` | Converts a JavaScript value to a JSON string. You should use this for converting any JSON object, instead of the `toString()` method. | 
 | `Object.entries(value)` | Returns an array of property key-value pairs of the specified object. It returns an empty array when the provided value is not an object, or `null`. | 
@@ -103,7 +103,7 @@ This processor supports all basic comparison operators that are defined in JavaS
 | &gt;= | Greater Than or Equal To | 
 | &lt; | Less Than | 
 | &lt;= | Less Than or Equal To | 
-| == or === | Equal.  **Note**: This has strict type checking whether it's defined as `==` or `===` | 
+| == or === | Equal. **Note**: This has strict type checking whether it's defined as `==` or `===` | 
 | != or !== | Not Equal. **Note**: This has strict type checking whether it's defined as `==` or `===` | 
 
 ### Arithmetic Operators
