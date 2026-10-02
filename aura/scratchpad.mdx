@@ -3,7 +3,7 @@ title: "Scratchpad (Context Window Management)"
 description: "Intercept large MCP tool outputs, explore them with dedicated tools, and manage token budgets automatically."
 ---
 
-MCP tools can return responses far larger than an LLM's context window — a single Kubernetes workload listing or log export can be tens of thousands of tokens. Without intervention, this fills the context and degrades reasoning quality.
+MCP tools can return responses far larger than an LLM's context window. A single Kubernetes workload listing or log export can be tens of thousands of tokens. Without intervention, this fills the context and degrades reasoning quality.
 
 Scratchpad solves this by intercepting large tool outputs and storing them on disk. The LLM gets a summary and eight read-only exploration tools (`head`, `slice`, `grep`, `schema`, `item_schema`, `get_in`, `iterate_over`, `read`) to selectively pull in only the data it needs.
 
@@ -79,12 +79,12 @@ Each exploration tool call ends its result with a one-line footer that summarize
 
 ## Budget and usage reporting
 
-Each agent (single-agent or orchestration worker) gets a fresh context budget scoped to that agent's effective LLM's `context_window` — workers never share an "orchestrator-level" budget. LLM-reported per-turn token counts feed back into the budget as ground truth, so remaining budget reflects actual context pressure.
+Each agent (single-agent or orchestration worker) gets a fresh context budget scoped to that agent's effective LLM's `context_window`. Workers never share an "orchestrator-level" budget. LLM-reported per-turn token counts feed back into the budget as ground truth, so remaining budget reflects actual context pressure.
 
 A per-agent `aura.scratchpad_usage` SSE event (with `agent_id`, `tokens_intercepted`, `tokens_extracted`) is emitted when the agent finishes — the same event name fires for both single-agent and worker contexts (it lives in the base `aura.*` namespace, not `aura.orchestrator.*`). See [Streaming API Guide](/aura/streaming-api-guide) for the full event reference.
 
 ## Result artifacts and `read_artifact`
 
-In orchestration, large task results are saved to artifact files under `{memory_dir}/{run_id}/artifacts/`. The scratchpad read tools resolve files anywhere under a per-agent read root, not just the scratchpad subdir — for orchestration workers the read root is the session dir, so result artifacts are explorable **in place** without copying.
+In orchestration, large task results are saved to artifact files under `{memory_dir}/{run_id}/artifacts/`. The scratchpad read tools resolve files anywhere under a per-agent read root, not just the scratchpad subdir. For orchestration workers the read root is the session dir, so result artifacts are explorable **in place** without copying.
 
 When a worker reads an artifact back with `read_artifact`, the same budget rules apply: an artifact that fits is inlined and recorded against the budget; one that exceeds the limit comes back as a scratchpad pointer that the worker explores in place with the read tools (`head`, `grep`, `slice`, …) — never copied into the scratchpad. The coordinator has no scratchpad, so its `read_artifact` always returns inline content.

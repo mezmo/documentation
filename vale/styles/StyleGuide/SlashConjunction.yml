@@ -1,0 +1,10 @@
+# Rung: Stated, unconditional
+# Source: KB style/client_style_guide.md:55 — "Slashes: avoid as conjunctions. Write 'and' or 'or' explicitly."
+# Case-sensitive: matches lowercase prose conjunctions only. Uppercase AND/OR/NOT names boolean search
+# operators (docs/searching-log-contents.mdx), which is not a slash conjunction.
+extends: existence
+message: "Avoid the slash conjunction '%s'. Write 'and' or 'or' explicitly."
+level: error
+nonword: true
+raw:
+  - '\b(and/or|he/she|his/her)\b'

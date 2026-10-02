@@ -5,7 +5,7 @@ description: "Manage Mezmo Views and Alerts as code with the Terraform provider,
 
 ## About the Terraform Provider for Mezmo
 
-[Mezmo](https://mezmo.com) is a centralized log management platform. The Terraform provider from Mezmo allows organizations to manage Views and Alerts programmatically via Terraform commands.  With the Terraform provider, which utilizes our [Configuration AP](/docs/api-referencesk9h#tag-configuration)[I](/docs/api-referencesk9h#tag-configuration), automate deployments of Views and Alerts to your Mezmo environment.
+[Mezmo](https://mezmo.com) is a centralized log management platform. The Terraform provider from Mezmo allows organizations to manage Views and Alerts programmatically via Terraform commands. With the Terraform provider, which utilizes our [Configuration AP](/docs/api-referencesk9h#tag-configuration)[I](/docs/api-referencesk9h#tag-configuration), automate deployments of Views and Alerts to your Mezmo environment.
 
 Read the full documentation on the official  [Terraform site](https://registry.terraform.io/providers/logdna/logdna/latest). If you are interested in contributing to this project, the source is in [GitHub](https://github.com/logdna/terraform-provider-logdna).
 
@@ -94,5 +94,5 @@ Note that if you create a new View using Terraform, but then delete the View by 
 </Warning>
 
 <Warning>
-Be aware that running `terraform plan` and/or `terraform apply` may not display the full delta of possible changes, if TF is not aware of all existing Mezmo resources.
+Be aware that running `terraform plan` or `terraform apply` may not display the full delta of possible changes, if TF is not aware of all existing Mezmo resources.
 </Warning>

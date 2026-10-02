@@ -1,9 +1,9 @@
 ---
 title: "Role-Based Access Control"
-description: "Learn how Mezmo roles grant member privileges and how access scopes restrict which log data members can see."
+description: "Learn how Mezmo roles grant user privileges and how access scopes restrict which log data users can see."
 ---
 
-Members are users who have signed up for your Organization. You assign each member one or more [roles](/docs/manage-members) that grant privileges. A role can also carry access scopes that determine which logs the member can see.
+Users are people who have signed up for your Organization. You assign each user one or more [roles](/docs/manage-members) that grant privileges. A role can also carry access scopes that determine which logs the user can see.
 
 ## Roles
 
@@ -11,7 +11,7 @@ Roles have default privileges. Mezmo supports four roles:
 
 - **Owner** (`owner`) - Each Mezmo Organization has one owner. The owner can't be restricted, has the most access, and manages both admins and members.
 - **Admin** (`admin`) - An Organization can have more than one admin. Admins have the second-highest level of access, can view all logs, and can't have their access restricted.
-- **Basic** (`basic`) - Standard members of your Organization (previously called "Member"). Their log access is governed by the access scopes on the roles they hold.
+- **Basic** (`basic`) - Standard users of your Organization. (The **Basic** role was formerly named "Member"; this is unrelated to the Users area.) Their log access is governed by the access scopes on the roles they hold.
 - **Read-only** (`readonly`) - Read-only members can view logs, run searches, view screens, and export lines. They have no permission to make changes.
 
 A member can hold multiple roles.
@@ -20,9 +20,9 @@ Review the [Feature Access Matrix](/docs/feature-access-matrix) for a breakdown 
 
 ## Access Scopes
 
-Access scopes are [Log Analysis](/docs/about-mezmo-log-analysis) query strings attached to a role that limit which logs a member holding that role can see. A role can carry up to 10 access-scope queries. A role with no access scopes grants access to everything.
+Access scopes are [Log Analysis](/docs/about-mezmo-log-analysis) query strings attached to a role that limit which logs a user holding that role can see. A role can carry up to 10 access-scope queries. A role with no access scopes grants access to everything.
 
-For example, you can add an access-scope query that matches only logs from Node.js applications and attach it to a role. Members who hold that role see only Node.js logs.
+For example, you can add an access-scope query that matches only logs from Node.js applications and attach it to a role. Users who hold that role see only Node.js logs.
 
 You manage roles and their access scopes at [**Settings &gt; Organization &gt; Roles**](https://app.mezmo.com/manage/roles). You can manage access scopes from the Role form and the Roles list:
 
@@ -44,11 +44,11 @@ To learn more about query syntax, see [search log contents](/docs/searching-log-
 
 Use **Preview** to test a query against live tail before you save.
 
-## View Members Assigned to a Role
+## View Users Assigned to a Role
 
-In the Roles list, the **Users** column shows the number of members assigned to each role.
+In the Roles list, the **Users** column shows the number of users assigned to each role.
 
-- Click the chevron on a role row to expand it and see the members who hold that role, listed by email address in alphabetical order.
-- If you expand a role with no members, it shows the message No users have this role.
-- Click a member's email in the expanded list to open the [Members](/docs/manage-members) page filtered to that member.
-- Click **Open in Members page** to open the [Members](/docs/manage-members) page filtered to that role.
+- Click the chevron on a role row to expand it and see the users who hold that role, listed by email address in alphabetical order.
+- If you expand a role with no users, it shows the message No users have this role.
+- Click a user's email in the expanded list to open the [Users](/docs/manage-members) page filtered to that user.
+- Click **Open in users page** to open the [Users](/docs/manage-members) page filtered to that role.

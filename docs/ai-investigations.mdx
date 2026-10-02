@@ -1,0 +1,57 @@
+---
+title: "AI Investigations"
+description: "Read automated root-cause investigations that Mezmo AURA produces, viewable in the Mezmo web app or through the Mezmo MCP server."
+---
+
+An AI Investigation is an AI-generated record of a root cause analysis, produced by Mezmo AURA, Mezmo's AI agent. When Mezmo detects a problem, AURA starts an automated investigation and begins the root cause analysis (RCA) on its own, so the analysis is already underway before anyone is paged. Mezmo triggers these investigations internally rather than having you create them, and you read the finished record in the Mezmo web app or through the Mezmo MCP server.
+
+## The Investigation Lifecycle
+
+An investigation moves through three states in order:
+
+- `triggered`: Mezmo has started the investigation in response to a trigger condition, and AURA is about to begin.
+- `investigating`: AURA is actively gathering evidence and working toward a root cause. The record updates as the analysis proceeds.
+- `completed`: AURA has finished. The record now holds the full findings, including the root cause and a suggested resolution.
+
+## What an Investigation Contains
+
+A completed investigation record includes:
+
+- The trigger source that started the investigation.
+- The linked alert that fired.
+- The evidence and trigger conditions AURA evaluated.
+- A confidence score.
+- A root cause.
+- A suggested resolution with remediation steps.
+- A timeline of events.
+- Any linked investigations.
+
+## Before You Begin
+
+You can view AI Investigations if your account has AI Investigations enabled and your role grants the investigation read permission. Manage roles and permissions from your account's [Roles and Permissions](/docs/rbac) page. If either condition is not met, the AI Investigations entry does not appear in the sidebar.
+
+<Note>
+If AI Investigations is not enabled for your account, contact Mezmo to have it turned on.
+</Note>
+
+## How Investigations Are Triggered
+
+You do not create an investigation directly. Mezmo starts one for you when a Pipeline node alert is configured to notify AURA. A node alert is an in-stream alert set on a source or processor. Configure a node alert (see [Set In-Stream Alerts for Pipeline Nodes](/telemetry-pipelines/set-in-stream-alerts)), then select **Mezmo AURA Investigation** as its notification service. This service appears as a notification target once AI Investigations is enabled for your account. When that alert fires, it starts an AURA investigation. To confirm the trigger is working, watch for a new card in the [AI Investigations list](#view-ai-investigations-in-mezmo) in the `triggered` state after the alert fires.
+
+## View AI Investigations in Mezmo
+
+Open the **AI Investigations** entry in the sidebar. It carries a badge counting the investigations that are currently active.
+
+The list page shows one card per investigation. Each card displays the investigation's status, either **Triggered**, **Investigating**, or **Completed**, along with a confidence score, the trigger source, and a summary of the suggested resolution. You can filter the list by status, search it, and page through the results. The list also refreshes automatically as new investigations arrive.
+
+Select a card to open the detail page. It shows the fields described in [What an Investigation Contains](#what-an-investigation-contains), plus a live in-progress indicator while the investigation is still running and a plain-language summary.
+
+## Review Investigations With Mezmo MCP
+
+The Mezmo MCP server exposes two read-only tools for investigations. Use `list_ai_investigations` to list existing investigations, filtered by state and paginated. Use `get_ai_investigation` to retrieve a single investigation by its id. Both tools read investigations that already exist and do not create them. For setup and the full tool reference, see [Mezmo MCP](/docs/mezmo-mcp).
+
+## Related
+
+- [Mezmo MCP](/docs/mezmo-mcp): Connect an AI assistant or IDE chat agent to Mezmo and review investigations from your tools.
+- [Set In-Stream Alerts for Pipeline Nodes](/telemetry-pipelines/set-in-stream-alerts): Configure the Pipeline node alert used to trigger AURA investigations.
+- [Roles and Permissions](/docs/rbac): Manage who can access AI Investigations.
