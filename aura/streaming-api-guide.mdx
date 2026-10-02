@@ -112,8 +112,8 @@ when it overrides the coordinator model.
 Each agent object also carries an `instance_id`: the stable identity of that
 running agent instance (see [Instance
 identity](/aura/configuration-reference#instance-identity)). A current server
-always resolves an environment seed — falling through to a random per-process
-value when nothing else matches — so it computes and includes an `instance_id`
+always resolves an environment seed, falling through to a random per-process
+value when nothing else matches, so it computes and includes an `instance_id`
 for every agent, not only when a config field is set. The field is absent only
 from older servers that predate it, which is what keeps those servers and their
 clients compatible.
