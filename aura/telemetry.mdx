@@ -1,6 +1,6 @@
 ---
 title: "Telemetry & Privacy"
-description: "Anonymous, opt-out CLI telemetry — the three-state consent model, exactly what is and isn't collected, kill switches, and how to audit it."
+description: "Anonymous, opt-out CLI telemetry. The three-state consent model, exactly what is and isn't collected, kill switches, and how to audit it."
 ---
 
 The `aura` CLI emits **anonymous** product telemetry to PostHog so maintainers
@@ -89,7 +89,7 @@ The `chat_request_*` pair fires once per chat turn, the same way regardless
 of HTTP or standalone backend (no double-reporting).
 
 Session length and turn volume are **derived** in analysis from these
-events' timestamps and `session_id` — they are not carried as event
+events' timestamps and `session_id`. They are not carried as event
 properties. Session pairing is not guaranteed: `/telemetry disable` during a
 session suppresses its ending event, and best-effort delivery means transport
 failures or a full telemetry channel can drop events.

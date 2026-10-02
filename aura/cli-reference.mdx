@@ -1,9 +1,9 @@
 ---
 title: "AURA CLI Reference"
-description: "The aura command-line client — install, run, configure, and use every feature of the interactive terminal client."
+description: "The aura command-line client. Install, run, configure, and use every feature of the interactive terminal client."
 ---
 
-A fast, interactive terminal client for chat completions with tool execution. Built primarily as the command line interface for [AURA by Mezmo](https://mezmo.com/aura), but works with **any OpenAI-compatible API** — plug in your own models, agents, or LLM endpoints.
+A fast, interactive terminal client for chat completions with tool execution. Built primarily as the command line interface for [AURA by Mezmo](https://mezmo.com/aura), but works with **any OpenAI-compatible API**. Plug in your own models, agents, or LLM endpoints.
 
 ---
 
@@ -12,7 +12,7 @@ A fast, interactive terminal client for chat completions with tool execution. Bu
 ### Build from the mono-repo
 
 ```bash
-# Default build (standalone + HTTP — builds agents in-process from TOML config)
+# Default build (standalone + HTTP  builds agents in-process from TOML config)
 cargo build -p aura-cli --release
 
 # HTTP-only mode (lightweight, no agent/MCP dependencies)
@@ -57,13 +57,13 @@ aura --config agent.toml --query "hello"
 aura --config configs/ --model "Math Agent"
 ```
 
-In standalone mode, the CLI builds agents in-process. MCP tools from the TOML config are available. CLI local tools (Shell, Read, Update, ...) become available when **both** sides opt in — pass `--enable-client-tools` and set `[agent].enable_client_tools = true` in the loaded TOML config (single-agent configs only; orchestrated configs drop client tools). See [Client-Side Tools](#client-side-tools) for details. The `/model` command works identically — it lists all loaded configs and lets you switch between them.
+In standalone mode, the CLI builds agents in-process. MCP tools from the TOML config are available. CLI local tools (Shell, Read, Update, ...) become available when **both** sides opt in. Pass `--enable-client-tools` and set `[agent].enable_client_tools = true` in the loaded TOML config (single-agent configs only; orchestrated configs drop client tools). See [Client-Side Tools](#client-side-tools) for details. The `/model` command works identically. It lists all loaded configs and lets you switch between them.
 
 ---
 
 ## Generating a starter config (`aura init`)
 
-New to AURA? `aura init` walks you through creating a ready-to-run `config.toml` — no hand-editing TOML required.
+New to AURA? `aura init` walks you through creating a ready-to-run `config.toml`. No hand-editing TOML required.
 
 ```bash
 aura init                 # interactive; writes ./config.toml
@@ -74,9 +74,9 @@ It will:
 
 - **Sense** your environment for a provider API key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, …) and suggest that provider.
 - **Pick a provider** from a validated list (openai, anthropic, bedrock, gemini, ollama, openrouter).
-- **Handle the API key**: if the provider's conventional env var is already set it asks whether to use it; otherwise it prompts for the key (input is masked). The generated config references the key by its native env var (`api_key = "{{ env.OPENAI_API_KEY }}"`) — secrets are never written into `config.toml`.
-- **Verify & list models**: it queries the provider's live model list and shows a short, curated shortlist (newest per family — pick by number, accept the default, or type any id). For Ollama it lists whatever you have installed.
-- **Write** `config.toml`, plus a `.env` **only when you enter a new key** that isn't already in your environment. The `.env` holds a secret — add it to your `.gitignore`.
+- **Handle the API key**: if the provider's conventional env var is already set it asks whether to use it; otherwise it prompts for the key (input is masked). The generated config references the key by its native env var (`api_key = "{{ env.OPENAI_API_KEY }}"`). Secrets are never written into `config.toml`.
+- **Verify & list models**: it queries the provider's live model list and shows a short, curated shortlist (newest per family: pick by number, accept the default, or type any id). For Ollama it lists whatever you have installed.
+- **Write** `config.toml`, plus a `.env` **only when you enter a new key** that isn't already in your environment. The `.env` holds a secret. Add it to your `.gitignore`.
 
 `aura` loads `.env` automatically at startup, so a config generated here runs as-is.
 
@@ -110,7 +110,7 @@ AURA CLI supports two backends, selected by the presence of `--api-url`:
 | Backend                 | When                         | Dependencies                             | Tools                                                                            |
 | ----------------------- | ---------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------- |
 | **Direct** (standalone, default) | No `--api-url` flag    | Full AURA stack (agents, MCP, providers) | MCP tools from TOML config; CLI local tools when `--enable-client-tools` is set  |
-| **HTTP**                         | `--api-url <URL>`      | Lightweight — just HTTP client           | Server-side MCP tools always; CLI local tools when both sides opt in (see below) |
+| **HTTP**                         | `--api-url <URL>`      | Lightweight. Just HTTP client           | Server-side MCP tools always; CLI local tools when both sides opt in (see below) |
 
 Both backends produce identical SSE event streams and share the same stream parser, so all CLI features (stream panel, tool display, orchestration events, etc.) work identically regardless of backend.
 
@@ -119,10 +119,10 @@ Both backends produce identical SSE event streams and share the same stream pars
 The `standalone-cli` Cargo feature is **enabled by default**. It includes the full agent framework, MCP integration, and provider support. To build a lightweight HTTP-only client with no agent or MCP dependencies, disable default features:
 
 ```bash
-# Default build — standalone + HTTP
+# Default build: standalone + HTTP
 cargo build -p aura-cli
 
-# HTTP-only — small binary, fast compile, no agent dependencies
+# HTTP-only: small binary, fast compile, no agent dependencies
 cargo build -p aura-cli --no-default-features
 ```
 
@@ -131,17 +131,17 @@ cargo build -p aura-cli --no-default-features
 ## Features
 
 - **Interactive REPL** with conversation history, streaming responses, and markdown rendering
-- **One-shot mode** for scripting and pipelines (`--query`) — stdout is the raw assistant response, no markers or markdown rendering
-- **Local tool execution** — the model can read files, search code, list directories, run shell commands, and edit files on your behalf
-- **Standalone mode** (default) — run agents directly from TOML config without a web server
-- **Conversation persistence** — pick up where you left off with `--resume` or `/resume`
-- **Tab completion** — cycle through matching slash commands, models, and conversations with `Tab` / `Shift+Tab`; your typed prefix is preserved as you narrow the matches
-- **Model selection** — browse and select models from the server (or loaded configs in standalone mode)
-- **Permission system** — control which local tools are allowed, denied, or prompted before execution
-- **SSE streaming** — real-time token-by-token output with a toggleable event panel
-- **Auto-compaction** — automatic context management when conversations grow large
-- **Mid-stream commands** — execute slash commands while the model is still streaming
-- **Works with any OpenAI-compatible API** — not locked to a single provider
+- **One-shot mode** for scripting and pipelines (`--query`). Stdout is the raw assistant response, no markers or markdown rendering
+- **Local tool execution**: the model can read files, search code, list directories, run shell commands, and edit files on your behalf
+- **Standalone mode** (default): run agents directly from TOML config without a web server
+- **Conversation persistence**: pick up where you left off with `--resume` or `/resume`
+- **Tab completion**: cycle through matching slash commands, models, and conversations with `Tab` / `Shift+Tab`; your typed prefix is preserved as you narrow the matches
+- **Model selection**: browse and select models from the server (or loaded configs in standalone mode)
+- **Permission system**: control which local tools are allowed, denied, or prompted before execution
+- **SSE streaming**: real-time token-by-token output with a toggleable event panel
+- **Auto-compaction**: automatic context management when conversations grow large
+- **Mid-stream commands**: execute slash commands while the model is still streaming
+- **Works with any OpenAI-compatible API**: not locked to a single provider
 
 ---
 
@@ -151,11 +151,11 @@ cargo build -p aura-cli --no-default-features
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | `AURA_API_URL`                        | Base API URL (paths like `/v1/chat/completions` are appended automatically)                                                                                         | `http://localhost:8080`                               |
 | `AURA_API_KEY`                        | Bearer token for authentication                                                                                                                                     | _(none)_                                              |
-| `AURA_MODEL`                          | Model name to use (in standalone mode, selects agent by name/alias)                                                                                                 | _(none — omitted from request, server picks default)_ |
+| `AURA_MODEL`                          | Model name to use (in standalone mode, selects agent by name/alias)                                                                                                 | _(none: omitted from request, server picks default)_ |
 | `AURA_EXTRA_HEADERS`                  | Additional HTTP headers as comma-separated `key:value` pairs (e.g. `x-chat-session-id:foo,authorization:Bearer …`); overrides the auto-injected `x-chat-session-id` | _(none)_                                              |
-| `AURA_ENABLE_FINAL_RESPONSE_SUMMARY`  | Generate a one-line LLM-based title for each final response (adds an extra round-trip per turn). Set to `true` or `1` to enable.                                    | `false`                                               |
+| `AURA_ENABLE_FINAL_RESPONSE_SUMMARY`  | Generate a one-line LLM-based title for each final response (adds an extra round-trip per turn). Set to `true` or `1` to enable.                                   | `false`                                               |
 | `AURA_ENABLE_CLIENT_TOOLS`            | Advertise CLI local tools to the model and execute them locally (see [Client-Side Tools](#client-side-tools))                                                       | `false`                                               |
-| `AURA_LOG_FILE`                       | Path to a file for diagnostic tracing logs. Unset → no logging. Set → events are appended to the file in both REPL and one-shot mode (see [Logging](#logging))      | _(none — no logging)_                                 |
+| `AURA_LOG_FILE`                       | Path to a file for diagnostic tracing logs. Unset → no logging. Set → events are appended to the file in both REPL and one-shot mode (see [Logging](#logging))      | _(none: no logging)_                                 |
 
 ---
 
@@ -170,14 +170,14 @@ aura [OPTIONS]
 | `--api-url <URL>`                          | `AURA_API_URL`                       | Base API URL                                                                                             |
 | `--api-key <KEY>`                          | `AURA_API_KEY`                       | Bearer token for authentication                                                                          |
 | `--model <MODEL>`                          | `AURA_MODEL`                         | Model name (HTTP: starting model; standalone: selects agent by name/alias)                               |
-| `--system-prompt <PROMPT>`                 | —                                    | System prompt (HTTP: see note below; standalone: append/replace agent prompt)                            |
-| `--query <QUERY>`                          | —                                    | Run a single query and exit (one-shot mode)                                                              |
-| `--resume <ID>`                            | —                                    | Resume a previous conversation by ID or prefix                                                           |
-| `--force`                                  | —                                    | Bypass warnings and non-critical errors (useful in one-shot/query mode)                                  |
-| `--enable-client-tools[=<bool>]`           | `AURA_ENABLE_CLIENT_TOOLS`           | Advertise CLI local tools to the model (default: disabled — see [Client-Side Tools](#client-side-tools)) |
+| `--system-prompt <PROMPT>`                 | -                                    | System prompt (HTTP: see note below; standalone: append/replace agent prompt)                            |
+| `--query <QUERY>`                          | -                                    | Run a single query and exit (one-shot mode)                                                              |
+| `--resume <ID>`                            | -                                    | Resume a previous conversation by ID or prefix                                                           |
+| `--force`                                  | -                                    | Bypass warnings and non-critical errors (useful in one-shot/query mode)                                  |
+| `--enable-client-tools[=<bool>]`           | `AURA_ENABLE_CLIENT_TOOLS`           | Advertise CLI local tools to the model (default: disabled: see [Client-Side Tools](#client-side-tools)) |
 | `--enable-final-response-summary[=<bool>]` | `AURA_ENABLE_FINAL_RESPONSE_SUMMARY` | Generate a one-line LLM title for each final response (adds an extra round-trip per turn; default: disabled) |
-| `--standalone`                             | —                                    | Force standalone mode (default when `--api-url` is absent; mutually exclusive with `--api-url` flag, but overrides `AURA_API_URL` env var) |
-| `--config <PATH>`                          | —                                    | Path to TOML agent config file or directory (standalone mode; defaults to `config.toml`)                 |
+| `--standalone`                             | -                                    | Force standalone mode (default when `--api-url` is absent; mutually exclusive with `--api-url` flag, but overrides `AURA_API_URL` env var) |
+| `--config <PATH>`                          | -                                    | Path to TOML agent config file or directory (standalone mode; defaults to `config.toml`)                 |
 | `--log-file <PATH>`                        | `AURA_LOG_FILE`                      | Append diagnostic tracing logs to this file. Omit for no logging (see [Logging](#logging))               |
 
 **Precedence:** CLI flags > environment variables > project `cli.toml` > global `cli.toml` > defaults.
@@ -199,7 +199,7 @@ The project lookup walks up from the current working directory until it finds a
 Run the CLI from anywhere inside your project tree and the closest `.aura/cli.toml`
 wins. `$HOME` is explicitly skipped so the global file is never picked up twice.
 
-<Note>**Renamed from `config.toml`.** Older versions read `~/.aura/config.toml`. The file is still read with a one-time deprecation warning — rename it to `cli.toml` at your convenience. The old name collided with AURA **agent** config TOMLs and will stop being read in a future release.</Note>
+<Note>**Renamed from `config.toml`.** Older versions read `~/.aura/config.toml`. The file is still read with a one-time deprecation warning. Rename it to `cli.toml` at your convenience. The old name collided with AURA **agent** config TOMLs and will stop being read in a future release.</Note>
 
 ```toml
 # ~/.aura/cli.toml or <project>/.aura/cli.toml
@@ -211,7 +211,7 @@ enable_client_tools = true   # opt in to local tool execution; default is false
 log_file = "/tmp/aura.log"  # append-only; see Logging section below
 ```
 
-<Note>**Note on system prompts:** In **HTTP mode**, `--system-prompt` is intended for OpenAI-compatible backends that support system messages. **AURA's server ignores system role messages** — the CLI will prompt you to confirm whether you're connecting to AURA or another service. In **standalone mode**, `--system-prompt` can append to or replace the agent's TOML-configured system prompt (you'll be asked which). In one-shot mode (`--query`), standalone silently appends; HTTP mode requires `--force`.</Note>
+<Note>**Note on system prompts:** In **HTTP mode**, `--system-prompt` is intended for OpenAI-compatible backends that support system messages. **AURA's server ignores system role messages**. The CLI will prompt you to confirm whether you're connecting to AURA or another service. In **standalone mode**, `--system-prompt` can append to or replace the agent's TOML-configured system prompt (you'll be asked which). In one-shot mode (`--query`), standalone silently appends; HTTP mode requires `--force`.</Note>
 
 <Warning>**Don't commit secrets.** A project `cli.toml` checked into source control will share `api_key` with everyone who clones the repo. Keep secrets in `~/.aura/cli.toml`, in `AURA_API_KEY`, or pass them with `--api-key`.</Warning>
 
@@ -223,7 +223,7 @@ Any value set here is overridden by environment variables or CLI flags.
 
 `--query <text>` runs a single round of the conversation and exits. The
 output contract is strict: **stdout contains only the raw assistant
-response** — exactly what the model produced, with no bullet markers, no
+response**. Exactly what the model produced, with no bullet markers, no
 themed headers, no tool-execution summaries, no markdown rendering, and no
 trailing response-summary line.
 
@@ -233,7 +233,7 @@ Anything that isn't the response goes to **stderr**:
   unchanged; the file is the same destination in REPL and one-shot mode)
 - Permission prompts for local tools (interactive, on TTY)
 - Errors and warnings (with `error:` / `warning:` prefixes, no markers)
-- The "no result for server tool X — set `AURA_CUSTOM_EVENTS=true`" hint
+- The "no result for server tool X. Set `AURA_CUSTOM_EVENTS=true`" hint
 
 This means typical pipe usage works without scrubbing:
 
@@ -332,15 +332,15 @@ The model list, descriptions included, is remembered per conversation, so it sur
 
 ## Client-Side Tools
 
-<Warning>**USE AT YOUR OWN RISK.** Enabling client-side tools gives an LLM the ability to execute commands on your machine — shell commands, file reads/writes, filesystem search — with the same privileges as the user running `aura`. Treat `--enable-client-tools` as functionally equivalent to handing the model a shell prompt. See [Client-Side Tools](/aura/client-side-tools) for the full risk model, protocol mechanics, and server/client configuration.</Warning>
+<Warning>**USE AT YOUR OWN RISK.** Enabling client-side tools gives an LLM the ability to execute commands on your machine. Shell commands, file reads/writes, filesystem search with the same privileges as the user running `aura`. Treat `--enable-client-tools` as functionally equivalent to handing the model a shell prompt. See [Client-Side Tools](/aura/client-side-tools) for the full risk model, protocol mechanics, and server/client configuration.</Warning>
 
-By default, AURA CLI is a **pure chat client** — no local tools are advertised to the model and the REPL never executes anything on the host. Pass `--enable-client-tools` (or set `AURA_ENABLE_CLIENT_TOOLS=true`) to opt in, at which point the model can call tools like `Shell`, `Read`, and `Update` and the REPL runs them locally with permission checks ([Permissions](#permissions)).
+By default, AURA CLI is a **pure chat client**. No local tools are advertised to the model and the REPL never executes anything on the host. Pass `--enable-client-tools` (or set `AURA_ENABLE_CLIENT_TOOLS=true`) to opt in, at which point the model can call tools like `Shell`, `Read`, and `Update` and the REPL runs them locally with permission checks ([Permissions](#permissions)).
 
 ```bash
-# Disabled (default) — chat only
+# Disabled (default): chat only
 aura
 
-# Enabled — local tools available, gated by the permission system
+# Enabled: local tools available, gated by the permission system
 aura --enable-client-tools
 AURA_ENABLE_CLIENT_TOOLS=true aura
 
@@ -348,9 +348,9 @@ AURA_ENABLE_CLIENT_TOOLS=true aura
 aura --enable-client-tools=false
 ```
 
-**Single-agent configurations only.** Client-side tools are not supported when the selected config has `[orchestration].enabled = true` — tools advertised to an orchestrated config are dropped with a warning.
+**Single-agent configurations only.** Client-side tools are not supported when the selected config has `[orchestration].enabled = true`. Tools advertised to an orchestrated config are dropped with a warning.
 
-**Both the CLI and the server agent must opt in** for local tools to fire — see [Client-Side Tools: Backend symmetry](/aura/client-side-tools#backend-symmetry) for the full mode/effective-behavior table. Precedence for resolving the CLI flag: `--enable-client-tools` argument or `AURA_ENABLE_CLIENT_TOOLS` env var > `<project>/.aura/cli.toml` > `~/.aura/cli.toml` (`enable_client_tools = true|false`) > default (`false`). If local tools never fire when you expect them to, check that the agent's TOML has `enable_client_tools = true` (and the config is single-agent) as well as the CLI flag — in standalone mode the CLI prints a startup warning when the flag is set but no loaded config opts in.
+**Both the CLI and the server agent must opt in** for local tools to fire. See [Client-Side Tools: Backend symmetry](/aura/client-side-tools#backend-symmetry) for the full mode/effective-behavior table. Precedence for resolving the CLI flag: `--enable-client-tools` argument or `AURA_ENABLE_CLIENT_TOOLS` env var > `<project>/.aura/cli.toml` > `~/.aura/cli.toml` (`enable_client_tools = true|false`) > default (`false`). If local tools never fire when you expect them to, check that the agent's TOML has `enable_client_tools = true` (and the config is single-agent) as well as the CLI flag. In standalone mode the CLI prints a startup warning when the flag is set but no loaded config opts in.
 
 ---
 
@@ -367,13 +367,13 @@ AURA CLI includes a permission system that controls which local tools the model 
 }
 ```
 
-- **Allow rules** — matching tools execute immediately without prompting.
-- **Deny rules** — matching tools are blocked with a guidance message.
-- **No match** — tools with no matching rule prompt you for approval.
+- **Allow rules**: matching tools execute immediately without prompting.
+- **Deny rules**: matching tools are blocked with a guidance message.
+- **No match**: tools with no matching rule prompt you for approval.
 
 The CLI walks up from the current working directory to find the closest
 `.aura/permissions.json`, the same way it finds `cli.toml`. Permissions are
-**project-scoped only** — there is no `~/.aura/permissions.json`. Running the
+**project-scoped only**: there is no `~/.aura/permissions.json`. Running the
 CLI from outside any project directory means no permissions are loaded, and
 every local tool call prompts.
 
@@ -409,7 +409,7 @@ aura --resume abc123               # from the CLI
 
 ## Logging
 
-The CLI is silent by default — no tracing events are emitted unless you opt
+The CLI is silent by default. No tracing events are emitted unless you opt
 in by pointing the CLI at a log file. When set, fmt events are written to that
 path in **both REPL and one-shot mode** so stdout (and any pipe consuming it)
 stays untouched.
@@ -426,7 +426,7 @@ The file is opened in **append mode** and created if missing. The default
 filter is info-level for the aura crates and rig request handling; override it
 with `RUST_LOG` if you need different levels.
 
-<Warning>**Log rotation, truncation, and pruning are your responsibility.** The CLI appends indefinitely — it never truncates, rotates, or compresses the file. Use `logrotate`, a cron job, `truncate -s 0`, or a shell wrapper to keep the file from growing unbounded.</Warning>
+<Warning>**Log rotation, truncation, and pruning are your responsibility.** The CLI appends indefinitely. It never truncates, rotates, or compresses the file. Use `logrotate`, a cron job, `truncate -s 0`, or a shell wrapper to keep the file from growing unbounded.</Warning>
 
 ### Standalone-mode OpenTelemetry
 
@@ -437,7 +437,7 @@ layer, emitting `agent.stream` → `agent.turn` → `mcp.tool_call`, with
 `orchestration.*` between them in orchestration mode. See [Tracing & Span Layout](/aura/tracing-spans) for the full span reference.
 
 The CLI omits the `chat_completions` / `streaming_completion` infrastructure
-spans because there is no HTTP layer in standalone mode — those live on a
+spans because there is no HTTP layer in standalone mode. Those live on a
 separate trace in the server. HTTP-mode CLIs skip OTel entirely: your
 traces come from the server process.
 
@@ -448,11 +448,11 @@ Other relevant OTel env vars, read by the `aura` crate:
 
 | Variable                                | Purpose                                                                                              |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`           | OTLP collector endpoint (gRPC). When unset, no OTel layer is installed even in standalone mode.      |
-| `OTEL_SERVICE_NAME`                     | Resource attribute (defaults to `aura`).                                                             |
-| `OTEL_LOG_LEVEL`                        | Override the OTel layer's filter. Default captures `aura=trace`, `aura_cli=info`, and rig spans.     |
-| `OTEL_RECORD_CONTENT`                   | When `true`, prompt/completion/tool args/results are recorded as span attributes.                    |
-| `OTEL_CONTENT_MAX_LENGTH`               | Max bytes for content attributes (default 1000, rounded down to UTF-8 boundary).                     |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`           | OTLP collector endpoint (gRPC). When unset, no OTel layer is installed even in standalone mode.     |
+| `OTEL_SERVICE_NAME`                     | Resource attribute (defaults to `aura`).                                                            |
+| `OTEL_LOG_LEVEL`                        | Override the OTel layer's filter. Default captures `aura=trace`, `aura_cli=info`, and rig spans.    |
+| `OTEL_RECORD_CONTENT`                   | When `true`, prompt/completion/tool args/results are recorded as span attributes.                   |
+| `OTEL_CONTENT_MAX_LENGTH`               | Max bytes for content attributes (default 1000, rounded down to UTF-8 boundary).                    |
 
 ---
 
@@ -463,7 +463,7 @@ Toggle with `/stream` to see raw SSE events in real time. Supported event types:
 - `aura.tool_requested` / `aura.tool_start` / `aura.tool_complete`
 - `aura.usage` / `aura.tool_usage`
 - `aura.progress` / `aura.session_info` / `aura.reasoning`
-- `aura.orchestrator.*` — multi-agent orchestration events
+- `aura.orchestrator.*`: multi-agent orchestration events
 
 See the [Streaming API Guide](/aura/streaming-api-guide) for the full event reference.
 

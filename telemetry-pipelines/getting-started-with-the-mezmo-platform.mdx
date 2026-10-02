@@ -7,7 +7,7 @@ Welcome to Mezmo! This Getting Started Guide will walk you through the process o
 
 ## Set Up Your Organization
 
-When you created your Free Trial account, you also set up an Organization that you can add members to. This enables you to share reusable pipeline components like [Shared Sources](/telemetry-pipelines/shared-sources) and  [Processor Groups](/telemetry-pipelines/create-processor-groups) with other members of your organization. 
+Onboarding starts with your organization, which you set up when you create your Free Trial account. An organization lets you add members and share reusable pipeline components like [Shared Sources](/telemetry-pipelines/shared-sources) and [Processor Groups](/telemetry-pipelines/create-processor-groups) with other members. Onboarding walks you through creating your organization and getting telemetry flowing. See [Build Your First Pipeline](#build-your-first-pipeline) below for the step-by-step flow.
 
 ## Check out an Example Pipeline
 
@@ -15,9 +15,21 @@ For an example of specialized Pipeline for data optimization, check out the topi
 
 ## Build Your First Pipeline
 
+You don't have to build a pipeline by hand to get started. Every new organization is auto-provisioned with a first pipeline that wires an [OpenTelemetry (OTel) Source](/telemetry-pipelines/open-telemetry-source) to a [Mezmo Log Analysis](/telemetry-pipelines/mezmo-destination) destination. This pipeline, named **OTel Ingest**, gives your telemetry somewhere to land as soon as you finish onboarding.
+
+Onboarding is a short, guided flow:
+
+1. Name your organization and select **Create Organization**. Mezmo provisions the organization and the **OTel Ingest** pipeline.
+2. Connect your telemetry by choosing **Use OpenTelemetry** (recommended) or **Use another Pipeline source**. The auto-provisioned pipeline sends your data to Mezmo Log Analysis, which requires OpenTelemetry data. If you choose another source instead, Mezmo opens the pipeline editor with an empty draft pipeline for you to build. Add the components you need, including a destination, to finish it (see [Set Up Pipeline Destinations](/telemetry-pipelines/set-up-pipeline-destinations)).
+3. Choose one of four setup paths for your OpenTelemetry data: a new collector on a host or VM, a new collector installed via Helm chart on Kubernetes, an [existing collector](/telemetry-pipelines/otel-collector) with the Mezmo exporter added, or the OpenTelemetry Demo.
+
+Once you start sending data, Mezmo confirms that it received your first data. Select **Go to Dashboard** to land on the Homepage. From there, you can [view and analyze your telemetry](#view-and-analyze-telemetry-data) and [create alerts](#create-alerts).
+
+For the collector setup details, see [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) and [OpenTelemetry Collector](/telemetry-pipelines/otel-collector), which cover the host or VM (`otelcol-contrib`), Helm chart, and existing-collector setups. You can reach the in-app OpenTelemetry setup instructions anytime from the setup icon in the app header, and those instructions cover all four paths including the OpenTelemetry Demo, so you can still get them if you skipped onboarding.
+
 ### Pipeline Basics
 
-A Telemetry Pipeline is built from three components:
+If you'd rather build a pipeline yourself, or want to understand what the automatic setup created, it helps to know the component model. A Telemetry Pipeline is built from three components:
 
 - Sources
 - Destinations 
@@ -38,12 +50,6 @@ With [Mezmo Flow](/telemetry-pipelines/about-mezmo-flow) guiding the way, you ca
 #### Add a Data Source
 
 The first step is to set up the Source of your telemetry data. Your options include using the [Mezmo Agent](/telemetry-pipelines/mezmo-agent-source), an [OpenTelemetry Collector](/telemetry-pipelines/otel-collector), or [Demo Logs](/telemetry-pipelines/demo-logs-source) You can find a complete list of  [Supported Telemetry Pipeline Sources](/telemetry-pipelines/supported-telemetry-pipeline-sources) in our product documentation. 
-
-<Note>
-As part of the Mezmo Platform onboarding flow, you can choose to set up a Pipeline specifically to reduce the log volume, and cost, associated with a DataDog Agent. During the onboarding flow process, set up your [Datadog Agent](/telemetry-pipelines/mezmo-datadog-source-source) source, a combined source that accepts logs, metrics, and traces), and [Datadog Metrics](/telemetry-pipelines/datadog-metrics-destination) and [Datadog Logs](/telemetry-pipelines/datadog-logs-destination) Destinations, then follow the instructions to finish setting up your Pipeline.
-
-Alternatively, the [Datadog Agent V2](/telemetry-pipelines/mezmo-datadog-source-v2-source) source accepts logs, metrics, and traces as a single source with distinct output routes for each type.
-</Note>
 
 #### Create a Profile
 

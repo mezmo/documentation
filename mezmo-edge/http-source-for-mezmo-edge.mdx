@@ -32,10 +32,10 @@ The default Edge port range is 8000-8010, unless you modified it during set up.
 ## Exposing for External Ingress 
 
 <Tip>
-It is highly recommended that a scalable load balancer be used like [Nginx](https://nginx.org).  The following is a simple example using the default LoadBalancer for your system which ignores TLS and the like.
+It is highly recommended that a scalable load balancer be used like [Nginx](https://nginx.org). The following is a simple example using the default LoadBalancer for your system which ignores TLS and the like.
 </Tip>
 
-A simple, non-prod method of exposing the HTTP Source to external ingress is to use the system default LoadBalancer.   
+A simple, non-prod method of exposing the HTTP Source to external ingress is to use the system default LoadBalancer.  
 
 To do this we will create a load balancer service which exposes the port configured by the HTTP Source.
 
@@ -60,7 +60,7 @@ spec:
 
 ```
 
-Replace `HTTP_SOURCE_PORT` with your configured port and `EDGE_INSTANCE` + `EDGE_NAME` with those found in your edge services description.  You can find your `instance` and `name` via a command like
+Replace `HTTP_SOURCE_PORT` with your configured port and `EDGE_INSTANCE` + `EDGE_NAME` with those found in your edge services description. You can find your `instance` and `name` via a command like
 
 ```bash
 kubectl get service EDGE_SERVICE_NAME -o yaml > tmp.yaml
