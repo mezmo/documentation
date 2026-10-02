@@ -5,13 +5,13 @@ description: "Use a REST API shell script to switch your log, metric, and trace 
 
 ---
 
-Telemetry data is both fundamental and costly for any business.  While this data is invaluable for troubleshooting, monitoring and various other concerns, it is not always valuable at the same time.Mezmo [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) adapt in real time to the content and conditions of your telemetry data, ensuring it’s routed and processed intelligently. They enable dynamic filtering, sampling, enrichment, and destination routing without manual reconfiguration. This flexibility helps teams reduce noise, control costs, and deliver the right data to the right tools when it matters most.
+Telemetry data is both fundamental and costly for any business. While this data is invaluable for troubleshooting, monitoring and various other concerns, it is not always valuable at the same time.Mezmo [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) adapt in real time to the content and conditions of your telemetry data, ensuring it’s routed and processed intelligently. They enable dynamic filtering, sampling, enrichment, and destination routing without manual reconfiguration. This flexibility helps teams reduce noise, control costs, and deliver the right data to the right tools when it matters most.
 
 Responsive pipelines can be integrated with a number of tools, here we will explore the most flexible and generic. REST API calls and a simple shell script to `Incident` mode across multiple pipelines at once.
 
 ## Step 1: Modify and Run Responsive Test Script
 
-Take the below shell script and update with your Log, Metric, and Trace Pipeline State IDs that you grabbed at the end of each step.  Save it as `switch_state.sh`
+Take the below shell script and update with your Log, Metric, and Trace Pipeline State IDs that you grabbed at the end of each step. Save it as `switch_state.sh`
 
 ```bash
 API_TOKEN="<YOUR_API_TOKEN>"
@@ -48,7 +48,7 @@ Run the saved script with the following command to switch things to incident mod
 
 ## Step 3: Evaluate Impact
 
-Notice that when in `Normal` mode, data in your pipelines are sampled and rolled up ensuring the needed signals are captured while remaining cost conscious.  However, when in `Incident` or `Deployment` modes, data is grabbed at full fidelity.  You will also see this represented in the UX
+Notice that when in `Normal` mode, data in your pipelines are sampled and rolled up ensuring the needed signals are captured while remaining cost conscious. However, when in `Incident` or `Deployment` modes, data is grabbed at full fidelity. You will also see this represented in the UX
 
 ### Normal Mode
 
@@ -62,4 +62,4 @@ Notice that when in `Normal` mode, data in your pipelines are sampled and rolled
   ![Image](/images/OptTutorial/dzwnyryxlvs79jd6jptvcnb0h8149fw6b1siwus3gvcfnx9slc9cvj1kcrp6c7m7.png)
 </Frame>
 
-Due to the flexibility of [Mezmo's API](/docs/api-referencesk9h), any pipeline can be integrated with just about any Incident Management or Deployment method, from PagerDuty to GitHub to Shell scripts.  To learn more, reach out to Mezmo at [support@mezmo.com](mailto:support@mezmo.com).
+Due to the flexibility of [Mezmo's API](/docs/api-referencesk9h), any pipeline can be integrated with just about any Incident Management or Deployment method, from PagerDuty to GitHub to Shell scripts. To learn more, reach out to Mezmo at [support@mezmo.com](mailto:support@mezmo.com).
