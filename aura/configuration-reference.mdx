@@ -519,7 +519,7 @@ filesystem = true
 
 ## `[hitl]`
 
-Human-in-the-loop (HITL) approval gates let an agent ask for permission before running selected MCP tools. `[hitl]` is the enable bit — there is no separate `enabled` field; presence of the table turns it on, and `route` is required when it's present. See [HITL](/aura/hitl) for the full route contracts, SSE lifecycle events, and current scope (single-agent vs. orchestration worker gating).
+Human-in-the-loop (HITL) approval gates let an agent ask for permission before running selected MCP tools. `[hitl]` is the enable bit. There is no separate `enabled` field. The presence of the table turns it on, and `route` is required when it's present. See [HITL](/aura/hitl) for the full route contracts, SSE lifecycle events, and current scope (single-agent vs. orchestration worker gating).
 
 | Field | Type | Default | Description |
 |---|---|---|---|
@@ -561,7 +561,7 @@ are independent of the identically named `[mcp.servers.<name>]` header keys,
 which configure MCP tool-server requests.
 
 Forwarding sensitive headers such as `authorization` exposes them to your
-approval webhook — prefer a static `headers` token for webhook auth and be
+approval webhook. Prefer a static `headers` token for webhook auth, and be
 deliberate about what you forward. In CLI standalone mode,
 `headers_from_request` resolves only against headers supplied via
 `AURA_EXTRA_HEADERS` (empty by default); static `headers` always apply.
