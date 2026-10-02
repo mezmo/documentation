@@ -1,0 +1,59 @@
+---
+title: "Web Search with You.com"
+sidebarTitle: "Web Search (You.com)"
+description: "Give AURA agents current-web search through the keyless You.com MCP server, no credentials required."
+---
+
+AURA's built-in MCP catalog includes a [You.com](https://you.com) web search server. It exposes the `you-search` and `you-discover` tools, so agents can pull current information — advisories, changelogs, news, vendor docs — into an investigation instead of relying on training data alone.
+
+The catalog entry uses You.com's **keyless free tier** (`https://api.you.com/mcp?profile=free`): no account, no API key, and nothing to put in `.env`. It is rate-limited (roughly 100 searches per day), which is plenty for incident-time lookups but not for bulk scraping.
+
+## Add it with the wizard
+
+At the AURA chat prompt:
+
+```
+/mcp add
+```
+
+Pick **You.com** from the catalog. Because there are no credentials, the wizard skips the secrets step, verifies the connection, and previews the `[mcp.servers.<name>]` block it will write — the same flow as any other catalog server. Restart AURA (`/quit`, then relaunch) to activate the server.
+
+## What your agents get
+
+| Tool | What it does |
+|------|--------------|
+| `you-search` | Web search with results and snippets, for current facts and sources |
+| `you-discover` | Structured lookup for You.com APIs, MCP servers, SDKs, and docs paths |
+
+A typical incident use: *"Search the web for recent CVEs affecting containerd and summarize the advisories."* — that's the starter prompt the wizard suggests for this server.
+
+## Manual configuration
+
+The wizard supplements manual TOML editing rather than replacing it. The equivalent block in your agent TOML:
+
+```toml
+[mcp.servers.youcom]
+transport = "http_streamable"
+url = "https://api.you.com/mcp?profile=free"
+```
+
+See [`[mcp]`](/aura/configuration-reference#mcp) in the configuration reference for the full server and transport options, including scoping tools to specific workers with `mcp_filter`.
+
+## Upgrading to the authenticated endpoint
+
+The free profile is anonymous and shared. For the full tool set and higher rate limits, use the authenticated endpoint instead: drop `?profile=free` from the URL and send a `YDC_API_KEY` bearer token. Get a key at [you.com/platform/api-keys](https://you.com/platform/api-keys).
+
+```toml
+[mcp.servers.youcom]
+transport = "http_streamable"
+url = "https://api.you.com/mcp"
+
+[mcp.servers.youcom.headers]
+Authorization = "Bearer {{ env.YDC_API_KEY }}"
+```
+
+Put `YDC_API_KEY=sk-...` in the `.env` beside your config — the same secret handling the wizard uses, so the token never enters the TOML in plain text.
+
+## Privacy
+
+Queries on the free profile leave the machine and go to You.com's shared keyless endpoint, so treat them like any external web request: don't search for secrets, internal hostnames, or anything you wouldn't send to a third-party service.
