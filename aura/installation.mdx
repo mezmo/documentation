@@ -31,7 +31,7 @@ By default the [install script](https://raw.githubusercontent.com/mezmo/aura/mai
   | `AURA_VERSION` | Version to install. A leading `v` is optional and is stripped. For `direct`, `latest` follows the GitHub releases/latest redirect to the newest release. For `deb` and `rpm`, a value pins the package version and `latest` lets the package manager choose. Homebrew cannot pin a version: under `auto`, a pinned version skips Homebrew; with `AURA_INSTALL_METHOD=homebrew`, it is a fatal error. | `latest` |
   | `AURA_INSTALL_METHOD` | How to install: `auto`, `homebrew`, `direct`, `deb`, or `rpm`, lowercase (for example `deb`, not `DEB`). Any other value is a fatal error. | `auto` |
   | `AURA_INSTALL_PATH` | Install directory for the `direct` method, created if it does not exist. Under `auto`, setting it skips Homebrew, Debian, and RPM in favor of a direct install. Combining it with an explicit `homebrew`, `deb`, or `rpm` method is a fatal error. | `~/.local/bin` |
-  | `AURA_COMPONENT` | Which binaries to install: `all`, `server`, or `cli`. `all` or `cli` installs the `aura` CLI. `all` or `server` installs `aura-web-server`. Any other value is a fatal error. | `all` |
+  | `AURA_COMPONENT` | Component to install: `all`, `server`, or `cli`. Any other value is a fatal error. | `all` |
   | `AURA_REQUIRE_CHECKSUM` | `direct` method only. When `1` (the default), a missing checksums file or a missing entry for an asset is a fatal error; set it to `0` to downgrade those to a warning. A checksum mismatch, or the absence of any checksum tool (`sha256sum`, `shasum`, or `openssl`) when there is a checksum to verify, is always fatal regardless of this setting. Any value other than `0` or `1` is a fatal error. | `1` |
   | `AURA_CHECKSUMS` | `direct` method only. Path to a local `checksums.txt` file. When set, the script verifies against this file instead of downloading `checksums.txt` from the release. | (unset) |
 
@@ -42,16 +42,10 @@ By default the [install script](https://raw.githubusercontent.com/mezmo/aura/mai
 
   <Tab title="Homebrew">
 
-  The tap provides one formula per component: `mezmo/tap/aura` (base AURA, all-in-one) and `mezmo/tap/aura-web-server` (daemon). To install base AURA, run:
+  Install the `mezmo/tap/aura` formula:
 
   ```bash
   brew install mezmo/tap/aura
-  ```
-
-  To install the web server, run:
-
-  ```bash
-  brew install mezmo/tap/aura-web-server
   ```
   </Tab>
 
@@ -77,10 +71,10 @@ type=rpm-md
 EOF
   ```
 
-  Then install the packages you want:
+  Then install the `aura` package:
 
   ```bash
-  sudo dnf install aura aura-web-server
+  sudo dnf install aura
   ```
 
   Substitute `microdnf`, `yum`, or `zypper` if that is what the system uses.
@@ -113,7 +107,7 @@ EOF
     | sudo tee /etc/apt/sources.list.d/mezmo-aura.list
 
   sudo apt-get update
-  sudo apt-get install -y aura aura-web-server
+  sudo apt-get install -y aura
   ```
 
   To pin a version, qualify the package name: `sudo apt-get install aura=0.1.18`.
@@ -134,18 +128,18 @@ EOF
 
   The links below always resolve to the newest release. Each asset is a bare executable with no file extension.
 
-  | Platform | `aura` CLI | `aura-web-server` |
-  |---|---|---|
-  | macOS (Apple Silicon) | [aura-darwin-arm64](https://github.com/mezmo/aura/releases/latest/download/aura-darwin-arm64) | [aura-web-server-darwin-arm64](https://github.com/mezmo/aura/releases/latest/download/aura-web-server-darwin-arm64) |
-  | macOS (Intel) | [aura-darwin-amd64](https://github.com/mezmo/aura/releases/latest/download/aura-darwin-amd64) | [aura-web-server-darwin-amd64](https://github.com/mezmo/aura/releases/latest/download/aura-web-server-darwin-amd64) |
-  | Linux (x86-64) | [aura-linux-amd64](https://github.com/mezmo/aura/releases/latest/download/aura-linux-amd64) | [aura-web-server-linux-amd64](https://github.com/mezmo/aura/releases/latest/download/aura-web-server-linux-amd64) |
-  | Linux (ARM64) | [aura-linux-arm64](https://github.com/mezmo/aura/releases/latest/download/aura-linux-arm64) | [aura-web-server-linux-arm64](https://github.com/mezmo/aura/releases/latest/download/aura-web-server-linux-arm64) |
+  | Platform | `aura` |
+  |---|---|
+  | macOS (Apple Silicon) | [aura-darwin-arm64](https://github.com/mezmo/aura/releases/latest/download/aura-darwin-arm64) |
+  | macOS (Intel) | [aura-darwin-amd64](https://github.com/mezmo/aura/releases/latest/download/aura-darwin-amd64) |
+  | Linux (x86-64) | [aura-linux-amd64](https://github.com/mezmo/aura/releases/latest/download/aura-linux-amd64) |
+  | Linux (ARM64) | [aura-linux-arm64](https://github.com/mezmo/aura/releases/latest/download/aura-linux-arm64) |
 
   For older versions and `checksums.txt`, browse the [GitHub Releases](https://github.com/mezmo/aura/releases) page.
 
-  Each download arrives non-executable and keeps its platform suffix, so make it executable, rename it to `aura` or `aura-web-server`, and move it somewhere on your `PATH`.
+  Each download arrives non-executable and keeps its platform suffix, so make it executable, rename it to `aura`, and move it somewhere on your `PATH`.
 
-  <Note>Mezmo code-signs and Apple notarizes the macOS release binaries — both the `aura` CLI and `aura-web-server`, for Intel (`amd64`) and Apple Silicon (`arm64`). They run without the Gatekeeper "unidentified developer" prompt, even when downloaded through a web browser from the [GitHub Releases](https://github.com/mezmo/aura/releases) page.</Note>
+  <Note>Mezmo code-signs and Apple notarizes the macOS release binaries, for Intel (`amd64`) and Apple Silicon (`arm64`). They run without the Gatekeeper "unidentified developer" prompt, even when downloaded through a web browser from the [GitHub Releases](https://github.com/mezmo/aura/releases) page.</Note>
   </Tab>
 </Tabs>
 
