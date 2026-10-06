@@ -1,0 +1,191 @@
+---
+title: "Slack Integration"
+description: "Answer Slack mentions and direct messages from the AURA web server over Socket Mode, search Slack with the permissions of the person asking, and post to channels as the bot."
+---
+
+The AURA web server can act as a Slack bot. With the Slack ingress enabled, the server opens a [Socket Mode](https://api.slack.com/apis/socket-mode) connection to Slack and answers @mentions and direct messages with an agent you choose. No public URL or inbound firewall rule is needed: the server dials Slack with an app-level token, and Slack streams events over that connection.
+
+Two optional tools build on the ingress:
+
+- `slack_search` lets the agent search the workspace with the permissions of the person who asked.
+- `slack_post_message` lets an agent reached over HTTP, A2A, or the CLI post into a channel as the bot, so an alert-driven or scheduled run can report into Slack.
+
+## Create the Slack app
+
+Create the app from a manifest at [api.slack.com/apps](https://api.slack.com/apps) (**Create New App** → **From a manifest**), pick the workspace, and paste the manifest below. Adjust `display_information.name` and the bot's `display_name`.
+
+```json
+{
+  "display_information": {
+    "name": "AURA"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "aura",
+      "always_online": true
+    },
+    "app_home": {
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
+    },
+    "agent_view": {
+      "agent_description": "Answers questions in threads and direct messages and searches public channels with the permissions of the person asking."
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "app_mentions:read",
+        "chat:write",
+        "channels:history",
+        "groups:history",
+        "im:history",
+        "reactions:write",
+        "search:read.public",
+        "assistant:write"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "bot_events": [
+        "app_mention",
+        "message.im",
+        "message.channels",
+        "message.groups",
+        "app_home_opened"
+      ]
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": true,
+    "token_rotation_enabled": false
+  }
+}
+```
+
+What each part is for:
+
+| Manifest entry | Purpose |
+|---|---|
+| `socket_mode_enabled: true` | The server connects out to Slack. Without it the app expects a public Request URL, which AURA does not serve. |
+| `app_mentions:read` and the `app_mention` event | Mentions of the bot in channels. |
+| `im:history` and the `message.im` event | Direct messages to the bot. |
+| `channels:history`, `groups:history`, and the `message.channels` / `message.groups` events | Thread replies that do not mention the bot, in public and private channels. See [Replies without a mention](#replies-without-a-mention). Leave these out for a mention-only bot. |
+| `chat:write` | Posting replies, and the `slack_post_message` tool. |
+| `reactions:write` | The 👀 reaction the bot adds to a message it has accepted. |
+| `app_home` with the Messages tab enabled and not read-only | Lets people send the bot direct messages. With the tab off, Slack shows "Sending messages to this app has been turned off." |
+| `agent_view`, `assistant:write`, `search:read.public`, and the `app_home_opened` event | The **Agents & AI Apps** feature, which is what makes Slack attach an `action_token` to mentions and direct messages. The `slack_search` tool needs that token. Slack requires `assistant:write` and `app_home_opened` once `agent_view` is set; the ingress acknowledges and ignores that event. Leave all four out if you do not want search. |
+
+Then:
+
+1. Under **Basic Information** → **App-Level Tokens**, generate a token with the `connections:write` scope. This is the `xapp-` token.
+2. Under **Install App**, install the app to the workspace. The **Bot User OAuth Token** on that page is the `xoxb-` token.
+3. Invite the bot to any channel it should answer in (`/invite @aura`).
+
+If you change the scopes later, reinstall the app; Slack does not grant new scopes to an existing installation.
+
+## Enable the ingress
+
+The ingress is off by default and is a deployment-level setting, like A2A. It needs both tokens.
+
+| Flag | Env var | Default | Description |
+|---|---|---|---|
+| `--enable-slack` | `AURA_ENABLE_SLACK` | `false` | Turn the ingress on. |
+| `--slack-bot-token` | `AURA_SLACK_BOT_TOKEN` | - | The bot user OAuth token (`xoxb-`). Required. |
+| `--slack-app-token` | `AURA_SLACK_APP_TOKEN` | - | The app-level token (`xapp-`, scope `connections:write`). Required. |
+| `--slack-agent` | `AURA_SLACK_AGENT` | - | Name or alias of the agent that answers. Falls back to `--default-agent`, or to the only loaded config. |
+| `--slack-concurrency` | `AURA_SLACK_CONCURRENCY` | `4` | How many Slack messages the server answers at once; further messages wait for a slot. |
+
+```bash
+AURA_ENABLE_SLACK=true \
+AURA_SLACK_BOT_TOKEN=xoxb-... \
+AURA_SLACK_APP_TOKEN=xapp-... \
+AURA_SLACK_AGENT="My Agent" \
+aura webserver
+```
+
+On startup the log shows `slack ingress enabled bot_user="aura" team="..." agent="..."` followed by `slack socket mode connected`. The HTTP API keeps working alongside the ingress.
+
+The agent config must not have a `[hitl]` block. See [Limitations](#limitations).
+
+## What the bot answers
+
+| Message | Where the reply goes | Context the agent sees |
+|---|---|---|
+| An @mention in a channel | A thread under the mention | The thread so far, when the mention is inside one |
+| A direct message | Inline in the DM | The recent history of the direct message |
+| A reply in a thread that mentions the bot | The thread | The thread so far |
+| A reply in a thread that does not mention the bot | The thread, only when the bot already took part in it | The thread so far |
+
+When the bot accepts a message it reacts with 👀, runs the agent with the conversation history as prior turns, and posts the agent's final text as the reply. If the run fails, it replies "Sorry, I hit an error answering that. The server log has the details." and logs the cause.
+
+History is rebuilt on every message from Slack (`conversations.replies` for threads, `conversations.history` for direct messages, up to 100 messages); the server stores nothing between messages. Edits, deletions, joins, and messages from other bots are ignored.
+
+Every run's system prompt gains one line naming the channel (`<#C…>`) or DM and the sender (`<@U…>`), because neither the message text nor the history says where it came from. The agent's reply is posted as Slack `mrkdwn`: `*bold*`, `` `code` ``, and bullet lists render, while Markdown headings and tables do not, so tell the agent in its system prompt to answer in that form.
+
+### Replies without a mention
+
+Answering a thread reply that does not mention the bot is opt-in per Slack app. It needs the `message.channels` and `message.groups` bot events (and the matching `channels:history` and `groups:history` scopes) from the manifest above. With those events subscribed, the bot answers un-mentioned replies in any thread it has already answered in, which makes a thread a conversation rather than a series of mentions.
+
+An app that subscribes only to `app_mention` and `message.im` gets a mention-only bot in channels. That is the quieter choice for busy shared channels, and it is what you get if you drop the two events from the manifest.
+
+Note that these replies arrive without an `action_token`, so the `slack_search` tool is absent on those runs. See [Limitations](#limitations).
+
+## Search Slack as the asker
+
+With the **Agents & AI Apps** feature enabled on the app (`agent_view` in the manifest), Slack attaches an `action_token` to each mention and direct message. A run started by such a message gets a native `slack_search` tool that calls Slack's `assistant.search.context` with the bot token plus that token, so results carry the visibility of the person asking, and Slack narrows them to the channel the message was sent in.
+
+- The tool takes `query`, an optional `limit`, and an optional `cursor` for the next page.
+- Plain words or a natural-language question find things; quoted phrases and `OR` chains usually return nothing.
+- One message has a budget of six searches shared by every agent working on it; a spent budget comes back as a tool error. Slack also rate limits searches per person, so the prompt tells the agent to spend one plain query first and reword at most once.
+- The system prompt gains a citation instruction: results are cited inline as `<permalink|label>`, which Slack renders as a link.
+- A bot token can hold only `search:read.public` (plus `search:read.files` and `search:read.users`), so only public channels are searched. The search scopes for private channels, direct messages, and group direct messages exist for user tokens only.
+- Under [orchestration](/aura/configuration-reference#orchestration), every worker gets its own instance of the tool; the coordinator, whose tools are routing only, gets none.
+
+The tool exists only for the run started by a message that carried a token. A message without one gets no tool, and the citation instruction is not added.
+
+## Post to Slack from any ingress
+
+An agent that is reached over `/v1/chat/completions`, A2A, or the CLI in HTTP mode can post into a channel as the bot. It needs the server flag and a per-agent opt-in:
+
+```toml
+[agent]
+name = "Alert Reporter"
+enable_slack_tools = true
+```
+
+With `--enable-slack` on and `enable_slack_tools = true`, the agent gets a native `slack_post_message` tool:
+
+- Arguments: `channel` (an id such as `C0123456789` or a name such as `#incidents`), `text` (mrkdwn), and an optional `thread_ts` to reply in a thread.
+- Returns the message `ts`, the channel id, and a permalink the agent can cite.
+- One run may post five times. Under orchestration every worker gets an instance and the run shares one budget.
+- Slack errors are rephrased for the agent (channel not found, bot not a member, archived, text too long, missing scope, rate limited) and never carry the token.
+- `GET /aura/info?detail=tools` lists the tool under the opted-in agent, beside its MCP servers.
+
+The bot needs `chat:write`. Posting into a public channel it has not joined also needs `chat:write.public`; otherwise invite it. An opt-in on a server started without `--enable-slack` is warned about at startup and builds no tool. Runs that Slack itself started keep the reply path only and do not get the tool.
+
+Agents that do not opt in build exactly as on a server without Slack.
+
+## Connection lifecycle
+
+- Slack asks for a fresh Socket Mode connection roughly every five hours; the server reconnects at once.
+- Any other end of the connection, including a peer that drops the link, reconnects after a delay that doubles from one second up to one minute.
+- A connection with no frame for two minutes, Slack's keepalive pings included, is dropped and redialled. A network path that dies without a close (a route change, an expired NAT entry) would otherwise leave the connection established and silent forever.
+- Slack-driven runs count as active requests: on `SIGTERM` the server stops accepting new messages and gives in-flight runs the [`SHUTDOWN_TIMEOUT_SECS`](/aura/web-server-reference#deployment) grace period.
+
+Run one replica of a Slack-enabled server. Slack delivers each Socket Mode payload to one of an app's open connections, so replicas do not fan out in the normal case, but the server's duplicate check is per process: a mention inside a DM arrives as both `app_mention` and `message.im`, and a payload not acknowledged within a few seconds is redelivered to any connection, and with several replicas either can produce two replies.
+
+## Limitations
+
+- **No human-in-the-loop approvals.** The conversational Slack surface has nowhere to approve a tool call, so the ingress refuses to start on an agent config that has a `[hitl]` block (the error names the agent). Give the Slack agent a config without `[hitl]`, and keep gated write tools out of its `mcp_filter` since nothing would gate them. The [HITL webhook route](/aura/hitl) remains available to the same server's HTTP and A2A callers.
+- **Thread follow-ups cannot search.** Slack attaches the `action_token` to mention and direct-message events but not to the thread replies delivered by `message.channels` and `message.groups`. A reply without a mention therefore runs without `slack_search`, even in a thread whose first question had it. Mentioning the bot in the follow-up restores the tool. Tracked as [mezmo/aura#776](https://github.com/mezmo/aura/issues/776).
+- **Public channels only.** `slack_search` sees what `search:read.public` allows. Private channels, direct messages, and group direct messages are not searchable with a bot token.
+- **Orchestration planners may not see run tools.** With `tools_in_planning = "summary"`, the planner lists the first `max_tools_per_worker` tool names per worker (default 10) and the run's own tools come last, so on workers with long `mcp_filter` lists `slack_search` hides behind `(+N more)`. Raise `max_tools_per_worker`, or tell the coordinator in its system prompt that every worker holds `slack_search` on a run that a mention or DM started.
+- **One agent per server.** The ingress runs the agent named by `--slack-agent`; other loaded configs stay reachable over HTTP and A2A only.
+- **Replies come from the bot, not the agent that was asked.** Runs started from Slack reply in place and do not get `slack_post_message`; cross-posting from a Slack-started run is not supported.
+
+## See also
+
+- [Web Server Reference](/aura/web-server-reference): the full flag and environment-variable list
+- [Configuration Reference](/aura/configuration-reference): `enable_slack_tools` and the `[orchestration]` planner settings
+- [HITL](/aura/hitl): approval gates on the HTTP and A2A paths
