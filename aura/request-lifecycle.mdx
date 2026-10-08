@@ -22,7 +22,12 @@ Client POST /v1/chat/completions
          │
          ▼
 ┌─────────────────────────────────────┐
-│ Generate request_id (UUID)          │
+│ Prepare the request                 │
+│   - Generate request_id             │
+│   - Build the agent and connect its │
+│     MCP servers (each up to         │
+│     connect_timeout_secs)           │
+│   - Replay recorded skill calls     │
 └─────────────────────────────────────┘
          │
          ▼
@@ -35,9 +40,10 @@ Client POST /v1/chat/completions
          │
          ▼
 ┌─────────────────────────────────────┐
-│ Stream chat with TimeoutHook        │
-│   - Tool calls set thread context   │
-│   - Tool results clear context      │
+│ Stream chat with the run's hooks    │
+│   - Check deadline and cancellation │
+│   - Tool calls queue their IDs      │
+│   - Tool results dequeue them       │
 └─────────────────────────────────────┘
          │
          ├──────────────────┬──────────────────┐
@@ -51,9 +57,9 @@ Client POST /v1/chat/completions
          │          ┌──────────────────┐  ┌──────────────────┐
          │          │ Cancel run token │  │ Cancel run token │
          │          │ Send MCP cancel  │  │ Send [DONE]      │
-         │          │ Evict from pool  │  │ Then MCP cleanup │
-         │          └──────────────────┘  │ (no pool evict)  │
-         │                  │             └──────────────────┘
+         │          │ Close MCP conns  │  │ Then MCP cleanup │
+         │          └──────────────────┘  └──────────────────┘
+         │                  │                  │
          └──────────┬───────┴──────────────────┘
                     ▼
 ┌─────────────────────────────────────┐
@@ -119,7 +125,7 @@ On client disconnect or timeout:
 
 1. The run's cancellation token signals all waiting code, including tool calls paused for a HITL approval
 2. Aura sends `notifications/cancelled` to MCP servers
-3. The agent is evicted from its connection pool to prevent stale connections
+3. Aura closes the request's MCP connections. Each request builds its own agent and MCP connections, so a later request never reuses them
 
 MCP servers receive the cancellation notification and can abort in-progress operations.
 
@@ -143,7 +149,6 @@ The server signals shutdown through two cancellation tokens:
    - Cancel the run's token (stops in-flight MCP tool execution and pending HITL approvals)
    - Send `[DONE]` to client (before MCP cleanup, so client gets clean termination)
    - Run MCP cleanup (send `notifications/cancelled`, close connections)
-   - No pool eviction (pool is dying with the server)
 5. **Phase 3 (abort)**: Remaining streams have 5s to finish Phase 2. If request tasks are still running after that, the server logs `Stream shutdown grace period expired, aborting stragglers` and aborts them, so their spans close before the telemetry flush.
 6. **Shutdown complete**: The server logs `shutdown complete` with two fields. `clean_shutdown` is `true` when no request had to be aborted. `unaborted_tasks` is `true` when the abort step didn't finish within 400 ms.
 7. **Telemetry flush**: The server stops and flushes buffered OpenTelemetry spans, waiting up to 5s for the export.
@@ -152,6 +157,5 @@ The server signals shutdown through two cancellation tokens:
 
 | Behavior | Disconnect/Timeout | Shutdown |
 |----------|-------------------|----------|
-| Pool eviction | Yes | No (pool is dying) |
 | `[DONE]` timing | After MCP cleanup (Timeout) / skipped (Disconnect) | Before MCP cleanup |
 | Grace period | None: immediate cancel | Configurable (`SHUTDOWN_TIMEOUT_SECS`) |
