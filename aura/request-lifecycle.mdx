@@ -124,11 +124,11 @@ The run's cancellation token, event channel, and tool-call queue belong to the r
 
 On client disconnect or timeout:
 
-1. The run's cancellation token signals all waiting code, including tool calls paused for a HITL approval
-2. Aura sends `notifications/cancelled` to MCP servers
-3. Aura closes the request's MCP connections. Each request builds its own agent and MCP connections, so a later request never reuses them
+1. The run's cancellation token signals all waiting code, including tool calls paused for a HITL approval.
+2. AURA sends `notifications/cancelled` to MCP servers.
+3. AURA closes the request's MCP connections.
 
-MCP servers receive the cancellation notification and can abort in-progress operations.
+MCP servers receive the cancellation notification and can abort in-progress operations. Each request builds its own agent and MCP connections, so a later request never reuses a closed connection.
 
 ---
 

@@ -74,8 +74,8 @@ agent.stream (LLM, ROOT)
 | `orchestration.iteration` | `orchestration.iteration`, `orchestration.task_count`, `orchestration.post_execute_decision` (`respond_directly`, `create_plan`, `request_clarification`, or `coordinator_error`), `orchestration.decision_latency_seconds`, `orchestration.planning_ms`, `orchestration.execution_ms`, `orchestration.task_compute_ms`, `orchestration.tool_ms` |
 | `orchestration.worker` | `orchestration.task_id`, `orchestration.worker`, `orchestration.task` |
 
-Token usage (`llm.token_count.*`) is recorded on the `agent.turn` spans under
-each orchestration phase (planning, worker), not on the phase spans themselves.
+The `agent.turn` spans under each orchestration phase (planning and worker)
+record token usage (`llm.token_count.*`). The phase spans themselves don't.
 
 ### Tool spans (`execute_tool`)
 
@@ -115,7 +115,7 @@ for how namespaces work in tool-name patterns.
 | **RETRIEVER** | `vector.search` |
 | **CHAIN** | `chat_completions`, `streaming_completion`, `orchestration`, `orchestration.iteration`, and any other span |
 
-AURA exports its agent-level spans (`agent.stream`, `agent.prompt`, `agent.chat`, `orchestration.planning`, and `orchestration.worker`) as LLM so Phoenix shows the tools and invocation parameters they record in its LLM span view. Only `agent.turn` spans carry token counts, so Phoenix computes cost from the turns, not from these parent spans.
+AURA exports its agent-level spans as LLM spans. These are `agent.stream`, `agent.prompt`, `agent.chat`, `orchestration.planning`, and `orchestration.worker`. As LLM spans, they show their recorded tools and invocation parameters in the Phoenix LLM span view. Only `agent.turn` spans carry token counts, so Phoenix computes cost from the turns.
 
 `chat`, `agent.prompt`, and `agent.chat` are non-streaming entry points; the trace diagrams above cover the streaming path, which is the one AURA's HTTP/CLI backends use.
 
@@ -137,25 +137,25 @@ When `OTEL_RECORD_CONTENT=true`, prompt/completion text and tool
 arguments/results are recorded as span attributes, truncated to
 `OTEL_CONTENT_MAX_LENGTH` (default 1000 bytes, rounded to a UTF-8 boundary).
 
-## Export at shutdown
+## Export at Shutdown
 
-A span is exported after it ends. At shutdown, AURA flushes the spans that are
-still buffered:
+AURA exports a span only after the span ends. At shutdown, AURA flushes the
+spans that are still buffered:
 
 - **Web server**: After [graceful shutdown](/aura/request-lifecycle#graceful-shutdown)
   completes, the server flushes buffered spans and waits up to 5 seconds for the
-  export. Requests still running after the drain window are aborted first, so
-  their spans end and are included in the flush.
-- **Standalone CLI**: On SIGTERM, the CLI flushes buffered spans before it exits
-  with code `143` (see [SIGTERM Handling](/aura/cli-reference#sigterm-handling)).
-  The CLI doesn't stop a query that is still running, so that query's
-  `agent.stream` root span and any other span still open never end and aren't
-  exported. Spans that already ended, such as finished `agent.turn` and
-  `mcp.tool_call` spans, are exported without their root.
+  export. The server first aborts any request still running after the drain
+  window, so those spans end and are part of the flush.
+- **Standalone CLI**: On SIGTERM, the CLI flushes buffered spans and then exits
+  with code `143`. For details, see [SIGTERM Handling](/aura/cli-reference#sigterm-handling).
+  The CLI doesn't stop a query that is still running. That query's
+  `agent.stream` root span and any other open spans never end, so AURA doesn't
+  export them. Spans that already ended, such as finished `agent.turn` and
+  `mcp.tool_call` spans, arrive in your trace backend without their root.
 
 ## Known limitations
 
 - **Tool error propagation**: Tool errors are only recorded on the
   `mcp.tool_call` child span, not on Rig's
-  `execute_tool` parent. This is intentional — `mcp.tool_call` is the
+  `execute_tool` parent. This is intentional. `mcp.tool_call` is the
   canonical TOOL span for Phoenix.
