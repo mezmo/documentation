@@ -39,6 +39,8 @@ Known handled styles include:
 
 This improves tool reliability with local models that do not consistently emit structured function-calling payloads.
 
+Text-parsed tool calls follow the same rules as native tool calls. They reach only tools that pass the agent's `mcp_filter`, and a tool name that more than one MCP server advertises resolves to the same server. See [Tool Names Shared by Multiple Servers](/aura/configuration-reference#tool-names-shared-by-multiple-servers).
+
 <Warning>**Known issue (orchestration).** `fallback_tool_parsing` is currently honored only in single-agent mode. In orchestration mode the coordinator and workers are built with fallback parsing **disabled** — a bug, not intended behavior, tracked in [#193](https://github.com/mezmo/aura/issues/193). Until it's fixed, a local model that emits tool calls as text instead of native `tool_calls` can stall in orchestration (the coordinator never registers a routing decision). Workaround: run such models in single-agent mode (`[orchestration].enabled = false`), or use a model with reliable native tool-calling.</Warning>
 
 ## Practical Guidance

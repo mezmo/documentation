@@ -52,14 +52,27 @@ a tool from one MCP server only, prefix the pattern with the server's
 `restart_*` tools from `[mcp.servers.k8s]` but not same-named tools from other
 servers. A pattern outside the syntax stops Aura from starting.
 
+<Warning>
+When more than one MCP server advertises the same tool name, the agent gets
+that tool from only one server: the one whose `[mcp.servers.<name>]` key sorts
+first among servers whose tool passes the agent's `mcp_filter`. A pattern
+scoped to a server that lost the name never matches, so it gates nothing. For
+example, if `[mcp.servers.alpha]` and `[mcp.servers.beta]` both advertise
+`echo`, then `beta:echo` gates nothing and the agent's `echo` calls run on
+`alpha` without approval. Scope the pattern to the server that provides the
+tool, or drop the namespace from the pattern. See
+[Tool Names Shared by Multiple Servers](/aura/configuration-reference#tool-names-shared-by-multiple-servers).
+</Warning>
+
 A tool is gated if it matches **any** pattern in the list, so pattern order does
 not affect whether a tool is gated. To leave a tool ungated, do not list a
 pattern that matches it. When more than one pattern matches, the first in config
 order is reported as `origin.matched_pattern` in the webhook payload and SSE
 events; that is the only effect of ordering.
 
-The `request_approval` tool is never matched by these globs. It is excluded from
-the gate so the agent can ask for approval without triggering the gate itself.
+The `request_approval` tool is never matched by these patterns. It is excluded
+from the gate so the agent can ask for approval without triggering the gate
+itself.
 
 `timeout_secs` defaults to `300` for webhooks. If the webhook does not return a
 decision before the timeout, the tool does not run.
@@ -152,7 +165,7 @@ Fields:
 | `decision_id` | Unique id for this approval decision. |
 | `request_id` | Aura request id for the chat completion. |
 | `scope` | Which agent surface is asking, independent of why. `kind = "single"` for a single-agent run or `kind = "worker"` for an orchestration worker. Both HITL origins carry a scope. |
-| `origin` | Why approval was requested. `kind = "config_gate"` (a configured glob matched the tool call, carries the matched glob) or `kind = "agent_requested"` (the agent called `request_approval`, carries the reason). |
+| `origin` | Why approval was requested. `kind = "config_gate"` (a `require_approval` pattern matched the tool call, carried as `matched_pattern`) or `kind = "agent_requested"` (the agent called `request_approval`, carries the reason). |
 | `items` | Tool call payloads awaiting approval. One item per request. Each item carries `tool_name` and `arguments`. For an MCP tool, it also carries `tool_namespace`, the `[mcp.servers.<name>]` key of the server that provides the tool. |
 
 ## Webhook response
