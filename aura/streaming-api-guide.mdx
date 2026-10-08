@@ -142,7 +142,7 @@ AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 | `aura.skills_rehydrated` | Skill invocations from earlier turns replayed into this turn's context, emitted at stream start | ✅ Implemented |
 | `aura.mcp_status` | Per-server MCP connection status emitted at stream start (connected/failed/not_attempted, with failure reason) | ✅ Implemented |
 | `aura.worker_phase` | Worker phase transitions in multi-agent mode (planning/executing/analyzing) | ✅ Implemented |
-| `aura.tool_usage` | Usage snapshot after tool execution (associates tool IDs with token counts) | ✅ Implemented |
+| `aura.tool_usage` | Usage snapshot after tool execution (associates tool IDs with token counts). Single-agent mode only | ✅ Implemented |
 | `aura.usage` | Final token usage emitted at stream end (prompt/completion/total) | ✅ Implemented |
 | `aura.scratchpad_usage` | Per-agent scratchpad usage summary (single-agent or worker), emitted when an agent finishes with scratchpad activity | ✅ Implemented |
 | `aura.approval_requested` | HITL approval request raised for a gated tool or `request_approval` call | ✅ Implemented for webhook and conversational routes |
@@ -277,9 +277,16 @@ Note: Progress events are only emitted when:
 1. `AURA_CUSTOM_EVENTS=true` is set
 2. The MCP server sends `notifications/progress` messages during tool execution
 
-When a notification has no `message`, AURA builds one from the progress counts: `Progress: <progress>/<total>`, such as `Progress: 50/100`, or `Progress: <progress>` when the server sends no `total`. `percent` is `progress` as a share of `total`, capped at 100, and is omitted when the server sends no `total`.
+When a notification has no `message`, AURA builds one from the progress counts:
 
-In orchestration mode, `aura.progress` events from a worker's tool calls carry `agent_id: "coordinator"`, not the worker's name ([#734](https://github.com/mezmo/aura/issues/734)). AURA emits no `aura.tool_start` for worker tool calls, which orchestration reports through `aura.orchestrator.tool_call_started` and `aura.orchestrator.tool_call_completed` instead, so a worker's `progress_token` has no matching `aura.tool_start`.
+- `Progress: <progress>/<total>`, such as `Progress: 50/100`, when the server sends a `total`
+- `Progress: <progress>`, such as `Progress: 3`, when the server sends no `total`
+
+`percent` is `progress` divided by `total`, as a whole number capped at 100. A `total` of `0` reports `100`. AURA omits `percent` when the server sends no `total`.
+
+In orchestration mode, `aura.progress` events from a worker's tool calls carry `agent_id: "coordinator"` instead of the worker's name. This is a known issue, tracked in [mezmo/aura#734](https://github.com/mezmo/aura/issues/734) on GitHub.
+
+Worker tool calls don't emit `aura.tool_start`, so a worker's `progress_token` has no matching `aura.tool_start` event. To follow worker tool calls, use the `aura.orchestrator.tool_call_started` and `aura.orchestrator.tool_call_completed` events. For their formats, see [Orchestration Events](#orchestration-events).
 
 **Session info** (emitted once at stream start):
 ```
@@ -336,11 +343,11 @@ data:
 }
 ```
 
-Note: `status` is one of `connected`, `failed`, or `not_attempted`. This lets a client distinguish a server that is configured but unavailable (`failed`, with a `reason`) from one that connected and legitimately exposes no tools (`connected`, `tools_count: 0`). `reason` is present only for failed servers. The event is omitted entirely when no servers are configured. `aura.mcp_status` includes only `CorrelationContext` fields (`session_id`, `trace_id`) — no `agent_id`.
+Note: `status` is one of `connected`, `failed`, or `not_attempted`. This lets a client distinguish a server that is configured but unavailable (`failed`, with a `reason`) from one that connected and legitimately exposes no tools (`connected`, `tools_count: 0`). `reason` is present only for failed servers. The event is omitted entirely when no servers are configured. `aura.mcp_status` includes only `CorrelationContext` fields (`session_id`, `trace_id`). No `agent_id`.
 
 In orchestration mode all workers share a single `McpManager`, so one `aura.mcp_status` reports the whole run's server status. The wire shape is identical to single-agent mode; it just arrives slightly later (after the manager connects, before planning) rather than at stream start. Requires `AURA_CUSTOM_EVENTS=true` in both modes.
 
-A server that doesn't finish connecting, initializing, and listing its tools within [`[mcp].connect_timeout_secs`](/aura/configuration-reference#mcp) (default 30 seconds) appears in `servers` as `failed` with this reason:
+If a server doesn't finish connecting, initializing, and listing its tools within [`[mcp].connect_timeout_secs`](/aura/configuration-reference#mcp), AURA reports it as `failed`. The default timeout is 30 seconds, and the `reason` shows the configured value:
 
 ```json
 {
@@ -371,7 +378,7 @@ data:
 
 Possible `phase` values: `"planning"`, `"executing"`, `"analyzing"`. `task_id` and `parent_agent_id` are omitted when not set.
 
-**Tool usage** (usage snapshot after tool execution rounds):
+**Tool usage** (usage snapshot after tool execution rounds, single-agent mode only):
 ```
 event: aura.tool_usage
 data:
@@ -387,7 +394,9 @@ data:
 }
 ```
 
-Emitted from the `on_stream_completion_response_finish` hook when usage data is available. Associates the completed tool IDs with a token usage snapshot. Carries `agent_id`, the same agent-context field the other agent-scoped `aura.*` events use, alongside its `CorrelationContext`. AURA emits `aura.tool_usage` only for single-agent runs, so `agent_id` is always `main`. Orchestrated runs don't emit it. They report tool activity through the `aura.orchestrator.tool_call_started` and `aura.orchestrator.tool_call_completed` events instead.
+Emitted from the `on_stream_completion_response_finish` hook when usage data is available. Associates the completed tool IDs with a token usage snapshot. Carries `agent_id` and the `CorrelationContext` fields. Because AURA emits `aura.tool_usage` only in single-agent runs, `agent_id` is always `main`.
+
+Orchestrated runs don't emit `aura.tool_usage`. To follow tool activity in an orchestrated run, use the `aura.orchestrator.tool_call_started` and `aura.orchestrator.tool_call_completed` events.
 
 **Usage** (final token usage at stream end):
 ```
