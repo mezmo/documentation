@@ -152,23 +152,29 @@ There is no wire-contract change. `task.history` still contains only the user pr
 
 ## Cancellation
 
-Cancel a task with `POST /a2a/v1/tasks/{id}:cancel`, the v1.0 JSON-RPC `CancelTask` method, or the v0.3 `tasks/cancel` method. All three behave the same way:
+Cancel a task to stop its run and release the resources it holds. Use `POST /a2a/v1/tasks/{id}:cancel`, the v1.0 JSON-RPC `CancelTask` method, or the v0.3 `tasks/cancel` method. All three work the same way:
 
-- **A cancel during startup still stops the task.** It takes effect even while Aura is still building the agent or loading the conversation history for the task's `contextId`.
-- **The run stops.** Aura stops streaming the task's output as soon as the cancel arrives. A single agent stops at its next checkpoint, no later than its next model call. An orchestrated run stops at once, together with its workers.
-- **In-flight MCP tool calls are cancelled.** Aura sends MCP `notifications/cancelled` for each tool call that is still running, then closes the run's MCP connections.
-- **The task ends in one terminal state.** A task that `cancelTask` answers with `Canceled` doesn't later report `Completed`.
-- **A cancel reaches the instance running the task.** With a shared Redis or Valkey [session store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments), an instance that receives a cancel for a task running elsewhere routes it to that instance. The task is recorded as `Canceled` even if the routed cancel never arrives, but the run can then keep working until it finishes.
+- **A cancel during startup still stops the task.** It takes effect while Aura is building the agent or loading the conversation history for the task's `contextId`.
+- **The run stops.** Aura stops streaming the task's output as soon as the cancel arrives. A single agent stops at its next checkpoint, no later than its next model call. An orchestrated run stops at once, along with its workers.
+- **In-flight MCP tool calls are canceled.** Aura sends MCP `notifications/cancelled` for each tool call that is still running. Then it closes the run's MCP connections.
+- **The task ends in one terminal state.** A task that a cancel answers with `Canceled` never reports `Completed` later.
+- **A cancel reaches the instance running the task.** With a shared Redis or Valkey [session store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments), an instance that receives a cancel for a task running on another instance routes the cancel there. If the routed cancel never arrives, the task is still recorded as `Canceled`, but the run keeps working until it finishes.
 
-<Note>
-A cancel that arrives just as a task finishes can still be answered `Canceled`. Depending on the session store, the task can then be recorded as `Canceled` even though it completed. See [mezmo/aura#737](https://github.com/mezmo/aura/issues/737).
-</Note>
+<Warning>
+A cancel that arrives just as a task finishes can still be answered `Canceled`. Depending on the session store, the task can then be recorded as `Canceled` even though it completed. For details, see GitHub issue [mezmo/aura#737](https://github.com/mezmo/aura/issues/737).
+</Warning>
 
-### Run lifetime
+### Run Lifetime
 
-The request timeouts for `/v1/chat/completions` don't apply to A2A tasks: `STREAMING_TIMEOUT_SECS`, `FIRST_CHUNK_TIMEOUT_SECS`, and `STREAM_INACTIVITY_TIMEOUT_SECS` (see [Timeout Configuration](/aura/request-lifecycle#timeout-configuration)). A task runs until the agent finishes or fails, a client cancels it, or the server shuts down.
+A2A tasks don't use the `/v1/chat/completions` request timeouts. `STREAMING_TIMEOUT_SECS`, `FIRST_CHUNK_TIMEOUT_SECS`, and `STREAM_INACTIVITY_TIMEOUT_SECS` don't apply to them. For those settings, see [Timeout Configuration](/aura/request-lifecycle#timeout-configuration).
 
-A running A2A task counts as an in-flight request during [graceful shutdown](/aura/request-lifecycle#graceful-shutdown), so it gets the same `SHUTDOWN_TIMEOUT_SECS` grace period. A task still running when the grace period ends is cancelled the same way as above and reports `Canceled`.
+A task runs until one of these happens:
+
+- The agent finishes or fails
+- A client cancels the task
+- The server shuts down
+
+During [graceful shutdown](/aura/request-lifecycle#graceful-shutdown), a running A2A task counts as an in-flight request. It gets the same `SHUTDOWN_TIMEOUT_SECS` grace period as other requests. If the task is still running when the grace period ends, Aura cancels it as described above, and the task reports `Canceled`.
 
 ## Testing with curl
 
