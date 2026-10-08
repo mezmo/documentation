@@ -384,7 +384,7 @@ AURA presents MCP tools to the model by their bare names, so only one server's t
 
 To use the tool from a different server, scope `mcp_filter` to that server, for example `mcp_filter = ["beta:*"]`, or rename the tool on all but one server.
 
-The web server logs a warning for each shared name at startup, and [`aura governance sync`](/aura/cli-reference#sync-the-mcp-tool-catalog-aura-governance-sync) prints the same warning. The warning names every server that advertises the tool and the server that sorts first. It doesn't account for `mcp_filter`, so an agent's filter can select a different server than the warning names.
+The web server logs a warning for each shared name at startup, and [`aura governance sync`](./cli-reference#sync-the-mcp-tool-catalog-aura-governance-sync) prints the same warning. The warning names every server that advertises the tool and the server that sorts first. It doesn't account for `mcp_filter`, so an agent's filter can select a different server than the warning names.
 
 To find shared names, the web server connects to each agent's MCP servers once before it starts accepting requests. The servers are checked one at a time, and each connection can take up to [`[mcp].connect_timeout_secs`](#mcp), so leave room for the check in startup and readiness probe timeouts. The check starts each `stdio` server's command and sends only static `headers`. A server that needs headers from `headers_from_request` logs a connection warning at startup, and the web server still starts.
 
