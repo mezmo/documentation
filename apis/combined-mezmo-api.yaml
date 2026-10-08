@@ -3247,7 +3247,19 @@ paths:
       tags:
         - Archiving
       summary: Get Archive Configuration
-      description: Use this method to get an existing archiving configuration.
+      description: >-
+        Use this method to get an existing archiving configuration.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `archiving` | `read` | Lets you see where your logs are being archived and how they get
+        there |
       operationId: get-v1-config-archiving
       responses:
         '200':
@@ -3268,7 +3280,19 @@ paths:
       summary: Create Archive Configuration
       description: >-
         Use this method to configure archiving for an instance. Only one archiving configuration may
+
         exist at any time.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `archiving` | `write` | Lets you switch archiving on and point it at your own storage
+        bucket |
       operationId: post-v1-config-archiving
       requestBody:
         description: Request parameters
@@ -3302,7 +3326,19 @@ paths:
       tags:
         - Archiving
       summary: Update Archive Configuration
-      description: Use this method to update an existing archiving configuration.
+      description: >-
+        Use this method to update an existing archiving configuration.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `archiving` | `write` | Lets you move archiving to a different bucket, or refresh its
+        credentials |
       operationId: put-v1-config-archiving
       requestBody:
         description: Request parameters
@@ -3336,7 +3372,19 @@ paths:
       tags:
         - Archiving
       summary: Delete Archive Configuration
-      description: Use this method to delete the archiving configuration.
+      description: >-
+        Use this method to delete the archiving configuration.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `archiving` | `manage` | Lets you switch archiving off and clear out the destination
+        settings |
       operationId: delete-v1-config-archiving
       responses:
         '200':
@@ -3353,7 +3401,14 @@ paths:
       tags:
         - Board
       summary: List Boards
-      description: Get a list of boards.
+      description: |-
+        Get a list of boards.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `board` | `read` | Lets you see what boards your team has built |
       operationId: list-board
       responses:
         '200':
@@ -3380,7 +3435,14 @@ paths:
       tags:
         - Board
       summary: Create Board
-      description: Use this method to create a board.
+      description: |-
+        Use this method to create a board.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `board` | `write` | Lets you put together a new board of your own |
       operationId: create-board
       requestBody:
         description: Request parameters
@@ -3409,7 +3471,14 @@ paths:
       tags:
         - Board
       summary: Get Board
-      description: Gets the configuration for a specific board.
+      description: |-
+        Gets the configuration for a specific board.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `board` | `read` | Lets you open a board and look at the graphs on it |
       operationId: get-board
       parameters:
         - name: boardId
@@ -3453,7 +3522,19 @@ paths:
       tags:
         - Board
       summary: Delete Board
-      description: Use this method to delete a board.
+      description: >-
+        Use this method to delete a board.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `board` | `manage` | Lets you delete a board, which removes it for everyone on the account
+        |
       operationId: delete-board
       parameters:
         - name: boardId
@@ -3482,7 +3563,14 @@ paths:
       tags:
         - Configuration
       summary: List Views
-      description: Get a list of views.
+      description: |-
+        Get a list of views.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `view` | `read` | Lets you see what views your team has saved |
       operationId: list-view
       responses:
         '200':
@@ -3501,7 +3589,14 @@ paths:
       tags:
         - Configuration
       summary: Create View
-      description: Use this method to create a view and attach alerts to the view.
+      description: |-
+        Use this method to create a view and attach alerts to the view.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `view` | `write` | Lets you save a new view and hang alerts off it |
       operationId: create-view
       requestBody:
         description: Request parameters
@@ -3530,7 +3625,19 @@ paths:
       tags:
         - Configuration
       summary: Get View
-      description: Gets the configuration for a specific view.
+      description: >-
+        Gets the configuration for a specific view.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `view` | `read` | Lets you open a view and see its query and whatever alerts are attached
+        |
       operationId: get-view
       parameters:
         - name: viewId
@@ -3558,7 +3665,20 @@ paths:
       summary: Update View
       description: >-
         Use this method to update a view. You can change the view configuration details; add or
-        remove view specific alerts; or attach and detach preset alerts.
+        remove
+
+        view specific alerts; or attach and detach preset alerts.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `view` | `write` | Lets you retune a view's query, or change which alerts are attached to
+        it |
       operationId: update-view
       parameters:
         - name: viewId
@@ -3593,7 +3713,14 @@ paths:
       tags:
         - Configuration
       summary: Delete View
-      description: Use this method to delete a view and any attached alerts.
+      description: |-
+        Use this method to delete a view and any attached alerts.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `view` | `manage` | Lets you delete a view, taking its attached alerts down with it |
       operationId: delete-view
       parameters:
         - name: viewId
@@ -3622,7 +3749,14 @@ paths:
       tags:
         - Configuration
       summary: List Preset Alerts
-      description: Returns all Preset Alerts in the account.
+      description: |-
+        Returns all Preset Alerts in the account.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `alert` | `read` | Lets you see what preset alerts you can hang off your views |
       operationId: list-alerts
       responses:
         '200':
@@ -3641,7 +3775,14 @@ paths:
       tags:
         - Configuration
       summary: Create Preset Alert
-      description: Use this method to create a preset alert.
+      description: |-
+        Use this method to create a preset alert.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `alert` | `write` | Lets you set up a reusable alert that any view can share |
       operationId: create-alert
       requestBody:
         description: Request parameters
@@ -3668,7 +3809,19 @@ paths:
       tags:
         - Configuration
       summary: Get Preset Alert
-      description: Get a specific preset alert
+      description: >-
+        Get a specific preset alert
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `alert` | `read` | Lets you check what a preset alert fires on and where it sends
+        notifications |
       operationId: get-alert
       parameters:
         - name: presetId
@@ -3694,7 +3847,19 @@ paths:
       tags:
         - Configuration
       summary: Update Alert
-      description: Update a specific preset alert.
+      description: >-
+        Update a specific preset alert.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `alert` | `write` | Lets you retune when an alert fires, or send its notifications
+        somewhere else |
       operationId: update-preset
       parameters:
         - name: presetId
@@ -3727,7 +3892,19 @@ paths:
       tags:
         - Configuration
       summary: Delete Alert
-      description: Use this method to delete a preset alert.
+      description: >-
+        Use this method to delete a preset alert.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `alert` | `manage` | Lets you delete a preset alert, unhooking it from every view using it
+        |
       operationId: delete-alert
       parameters:
         - name: presetId
@@ -3754,7 +3931,14 @@ paths:
       tags:
         - Configuration
       summary: List Categories
-      description: Returns all Categories of a type.
+      description: |-
+        Returns all Categories of a type.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `category` | `read` | Lets you see what categories your team has set up for this type |
       operationId: list-categories
       parameters:
         - name: type
@@ -3780,7 +3964,19 @@ paths:
       tags:
         - Configuration
       summary: Create New Category
-      description: Creates a new category of this type.
+      description: >-
+        Creates a new category of this type.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `category` | `write` | Lets you add a category so things of this type can be filed under
+        it |
       operationId: create-category
       parameters:
         - name: type
@@ -3814,7 +4010,14 @@ paths:
       tags:
         - Configuration
       summary: Get Category
-      description: Get a specific category
+      description: |-
+        Get a specific category
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `category` | `read` | Lets you look at a single category and what's filed under it |
       operationId: get-category
       parameters:
         - name: type
@@ -3846,7 +4049,14 @@ paths:
       tags:
         - Configuration
       summary: Update Category
-      description: Update a specific category.
+      description: |-
+        Update a specific category.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `category` | `write` | Lets you rename a category or change what's filed under it |
       operationId: update-category
       parameters:
         - name: type
@@ -3885,7 +4095,19 @@ paths:
       tags:
         - Configuration
       summary: Delete Category
-      description: Use this method to delete a category.
+      description: >-
+        Use this method to delete a category.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `category` | `manage` | Lets you delete a category, leaving anything filed under it
+        uncategorized |
       operationId: delete-category
       parameters:
         - name: type
@@ -9405,7 +9627,14 @@ paths:
       tags:
         - Exclusions
       summary: List Exclusion Rules
-      description: 'Returns a list of exclusion rules. Note: This does not return usage quota rules.'
+      description: |-
+        Returns a list of exclusion rules. Note: This does not return usage quota rules.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `exclusion` | `read` | Lets you see what's being dropped before it ever gets indexed |
       operationId: get-v1-config-exclusions
       responses:
         '200':
@@ -9426,7 +9655,19 @@ paths:
       tags:
         - Exclusions
       summary: Create Exclusion Rule
-      description: Create a new ingestion exclusion rule to help reduce log volume
+      description: >-
+        Create a new ingestion exclusion rule to help reduce log volume
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `exclusion` | `write` | Lets you stop noisy lines being indexed, and counting toward your
+        bill |
       operationId: post-v1-config-exclusions
       requestBody:
         description: Request parameters
@@ -9459,7 +9700,14 @@ paths:
       tags:
         - Exclusions
       summary: Get Exclusion Rule
-      description: Returns an exclusion rule with the id specified.
+      description: |-
+        Returns an exclusion rule with the id specified.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `exclusion` | `read` | Lets you check exactly what a single rule is matching on |
       operationId: get-v1-config-exclusions-single
       parameters:
         - name: id
@@ -9501,7 +9749,19 @@ paths:
       tags:
         - Exclusions
       summary: Update Exclusion Rule
-      description: Updates an existing exclusion rule
+      description: >-
+        Updates an existing exclusion rule
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `exclusion` | `write` | Lets you adjust what a rule drops when it's catching too much or
+        too little |
       operationId: patch-v1-config-exclusions-single
       parameters:
         - name: id
@@ -9540,7 +9800,19 @@ paths:
       tags:
         - Exclusions
       summary: Delete Exclusion Rule
-      description: Use this method to delete an exclusion rule.
+      description: >-
+        Use this method to delete an exclusion rule.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `exclusion` | `manage` | Lets you delete a rule, so the lines it was filtering get indexed
+        again |
       operationId: delete-v1-config-exclusions-single
       parameters:
         - name: id
@@ -9570,7 +9842,14 @@ paths:
       tags:
         - Export
       summary: Export log lines
-      description: Use this method to export logs in JSON format from a logging instance.
+      description: |-
+        Use this method to export logs in JSON format from a logging instance.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you pull your log lines back out of Mezmo in bulk |
       operationId: export
       parameters:
         - name: from
@@ -9650,7 +9929,14 @@ paths:
       tags:
         - Export
       summary: Export log lines
-      description: Use this method to export logs in JSON format from a logging instance.
+      description: |-
+        Use this method to export logs in JSON format from a logging instance.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you pull your log lines back out of Mezmo in bulk |
       operationId: exportv2
       parameters:
         - name: from
@@ -9723,7 +10009,14 @@ paths:
       tags:
         - Groups
       summary: List Groups
-      description: Use this method to list the log groups.
+      description: |-
+        Use this method to list the log groups.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `role` | `read` | Lets you see what log groups have been set up on the account |
       operationId: list-group
       responses:
         '200':
@@ -9745,7 +10038,20 @@ paths:
       summary: Create Group
       description: >-
         Use this method to create a log group where you can scope the data that is accessible by
-        members in that group.
+        members
+
+        in that group.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `role` | `write` | Lets you carve out a new group and decide what data its members can
+        reach |
       operationId: create-group
       parameters:
         - name: servicekey
@@ -9781,7 +10087,14 @@ paths:
       tags:
         - Groups
       summary: Get Group
-      description: Use this method to get information on a group.
+      description: |-
+        Use this method to get information on a group.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `role` | `read` | Lets you check exactly what data a group's members can reach |
       operationId: read-group
       parameters:
         - name: groupId
@@ -9808,7 +10121,19 @@ paths:
       tags:
         - Groups
       summary: Delete Group
-      description: Use this method to list the log groups.
+      description: >-
+        Use this method to list the log groups.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `role` | `manage` | Lets you delete a group, revoking its data access from everyone
+        assigned to it |
       operationId: delete-group
       parameters:
         - name: servicekey
@@ -9843,7 +10168,20 @@ paths:
       summary: Update Group
       description: >-
         Use this method to modify a log group. You can change the name of the group and the access
-        scope that defines the data that is accessible by members in that group.
+        scope
+
+        that defines the data that is accessible by members in that group.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `role` | `write` | Lets you rename a group, or widen and narrow what its members can reach
+        |
       operationId: update-group
       parameters:
         - name: servicekey
@@ -9993,7 +10331,19 @@ paths:
       tags:
         - Index Rate Alert
       summary: Get Index Rate Alert
-      description: Gets the configuration for an Index Rate Alert
+      description: >-
+        Gets the configuration for an Index Rate Alert
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `index_rate_alert` | `read` | Lets you see the threshold your account alerts on and who
+        hears about it |
       operationId: get-index-rate-alert
       parameters: []
       responses:
@@ -10019,6 +10369,17 @@ paths:
       description: >-
         Use this method to update an index rate alert. You can change the alert's configuration
         details.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `index_rate_alert` | `write` | Lets you raise or lower the threshold, and change who gets
+        told when it's crossed |
       operationId: update-index-rate-alert
       requestBody:
         description: Request parameters
@@ -10870,7 +11231,19 @@ paths:
       summary: Retrieve a list of all the keys
       description: >-
         Retrieve a list of all the keys for an account. Supported key types include `ingestion` and
+
         `service`. Use the `type` parameter to filter which type of keys to retrieve.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `ingest_key` | `manage` | Lets you view the ingestion and service keys on an account,
+        including their values |
       operationId: list-key
       parameters:
         - name: type
@@ -10907,7 +11280,19 @@ paths:
       summary: Create a new key
       description: >-
         Create a new key of the type specified by the `type` parameter. If a name is not supplied,
-        one will be auto generated.
+        one
+
+        will be auto generated.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `ingest_key` | `manage` | Lets you mint a new ingestion or service key for the account |
       operationId: create-key
       parameters:
         - name: type
@@ -10949,7 +11334,14 @@ paths:
       tags:
         - Keys
       summary: Retrieve a specific key
-      description: Retrieves a specific key by its `id`.
+      description: |-
+        Retrieves a specific key by its `id`.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `ingest_key` | `manage` | Lets you look up a single key, its value included |
       operationId: get-key
       parameters:
         - name: id
@@ -10979,7 +11371,19 @@ paths:
       tags:
         - Keys
       summary: Delete a specific key
-      description: Delete a specific key by its `id`.
+      description: >-
+        Delete a specific key by its `id`.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `ingest_key` | `manage` | Lets you revoke a key, which breaks anything still using it
+        immediately |
       operationId: delete-key
       parameters:
         - name: id
@@ -11020,7 +11424,19 @@ paths:
       summary: Update one or more fields of a key resource
       description: >-
         Updates all of the fields described in the request body of the specified key. Fields left
-        out of the body will remain unaffected.
+        out of
+
+        the body will remain unaffected.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `ingest_key` | `manage` | Lets you rename a key or adjust its settings |
       operationId: put-key
       parameters:
         - name: id
@@ -11182,7 +11598,19 @@ paths:
       summary: Lists all members
       description: >-
         Retrieves all of the current members in an organization and returns their email, role, and
+
         groups.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `user` | `read` | Lets you see who's on the team and what role and groups each person has
+        |
       operationId: list-members
       responses:
         '200':
@@ -11199,7 +11627,19 @@ paths:
       summary: Creates a new member
       description: >-
         Create a new user and add to the team by providing 'email', 'role' and an optional list of
-        RBAC groups. 
+        RBAC
+
+        groups.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `account` | `manage` | Lets you add someone to the org and set their role and groups |
       operationId: create-member
       requestBody:
         description: Request parameters.
@@ -11241,7 +11681,14 @@ paths:
       tags:
         - Members
       summary: Retrieve a member
-      description: Returns the role and groups of the specified member.
+      description: |-
+        Returns the role and groups of the specified member.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `user` | `read` | Lets you look up one person's role and group assignments |
       operationId: get-member
       parameters:
         - name: email
@@ -11270,7 +11717,19 @@ paths:
       tags:
         - Members
       summary: Delete a member
-      description: Removes a member from the organization. This does not delete the user.
+      description: >-
+        Removes a member from the organization. This does not delete the user.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `account` | `manage` | Lets you take someone off the team; their user account itself
+        sticks around |
       operationId: delete-member
       parameters:
         - name: email
@@ -11320,8 +11779,20 @@ paths:
       summary: Update a member
       description: >-
         Updates all the fields described in the request body of the specified member. Creates a
-        member if the member doesn't exist already. Fields left out of the body will remain
-        unaffected.
+        member
+
+        if the member doesn't exist already. Fields left out of the body will remain unaffected.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `account` | `manage` | Lets you change someone's role or groups, or add them to the org if
+        they aren't in it yet |
       operationId: put-member
       parameters:
         - name: email
@@ -11602,7 +12073,14 @@ paths:
       tags:
         - Parsing Template
       summary: List Parsing Templates
-      description: Get a list of custom parsing templates.
+      description: |-
+        Get a list of custom parsing templates.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `custom_parsing` | `read` | Lets you see what custom parsing your team has set up |
       operationId: list-parsing-template
       responses:
         '200':
@@ -11630,7 +12108,19 @@ paths:
       tags:
         - Parsing Template
       summary: Get Parsing Template
-      description: Gets the configuration for a specific parsing template.
+      description: >-
+        Gets the configuration for a specific parsing template.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `custom_parsing` | `read` | Lets you look at one template and the fields it pulls out of a
+        line |
       operationId: get-parsing-template
       parameters:
         - name: templateId
@@ -11678,7 +12168,19 @@ paths:
       tags:
         - Parsing Template
       summary: Delete Parsing Template
-      description: Use this method to delete a parsing template.
+      description: >-
+        Use this method to delete a parsing template.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `custom_parsing` | `manage` | Lets you delete a template, so new lines stop getting those
+        fields pulled out |
       operationId: delete-parsing-template
       parameters:
         - name: templateId
@@ -63861,7 +64363,14 @@ paths:
       tags:
         - Screens
       summary: List all screens
-      description: List all screens in a short form that only includes the screen id and title.
+      description: |-
+        List all screens in a short form that only includes the screen id and title.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `screen` | `read` | Lets you see what screens your team has built |
       operationId: list-screens
       responses:
         '200':
@@ -63876,7 +64385,14 @@ paths:
       tags:
         - Screens
       summary: Creates a new screen
-      description: Creates a new screen
+      description: |-
+        Creates a new screen
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `screen` | `write` | Lets you put together a new screen of your own |
       operationId: create-screen
       requestBody:
         description: Request body.
@@ -63907,7 +64423,14 @@ paths:
       tags:
         - Screens
       summary: Retrieve a screen
-      description: Retrieve a specific screen
+      description: |-
+        Retrieve a specific screen
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `screen` | `read` | Lets you open a screen and see what's on it |
       operationId: get-screen
       parameters:
         - name: id
@@ -63936,7 +64459,19 @@ paths:
       tags:
         - Screens
       summary: Delete a screen
-      description: Deletes a screen
+      description: >-
+        Deletes a screen
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `screen` | `manage` | Lets you delete a screen, which removes it for everyone on the
+        account |
       operationId: delete-screen
       parameters:
         - name: id
@@ -67244,7 +67779,14 @@ paths:
       tags:
         - Suspensions
       summary: Get Ingestion Status
-      description: Retrieve the status of ingestion
+      description: |-
+        Retrieve the status of ingestion
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you check whether your account is still taking in log data |
       operationId: get-v1-config-ingestion-status
       responses:
         '200':
@@ -67265,7 +67807,19 @@ paths:
       summary: Initiate Ingestion Suspension
       description: >-
         First step in suspending ingestion for the instance. Returns a token for use in
-        /suspend/confirm to actually stop ingestion
+        /suspend/confirm
+
+        to actually stop ingestion
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `manage` | Lets you start the process of pausing ingestion for the whole account |
       operationId: post-v1-config-ingestion-suspend
       responses:
         '200':
@@ -67282,7 +67836,19 @@ paths:
       tags:
         - Suspensions
       summary: Confirm Ingestion Suspension
-      description: After /suspend is called, a token is returned for use with this route as a confirmation.
+      description: >-
+        After /suspend is called, a token is returned for use with this route as a confirmation.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `manage` | Actually stops ingestion — anything sent while you're suspended is gone
+        for good |
       operationId: post-v1-config-ingestion-suspend-confirm
       requestBody:
         description: Request parameters
@@ -67310,7 +67876,14 @@ paths:
       tags:
         - Suspensions
       summary: Resume Ingestion
-      description: Resumes ingestion if it has been previously suspended
+      description: |-
+        Resumes ingestion if it has been previously suspended
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `manage` | Lets you start taking log data in again after a suspension |
       operationId: post-v1-config-ingestion-resume
       responses:
         '200':
@@ -67322,7 +67895,14 @@ paths:
       tags:
         - Usage v1
       summary: List Usage By App
-      description: Lists aggregated usage information for all apps during a time period.
+      description: |-
+        Lists aggregated usage information for all apps during a time period.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you see which apps are using the most of your log volume |
       operationId: list-usage-app
       parameters:
         - name: from
@@ -67363,7 +67943,19 @@ paths:
       summary: Get Usage By App
       description: >-
         Gets the aggregated usage information for an app matching the name provided as a path
-        parameter, during a time period. Returns null when not found.
+        parameter,
+
+        during a time period. Returns null when not found.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `read` | Lets you check how much log volume a single app is using |
       operationId: get-usage-app
       parameters:
         - name: name
@@ -67402,7 +67994,14 @@ paths:
       tags:
         - Usage v1
       summary: List Usage by Tag
-      description: Lists aggregated usage information for all tags during a time period.
+      description: |-
+        Lists aggregated usage information for all tags during a time period.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you see which tags are using the most of your log volume |
       operationId: list-usage-tag
       parameters:
         - name: from
@@ -67443,7 +68042,19 @@ paths:
       summary: Get Usage by Tag
       description: >-
         Gets the aggregated usage information for a tag matching the name provided as a path
-        parameter, during a time period. Returns null when not found.
+        parameter,
+
+        during a time period. Returns null when not found.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `read` | Lets you check how much log volume a single tag is using |
       operationId: get-usage-tag
       parameters:
         - name: name
@@ -67482,7 +68093,14 @@ paths:
       tags:
         - Usage v1
       summary: List Usage by Host
-      description: Lists aggregated usage information for all hosts during a time period.
+      description: |-
+        Lists aggregated usage information for all hosts during a time period.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you see which hosts are using the most of your log volume |
       operationId: list-usage-host
       parameters:
         - name: from
@@ -67523,7 +68141,19 @@ paths:
       summary: Get Usage by Host
       description: >-
         Gets the aggregated usage information for a host matching the name provided as a path
-        parameter, during a time period. Returns null when not found.
+        parameter,
+
+        during a time period. Returns null when not found.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `read` | Lets you check how much log volume a single host is using |
       operationId: get-usage-host
       parameters:
         - name: name
@@ -67562,7 +68192,14 @@ paths:
       tags:
         - Usage v2
       summary: Retrieve account usage totals
-      description: Get aggregated usage information for an account's data during a time period.
+      description: |-
+        Get aggregated usage information for an account's data during a time period.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you see how much log volume the account has used over a period |
       operationId: list-usage-v2
       parameters:
         - name: from
@@ -67605,7 +68242,14 @@ paths:
       tags:
         - Usage v2
       summary: List Usage By App
-      description: Lists aggregated usage information for all apps during a time period.
+      description: |-
+        Lists aggregated usage information for all apps during a time period.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you see which apps are using the most of your log volume |
       operationId: list-usage-app-v2
       parameters:
         - name: from
@@ -67687,8 +68331,19 @@ paths:
       summary: Get Usage By App
       description: >-
         Gets the aggregated usage information for an app matching the name provided as a path
-        parameter during a time period. The `results` will either have a singular item, or be an
-        empty array.
+        parameter
+
+        during a time period. The `results` will either have a singular item, or be an empty array.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `read` | Lets you check how much log volume a single app is using |
       operationId: get-usage-app-v2
       parameters:
         - name: name
@@ -67768,7 +68423,14 @@ paths:
       tags:
         - Usage v2
       summary: List Usage by Host
-      description: Lists aggregated usage information for all hosts during a time period.
+      description: |-
+        Lists aggregated usage information for all hosts during a time period.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you see which hosts are using the most of your log volume |
       operationId: list-usage-host-v2
       parameters:
         - name: from
@@ -67850,8 +68512,19 @@ paths:
       summary: Get Usage by Host
       description: >-
         Gets the aggregated usage information for a host matching the name provided as a path
-        parameter during a time period. The `results` will either have a singular item, or be an
-        empty array.
+        parameter
+
+        during a time period. The `results` will either have a singular item, or be an empty array.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `read` | Lets you check how much log volume a single host is using |
       operationId: get-usage-host-v2
       parameters:
         - name: name
@@ -67931,7 +68604,14 @@ paths:
       tags:
         - Usage v2
       summary: List Usage by Tag
-      description: Lists aggregated usage information for all tags during a time period.
+      description: |-
+        Lists aggregated usage information for all tags during a time period.
+
+        ### Permissions
+
+        | Resource | Permission | Usage |
+        | --- | --- | --- |
+        | `log` | `read` | Lets you see which tags are using the most of your log volume |
       operationId: list-usage-tag-v2
       parameters:
         - name: from
@@ -68013,8 +68693,19 @@ paths:
       summary: Get Usage by Tag
       description: >-
         Gets the aggregated usage information for a tag matching the name provided as a path
-        parameter during a time period. The `results` will either have a singular item, or be an
-        empty array.
+        parameter
+
+        during a time period. The `results` will either have a singular item, or be an empty array.
+
+
+        ### Permissions
+
+
+        | Resource | Permission | Usage |
+
+        | --- | --- | --- |
+
+        | `log` | `read` | Lets you check how much log volume a single tag is using |
       operationId: get-usage-tag-v2
       parameters:
         - name: name
