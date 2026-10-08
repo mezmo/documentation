@@ -53,14 +53,14 @@ a tool from one MCP server only, prefix the pattern with the server's
 servers. A pattern outside the syntax stops Aura from starting.
 
 <Warning>
-When more than one MCP server advertises the same tool name, the agent gets
-that tool from only one server: the one whose `[mcp.servers.<name>]` key sorts
-first among servers whose tool passes the agent's `mcp_filter`. A pattern
-scoped to a server that lost the name never matches, so it gates nothing. For
-example, if `[mcp.servers.alpha]` and `[mcp.servers.beta]` both advertise
-`echo`, then `beta:echo` gates nothing and the agent's `echo` calls run on
-`alpha` without approval. Scope the pattern to the server that provides the
-tool, or drop the namespace from the pattern. See
+**A server-scoped pattern can stop gating a shared tool name.** When more than
+one MCP server advertises the same tool name, the agent gets that tool from
+only one server. A pattern scoped to any other server never matches, so the
+tool runs without approval. For example, if `[mcp.servers.alpha]` and
+`[mcp.servers.beta]` both advertise `echo`, the agent calls `echo` on `alpha`,
+and `beta:echo` gates nothing. Scope the pattern to the server that provides
+the tool, or remove the server prefix from the pattern. To find out which
+server provides a shared tool name, see
 [Tool Names Shared by Multiple Servers](/aura/configuration-reference#tool-names-shared-by-multiple-servers).
 </Warning>
 

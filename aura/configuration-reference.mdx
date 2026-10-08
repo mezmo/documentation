@@ -272,7 +272,7 @@ Configures Model Context Protocol (MCP) tool servers.
 |---|---|---|---|
 | `sanitize_schemas` | bool | `true` | Sanitize tool schemas for OpenAI function-calling compatibility. Fixes `anyOf` unions, missing types, and optional parameters that strict mode rejects. |
 | `user_agent` | string | `"aura/<version>"` | The identity AURA presents to every MCP server, as a `product/version` token. AURA sends it verbatim as the HTTP `User-Agent` header on `http_streamable` and `sse` connections, and splits it into `clientInfo.name` and `clientInfo.version` for the MCP `initialize` handshake on every transport, including `stdio`. When the token has no version part, AURA reports the running AURA version instead. The value must be printable ASCII with a non-empty product part, or the configuration fails to load. Set it when your MCP servers track clients and you want to tell one AURA deployment from another. A server entry can set its own `user_agent` to replace this value for that server alone. |
-| `connect_timeout_secs` | integer | `30` | Seconds to wait for a single MCP server's connect, initialize, and tool-discovery sequence to finish. If the server does not respond within this window, it is marked failed like any other connection error, rather than blocking the agent. Other servers still connect. AURA connects to servers one at a time, so the waits for slow servers add up, including in the web server's [startup check](#tool-names-shared-by-multiple-servers). `0` doesn't disable the timeout: every server fails to connect immediately. |
+| `connect_timeout_secs` | integer | `30` | Seconds to wait for a single MCP server's connect, initialize, and tool-discovery sequence to finish. If the server does not respond within this window, it is marked failed like any other connection error, rather than blocking the agent. Other servers still connect. AURA connects to servers one at a time, so the waits for slow servers add up, including in the web server's [startup check](#tool-names-shared-by-multiple-servers). Setting it to `0` doesn't disable the timeout. Instead, every server fails to connect immediately. |
 
 ```toml
 [mcp]
@@ -662,7 +662,7 @@ export AURA_SESSION_STORE=file
 export AURA_SESSION_STORE_PATH=/var/lib/aura/session-store   # required for file
 ```
 
-AURA creates the directory if it doesn't exist. The `file` backend keeps A2A tasks in memory and serves one instance, so use Redis behind a load balancer.
+AURA creates the directory if it doesn't exist. The `file` backend still keeps A2A tasks in process memory, so they don't survive a restart. It also serves a single instance only. Behind a load balancer, use Redis.
 
 The server pings the backend at startup and fails fast if it is unreachable; `/health` reports the backend and its ping latency.
 

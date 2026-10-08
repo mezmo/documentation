@@ -189,7 +189,7 @@ Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tr
 | `STREAMING_BUFFER_SIZE` | `400` | SSE chunk buffer size; higher values reduce latency but increase memory use |
 | `AURA_DEBUG_PROVIDER_ERRORS` | `false` | **Dev only.** Surface raw upstream provider errors to clients (capped). Keep off when public-facing. Error bodies can echo request content. Raw error is always in logs/OTel. |
 
-**Startup**: Before the server starts accepting requests, it connects once to each loaded agent's MCP servers to check for tool names that more than one server advertises. It checks the servers one at a time, and each can take up to `[mcp].connect_timeout_secs` (30 seconds by default). The port isn't open and `/health` doesn't respond until the check finishes, so leave room for it in startup and readiness probe timeouts. See [Tool Names Shared by Multiple Servers](/aura/configuration-reference#tool-names-shared-by-multiple-servers).
+**Startup Check**: Before the server opens its port, it connects once to each loaded agent's MCP servers to find tool names that more than one server advertises. It connects to the servers one at a time. Each connection can wait up to [`[mcp].connect_timeout_secs`](/aura/configuration-reference#mcp), which defaults to 30 seconds. `/health` doesn't respond until the check finishes, so allow for it in startup and readiness probe timeouts. See [Tool Names Shared by Multiple Servers](/aura/configuration-reference#tool-names-shared-by-multiple-servers).
 
 ## See Also
 
