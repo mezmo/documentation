@@ -60,7 +60,7 @@ AURA presents MCP tools to the model by their bare names, so only one server's t
 
 Text-fallback tool calls (`fallback_tool_parsing`) now resolve to the same server. Before, they could call the first server that advertised the name, even a server the agent's `mcp_filter` excluded.
 
-The web server logs a warning for each shared name at startup, and governance catalog sync logs the same warning:
+The web server logs a warning for each shared name at startup, and [`aura governance sync`](/aura/cli-reference#sync-the-mcp-tool-catalog-aura-governance-sync) prints the same warning:
 
 ```text
 agent '<agent>': MCP tool '<name>' is advertised by <count> servers (<servers>); only '<winner>' will be reachable. Scope each agent with [agent].mcp_filter, or rename the tool on all but one server.

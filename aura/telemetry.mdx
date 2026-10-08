@@ -91,8 +91,10 @@ of HTTP or standalone backend (no double-reporting).
 Session length and turn volume are **derived** in analysis from these
 events' timestamps and `session_id`. They are not carried as event
 properties. Session pairing is not guaranteed: `/telemetry disable` during a
-session suppresses its ending event, and best-effort delivery means transport
-failures or a full telemetry channel can drop events.
+session suppresses its ending event, a CLI stopped by SIGTERM flushes the
+events it already queued but sends no `cli_session_ended` (see
+[SIGTERM Handling](/aura/cli-reference#sigterm-handling)), and best-effort
+delivery means transport failures or a full telemetry channel can drop events.
 
 ## What is **not** collected
 
