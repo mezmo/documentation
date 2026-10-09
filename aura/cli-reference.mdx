@@ -103,6 +103,115 @@ aura init --provider openai --model gpt-4o --non-interactive
 
 ---
 
+## Governance Commands (`aura governance`)
+
+Use `aura governance` to send governance data about your agent configs to a policy system. The command reads agent configs directly, so it doesn't need a running web server.
+
+`aura governance` is part of the default `standalone-cli` feature. HTTP-only builds don't include it. See [Feature flag: `standalone-cli`](#feature-flag-standalone-cli).
+
+To choose a config file or directory, pass `--config` before the subcommand or set `AURA_CONFIG`. Without either, the command finds configs the same way standalone mode does.
+
+```bash
+aura --config path/to/agent.toml governance sync
+aura --config configs/ governance sync    # every config in the directory
+aura --config configs/ governance info
+```
+
+### Sync the MCP Tool Catalog (`aura governance sync`)
+
+Run `aura governance sync` after you add or change an MCP server so your policy system has a current tool inventory. For each agent config, the command connects to the config's MCP servers, lists their tools, and sends a catalog snapshot to the config's governance webhook in a `POST` request.
+
+The command sends a snapshot only for a config that has both an `[mcp]` table and a `[governance.catalog]` table:
+
+```toml
+[governance.catalog]
+url = "https://governance.example.com/catalog"   # http:// or https://
+timeout_secs = 30                                # optional; default 30
+headers = { Authorization = "Bearer {{ env.GOVERNANCE_TOKEN }}" }   # optional
+
+[governance.catalog.hmac]                        # optional
+secret = "{{ env.GOVERNANCE_HMAC_SECRET }}"      # at least 32 bytes
+```
+
+When you set `hmac`, AURA signs each request and adds the `X-Aura-Signature-256` and `X-Aura-Timestamp` headers. The table also accepts `headers_from_request`, but the CLI ignores it. The CLI sends the snapshot without an inbound request, so there are no request headers to copy.
+
+#### Snapshot Contents
+
+Each snapshot is a JSON object with these top-level fields:
+
+| Field | Value |
+| --- | --- |
+| `event` | Always `mcp_catalog` |
+| `version` | Always `"1"` |
+| `event_id` | A unique ID for this snapshot |
+| `emitted_at` | When AURA sent the snapshot |
+| `aura_version` | The AURA version that sent the snapshot |
+| `agent` | The agent and its MCP tools, described in the next table |
+
+The `agent` object contains these fields:
+
+| Field | Value |
+| --- | --- |
+| `id` | The agent's `alias`. When no alias is set, the agent's `name`. |
+| `instance_id` | The agent's instance ID. See [Show Instance IDs](#show-instance-ids-aura-governance-info). |
+| `name` | The agent's `name` |
+| `model` | The agent's model |
+| `mcp_servers` | One entry for each configured MCP server, with its `name`, `transport`, `status`, optional `failure_message`, and `tools`. `status` is `connected`, `failed`, or `not_attempted`. |
+
+Each entry in `tools` has the tool's `name`, `namespace`, optional `description`, and `input_schema`. The `namespace` is the server's `[mcp.servers.<name>]` key.
+
+The catalog lists every tool each server advertises. It doesn't apply the `mcp_filter` of the agent or its workers. Tool descriptions come verbatim from your MCP servers, so review third-party tools before you sync. Tool names and input schemas match what the model sees. AURA always normalizes tool names, and it rewrites input schemas for OpenAI compatibility unless you set [`sanitize_schemas`](./configuration-reference#mcp) to `false`. The snapshot doesn't include your config's headers, API keys, or environment values.
+
+#### Shared Tool-Name Warnings
+
+Before it syncs a config, the command checks whether more than one of the config's MCP servers advertises the same tool name. It prints a warning to stderr for each shared name it finds. It checks every config that has an `[mcp]` table, including configs with no `[governance.catalog]` table:
+
+```text
+warning: agent '<agent>': MCP tool '<name>' is advertised by <count> servers (<servers>); only '<winner>' will be reachable. Scope each agent with [agent].mcp_filter, or rename the tool on all but one server.
+```
+
+To learn how AURA picks the winner, see [Tool Names Shared by Multiple Servers](./configuration-reference#tool-names-shared-by-multiple-servers).
+
+A server that fails to connect still appears in the snapshot, with `status` set to `failed`.
+
+#### Confirm Delivery
+
+`aura governance sync` prints nothing when it sends a snapshot. It also prints no error when the webhook rejects a snapshot or can't be reached. In both cases, it moves on to the next config and exits with status `0`.
+
+To confirm delivery, check your webhook, or run [`/governance sync`](#from-the-repl-governance) from the REPL, which reports each config's result.
+
+A config file that fails to load stops the command before it syncs anything.
+
+### Show Instance IDs (`aura governance info`)
+
+`aura governance info` prints the instance ID of each loaded agent config. Catalog snapshots carry the same ID in `instance_id`:
+
+```text
+agent "Math Agent"  instance_id: 1b4e28ba-2fa1-51d2-883f-0016d3cca427
+```
+
+The ID stays the same for an agent on a given host. AURA derives it from a config seed and a host identifier.
+
+The config seed is the agent's `[agent].instance_seed` when it's set. Agents that share an `instance_seed` on the same host get the same ID. When no seed is set, AURA uses the agent's `name` and `alias` instead.
+
+AURA takes the host identifier from the first of these that's available:
+
+1. The `AURA_INSTANCE_ID` environment variable
+2. The Kubernetes pod namespace and name
+3. The operating system's machine ID
+
+If none of these is available, AURA uses a random ID that lasts until the process exits.
+
+### From the REPL (`/governance`)
+
+In a standalone REPL session, `/governance sync` and `/governance info` do the same work for the configs the session already loaded. They don't run config discovery again.
+
+`/governance sync` reports each config's result with the snapshot's `event_id`. When a send fails, it reports the error. Unlike `aura governance sync`, it doesn't print shared tool-name warnings.
+
+In HTTP mode, both commands print an error, because they need to read agent configs directly.
+
+---
+
 ## Backends
 
 AURA CLI supports two backends, selected by the presence of `--api-url`:
@@ -177,7 +286,7 @@ aura [OPTIONS]
 | `--enable-client-tools[=<bool>]`           | `AURA_ENABLE_CLIENT_TOOLS`           | Advertise CLI local tools to the model (default: disabled: see [Client-Side Tools](#client-side-tools)) |
 | `--enable-final-response-summary[=<bool>]` | `AURA_ENABLE_FINAL_RESPONSE_SUMMARY` | Generate a one-line LLM title for each final response (adds an extra round-trip per turn; default: disabled) |
 | `--standalone`                             | -                                    | Force standalone mode (default when `--api-url` is absent; mutually exclusive with `--api-url` flag, but overrides `AURA_API_URL` env var) |
-| `--config <PATH>`                          | -                                    | Path to TOML agent config file or directory (standalone mode; defaults to `config.toml`)                 |
+| `--config <PATH>`                          | `AURA_CONFIG`                        | Path to TOML agent config file or directory (standalone mode; defaults to `config.toml`)                 |
 | `--log-file <PATH>`                        | `AURA_LOG_FILE`                      | Append diagnostic tracing logs to this file. Omit for no logging (see [Logging](#logging))               |
 
 **Precedence:** CLI flags > environment variables > project `cli.toml` > global `cli.toml` > defaults.
@@ -285,6 +394,7 @@ Once inside the REPL, the slash commands below are available. All slash commands
 | `/rename <name>`   | Rename the current conversation                                     |
 | `/model <filter>`  | Browse and select a model (see [Model Selection](#model-selection)) |
 | `/mcp`             | List the active agent's configured MCP servers, or set one up with a guided wizard (see [Manage MCP Servers](#manage-mcp-servers)) |
+| `/governance sync` or `/governance info` | Send each loaded config's MCP tool catalog to its governance webhook, or show instance IDs. Standalone mode only. See [Governance Commands](#governance-commands-aura-governance). |
 | `/style [name]`    | Switch visual style: `normal`, `high-contrast`, `no-colors`         |
 | `/quit` or `/exit` | Exit the REPL                                                       |
 
@@ -476,12 +586,14 @@ Other relevant OTel env vars, read by the `aura` crate:
 
 ## SSE Stream Panel
 
-Toggle with `/stream` to see raw SSE events in real time. Supported event types:
+Toggle with `/stream` to see raw SSE events in real time. The panel records every named SSE event the server sends and shows the `aura.*` events, including:
 
-- `aura.tool_requested` / `aura.tool_start` / `aura.tool_complete`
-- `aura.usage` / `aura.tool_usage`
-- `aura.progress` / `aura.session_info` / `aura.reasoning`
-- `aura.orchestrator.*`: multi-agent orchestration events
+- Session events: `aura.session_info`, `aura.mcp_status`, and `aura.skills_rehydrated`
+- Tool events: `aura.tool_requested`, `aura.tool_start`, `aura.tool_complete`, and `aura.progress`
+- Usage events: `aura.usage`, `aura.tool_usage`, `aura.context_usage`, and `aura.scratchpad_usage`
+- Reasoning and worker events: `aura.reasoning` and `aura.worker_phase`
+- Approval events: `aura.approval_requested`, `aura.approval_pending`, and `aura.approval_completed`
+- Orchestration events: `aura.orchestrator.*` for multi-agent orchestration
 
 See the [Streaming API Guide](/aura/streaming-api-guide) for the full event reference.
 
