@@ -272,7 +272,7 @@ Configures Model Context Protocol (MCP) tool servers.
 |---|---|---|---|
 | `sanitize_schemas` | bool | `true` | Sanitize tool schemas for OpenAI function-calling compatibility. Fixes `anyOf` unions, missing types, and optional parameters that strict mode rejects. |
 | `user_agent` | string | `"aura/<version>"` | The identity AURA presents to every MCP server, as a `product/version` token. AURA sends it verbatim as the HTTP `User-Agent` header on `http_streamable` and `sse` connections, and splits it into `clientInfo.name` and `clientInfo.version` for the MCP `initialize` handshake on every transport, including `stdio`. When the token has no version part, AURA reports the running AURA version instead. The value must be printable ASCII with a non-empty product part, or the configuration fails to load. Set it when your MCP servers track clients and you want to tell one AURA deployment from another. A server entry can set its own `user_agent` to replace this value for that server alone. |
-| `connect_timeout_secs` | integer | `30` | Seconds to wait for a single MCP server's connect, initialize, and tool-discovery sequence to finish. If the server does not respond within this window, it is marked failed like any other connection error, rather than blocking the agent. Other servers are unaffected. |
+| `connect_timeout_secs` | integer | `30` | Seconds to wait for a single MCP server's connect, initialize, and tool-discovery sequence to finish. If the server does not respond within this window, it is marked failed like any other connection error, rather than blocking the agent. Other servers still connect. AURA connects to servers one at a time, so the waits for slow servers add up, including in the web server's [startup check](#tool-names-shared-by-multiple-servers). Setting it to `0` doesn't disable the timeout. Instead, every server fails to connect immediately. |
 
 ```toml
 [mcp]
@@ -645,7 +645,7 @@ Unlike every other section on this page, the session store is **not configured i
 By default, cross-request session state (A2A tasks, parked HITL approvals, and skill-invocation logs) lives in process memory. Correct for a single pod, the CLI, and local dev. Behind a load balancer with multiple replicas, configure a shared Redis/Valkey backend and every cross-request flow works no matter which pod serves each request: A2A `message:send` → poll → `list` → history-by-context, A2A `subscribe`/`cancel` against a task executing on another pod, and conversational HITL approvals resolved by a `POST /v1/approvals/{id}` that lands away from the pod that parked them.
 
 ```bash
-export AURA_SESSION_STORE=redis                          # memory (default) | redis
+export AURA_SESSION_STORE=redis                          # memory (default) | file | redis
 export AURA_SESSION_STORE_URL=redis://valkey:6379        # redis:// or rediss:// (Valkey compatible)
 export AURA_SESSION_STORE_PREFIX=aura:prod               # optional namespace (default "aura")
 export AURA_SESSION_STORE_CONNECT_TIMEOUT_SECS=5         # optional
@@ -655,9 +655,18 @@ export AURA_SESSION_STORE_SKILLS_TTL_SECS=86400          # optional; 0 = no expi
 
 `AURA_SESSION_STORE_SKILLS_TTL_SECS` sets how long a chat session's skill-invocation log lives after the agent last calls `load_skill` or `read_skill_file`. It defaults to `86400` (24 hours), and `0` disables expiry. The Redis and file backends apply it. The memory backend has no expiry and clears its logs on restart. See [Skill Persistence Across Turns](/aura/skills#skill-persistence-across-turns).
 
+To keep parked HITL approvals and skill-invocation logs across restarts of a single instance without running Redis, use the `file` backend:
+
+```bash
+export AURA_SESSION_STORE=file
+export AURA_SESSION_STORE_PATH=/var/lib/aura/session-store   # required for file
+```
+
+AURA creates the directory if it doesn't exist. The `file` backend still keeps A2A tasks in process memory, so they don't survive a restart. It also serves a single instance only. Behind a load balancer, use Redis.
+
 The server pings the backend at startup and fails fast if it is unreachable; `/health` reports the backend and its ping latency.
 
-The Redis backend requires building with the `session-store-redis` cargo feature (`cargo build --release --features aura-cli/session-store-redis`). The in-memory backend is always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
+The Redis backend requires building with the `session-store-redis` cargo feature (`cargo build --release --features aura-cli/session-store-redis`). The in-memory and file backends are always available. See [the session storage design doc](https://github.com/mezmo/aura/blob/main/docs/design/session-storage.md) for the design and Helm packaging roadmap.
 
 ---
 
