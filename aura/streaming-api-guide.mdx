@@ -737,7 +737,7 @@ data:
 
 Note: `task_id` is omitted if it could not be determined. `result` is truncated per `TOOL_RESULT_MAX_LENGTH` and omitted when empty. `worker_id` names the worker that ran the tool, the same value as on the matching `tool_call_started` event. Older AURA servers omit `worker_id` from this event. To attribute a completion from one of them, match its `tool_call_id` to the `tool_call_started` event.
 
-**Tool coverage:** these events fire for the coordinator (`worker_id: "main"`) as well as workers. They cover MCP tools, the skill tools (`load_skill`, `read_skill_file`), and orchestration operations (`read_artifact`, `submit_result`, `list_prior_runs`). Scratchpad exploration tools are suppressed by default and emit only when `AURA_EMIT_SCRATCHPAD_TOOL_EVENTS` is set.
+**Tool coverage:** these events fire for the coordinator (`worker_id: "main"`) as well as workers. They cover MCP tools, the skill tools (`load_skill`, `read_skill_file`), and orchestration operations (`read_artifact`, `write_artifact`, `submit_result`, `list_prior_runs`). For `write_artifact`, the event's `arguments` replace the `content` value with its length, such as `"[1200 chars written to artifact]"`. The full content is in the saved artifact. Scratchpad exploration tools are suppressed by default and emit only when `AURA_EMIT_SCRATCHPAD_TOOL_EVENTS` is set.
 
 **Task completed** (worker finished with result):
 ```
