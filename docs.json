@@ -60,6 +60,7 @@
             "pages": [
               "aura/streaming-api-guide",
               "aura/a2a-implementation",
+              "aura/slack-integration",
               "aura/hitl",
               "aura/scratchpad",
               "aura/skills",

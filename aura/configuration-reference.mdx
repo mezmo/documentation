@@ -55,6 +55,7 @@ Defines the agent identity, system prompt, and behavioral settings.
 | `mcp_filter` | list of strings | - | [Tool-name patterns](#tool-name-patterns) selecting which MCP tools to expose. When omitted, all tools are included. Accepts `<namespace>:<name>` to select tools from one MCP server. |
 | `enable_client_tools` | bool | `false` | Allow the agent to invoke client-side tools advertised in the request. See [Client-Side Tools](/aura/client-side-tools) for security implications. |
 | `client_tool_filter` | list of strings | - | [Tool-name patterns](#tool-name-patterns) narrowing which client tools are allowed (requires `enable_client_tools = true`). |
+| `enable_slack_tools` | bool | `false` | Give the agent a `slack_post_message` tool on HTTP and A2A runs when the server runs with `--enable-slack`. See [Slack Integration](/aura/slack-integration#post-to-slack-from-any-ingress). |
 | `model_owner` | string | _(LLM provider name)_ | Overrides the `owned_by` field in `/v1/models` responses. |
 | `created_at` | integer | _(current time)_ | Creation timestamp in milliseconds since epoch. Shown in `/v1/models` responses. |
 | `hidden` | bool | `false` | Hides this agent from the `/v1/models` list. Useful for agents meant only for internal callers. |

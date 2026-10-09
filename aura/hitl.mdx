@@ -295,3 +295,7 @@ Expected behavior:
   [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
 - Webhook egress has no built-in authentication layer. Put auth, signing, or
   network controls in front of the webhook service.
+- The Slack ingress does not support HITL: a Slack conversation has nowhere
+  to approve a tool call, so the server refuses to start the ingress on an
+  agent config with a `[hitl]` block. See
+  [Slack Integration](/aura/slack-integration#limitations).
