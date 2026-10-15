@@ -6,7 +6,7 @@ description: "Configure NXLog on Windows to forward Windows event and file logs 
 NXLog is the workhorse of Windows logging plugins. Mezmo ingests NXLog data by placing an OpenTelemetry (OTel) Collector between your Windows hosts and Mezmo. NXLog forwards Syslog-formatted events to the Collector's `syslog` receiver over TLS, and the Collector relays them to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) with the `otlphttp` exporter.
 
 ```
-NXLog (om_ssl output)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+NXLog (`om_ssl` output)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (`otlphttp` exporter)
 ```
 
 ## Set Up the OpenTelemetry Collector

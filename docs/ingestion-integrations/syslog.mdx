@@ -6,7 +6,7 @@ description: "Route Syslog log ingestion to Mezmo through an OpenTelemetry Colle
 Mezmo ingests Syslog data by placing an OpenTelemetry (OTel) Collector between your Syslog senders and Mezmo. The Collector receives Syslog over TCP or UDP with its `syslog` receiver, then forwards the parsed logs to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) using the `otlphttp` exporter.
 
 ```
-Syslog sender  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+Syslog sender  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (`otlphttp` exporter)
 ```
 
 ## Set Up Syslog Log Ingestion

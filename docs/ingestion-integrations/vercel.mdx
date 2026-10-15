@@ -6,7 +6,7 @@ description: "Stream Vercel logs to Mezmo by pointing the Vercel Syslog integrat
 Vercel has created [a Mezmo integration](https://vercel.com/integrations/logdna) that you can set up as a Vercel Add-on to start streaming Vercel logs. Vercel's integration sends Syslog to a URL you configure, so point it at an OpenTelemetry (OTel) Collector running a `syslog` receiver. The Collector then relays the logs to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) with the `otlphttp` exporter.
 
 ```
-Vercel (Syslog integration)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+Vercel (Syslog integration)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (`otlphttp` exporter)
 ```
 
 ## Set Up the OpenTelemetry Collector

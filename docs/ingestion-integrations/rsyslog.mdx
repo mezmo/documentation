@@ -6,7 +6,7 @@ description: "Forward Rsyslog logs to an OpenTelemetry Collector over TCP+TLS, T
 Mezmo ingests Rsyslog data through an OpenTelemetry (OTel) Collector placed between your Rsyslog hosts and Mezmo. Rsyslog forwards logs to the Collector's `syslog` receiver over TCP+TLS, TCP, or UDP, and the Collector relays them to Mezmo's [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) with the `otlphttp` exporter. The Collector's `syslog` receiver accepts the Rsyslog default format, [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) and [RFC 3164](https://datatracker.ietf.org/doc/html/rfc3164), for auto parsing.
 
 ```
-Rsyslog (omfwd)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (otlphttp exporter)
+Rsyslog (`omfwd`)  -->  OpenTelemetry Collector (syslog receiver)  -->  Mezmo OTEL Source (`otlphttp` exporter)
 ```
 
 ## Set Up the OpenTelemetry Collector

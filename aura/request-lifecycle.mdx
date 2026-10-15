@@ -17,16 +17,16 @@ Client POST /v1/chat/completions
          ▼
 ┌─────────────────────────────────────┐
 │ Shutdown middleware check           │
-│   (503 if shutdown_token cancelled) │
+│   (503 if `shutdown_token` cancelled) │
 └─────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────┐
 │ Prepare the request                 │
-│   - Generate request_id             │
+│   - Generate `request_id`           │
 │   - Build the agent and connect its │
 │     MCP servers (each up to         │
-│     connect_timeout_secs)           │
+│     `connect_timeout_secs`)           │
 │   - Replay recorded skill calls     │
 └─────────────────────────────────────┘
          │
