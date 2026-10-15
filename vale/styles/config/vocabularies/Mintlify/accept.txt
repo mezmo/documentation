@@ -41,6 +41,7 @@ Datadog('?s?)
 datetime
 dedupe
 deduplicat(e|es|ion|ing)
+dequeue
 deserialization
 dev
 discoverability
