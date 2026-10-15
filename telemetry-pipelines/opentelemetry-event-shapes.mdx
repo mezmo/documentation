@@ -1,0 +1,385 @@
+---
+title: "OpenTelemetry event shapes"
+description: "How log, metric, and trace events from the OpenTelemetry source differ from the deprecated per-signal OpenTelemetry sources"
+---
+
+The **OpenTelemetry** source takes in logs, metrics, and traces, and has a separate output for each: **Logs**, **Metrics**, and **Traces**. It replaces three deprecated sources: **OpenTelemetry Logs**, **OpenTelemetry Metrics**, and **OpenTelemetry Traces**.
+
+The events the new source emits are shaped differently from those of the deprecated sources:
+
+- **The deprecated sources** convert each OpenTelemetry record into a Mezmo-specific event. The main payload (log body, metric, or span) goes in `message`, and the OpenTelemetry context (resource, scope, attributes) goes in `metadata`.
+- **The OpenTelemetry source** passes each record through in its original OpenTelemetry JSON form. Everything, including the resource and scope, is inside `message`.
+
+<Warning>
+Processors and destinations built for the deprecated sources won't work with the OpenTelemetry source's outputs unless you update their field paths or remap the events first.
+</Warning>
+
+## At a glance
+
+| | Deprecated sources | OpenTelemetry source |
+|---|---|---|
+| **Sources** | One source per signal | One source with **Logs**, **Metrics**, and **Traces** outputs |
+| **`message`** | The signal payload: log body string, Mezmo metric, or span | An envelope: `{ type, resource, scope, record }` |
+| **Resource and scope** | `metadata.resource`, `metadata.scope` | `message.resource`, `message.scope` |
+| **Record attributes** | `metadata.attributes` (metrics: also merged into `message.tags`) | `message.record.attributes` (metrics: `message.record.dataPoint.attributes`) |
+| **Field naming** | snake_case (`span_id`, `observed_timestamp`) | OpenTelemetry JSON camelCase (`spanId`, `observedTimeUnixNano`) |
+| **Times** | ISO 8601 strings | Nanoseconds since the Unix epoch, as strings |
+| **Numeric values** | Numbers | Often strings (metric values, many attribute values) |
+| **`metadata`** | OpenTelemetry context | Request metadata only, if present |
+| **`annotations`** | Logs: `app`, `host`, `level`. Metrics and traces: none | `app` and `host` for all three signals |
+| **Event `timestamp`** | Record time | Record time (the same) |
+
+## The OpenTelemetry source envelope
+
+All three outputs share the same envelope. `message.type` is `log`, `metric`, or `trace`, and `message.record` holds the signal-specific fields:
+
+```json
+{
+  "message": {
+    "type": "log | metric | trace",
+    "resource": { "attributes": { "service.name": "...", "...": "..." } },
+    "scope": { "name": "...", "version": "...", "attributes": {} },
+    "record": { }
+  },
+  "annotations": {
+    "app": "...",
+    "host": "..."
+  },
+  "timestamp": "..."
+}
+```
+
+- `annotations.app` is set from the `service.name` resource attribute, or `k8s.container.name` if that isn't set.
+- `annotations.host` is set from the `k8s.pod.name` resource attribute, or `host.name` if that isn't set.
+- `timestamp` is set from the record's time:
+
+| Signal | `timestamp` source |
+|---|---|
+| Logs | `record.timeUnixNano`, falling back to `record.observedTimeUnixNano` when the time is missing or zero |
+| Metrics | `record.dataPoint.timeUnixNano` |
+| Traces | `record.startTimeUnixNano` |
+
+## Logs
+
+<CodeGroup>
+```json Deprecated (OpenTelemetry Logs)
+{
+  "message": "GetSupportedCurrencies successful",
+  "annotations": {
+    "app": "currencyservice",
+    "host": null,
+    "level": "INFO"
+  },
+  "metadata": {
+    "level": "INFO",
+    "severity_text": "INFO",
+    "severity_number": 9,
+    "time": "2024-10-30T21:39:25.910765343Z",
+    "observed_timestamp": "2024-10-30T21:39:25.910765343Z",
+    "trace_id": "126da7e46ba0120bbfc51d3344345a7f",
+    "span_id": "97b9833f952de53a",
+    "flags": 1,
+    "attributes": {},
+    "resource": {
+      "service.name": "currencyservice",
+      "service.namespace": "opentelemetry-demo",
+      "telemetry.sdk.language": "cpp",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.13.0"
+    },
+    "scope": {
+      "name": "currencyservice",
+      "version": "1.13.0",
+      "schema_url": "",
+      "attributes": {}
+    }
+  },
+  "timestamp": "2024-10-30T21:39:25.910765343Z"
+}
+```
+
+```json OpenTelemetry (Logs output)
+{
+  "message": {
+    "type": "log",
+    "resource": {
+      "attributes": {
+        "service.name": "checkout",
+        "service.namespace": "shop",
+        "k8s.namespace.name": "shop",
+        "k8s.pod.name": "checkout-7d9f8c6b5-x2k4p",
+        "k8s.container.name": "checkout"
+      }
+    },
+    "scope": { "attributes": {} },
+    "record": {
+      "body": "Order 1234 submitted",
+      "attributes": {
+        "log.file.path": "/var/log/pods/shop_checkout-7d9f8c6b5-x2k4p/checkout/0.log",
+        "log.iostream": "stdout"
+      },
+      "droppedAttributesCount": 0,
+      "timeUnixNano": "1780449032085457504",
+      "observedTimeUnixNano": "1780449032160116995"
+    }
+  },
+  "annotations": {
+    "app": "checkout",
+    "host": "checkout-7d9f8c6b5-x2k4p"
+  },
+  "timestamp": "2026-06-03T01:10:32.085457504Z"
+}
+```
+</CodeGroup>
+
+| | Deprecated | OpenTelemetry |
+|---|---|---|
+| **Log body** | `message` (a string) | `message.record.body` |
+| **Severity** | `metadata.severity_text`, `metadata.severity_number`, `metadata.level` | In `message.record` with OpenTelemetry JSON names, when the sender sets it |
+| **Level annotation** | `annotations.level` | Not set |
+| **Log attributes** | `metadata.attributes` | `message.record.attributes` |
+| **Resource attributes** | `metadata.resource` (a flat map; no `attributes` wrapper) | `message.resource.attributes` |
+| **Scope** | `metadata.scope` | `message.scope` |
+| **Trace context** | `metadata.trace_id`, `metadata.span_id`, `metadata.flags` | In `message.record` with OpenTelemetry JSON names, when the sender sets it |
+| **Times** | `metadata.time`, `metadata.observed_timestamp` (ISO 8601) | `message.record.timeUnixNano`, `message.record.observedTimeUnixNano` (nanosecond strings) |
+
+<Note>
+In the deprecated Logs source, `metadata.resource` holds resource attributes directly. In the deprecated Metrics and Traces sources, they're nested under `metadata.resource.attributes`. In the OpenTelemetry source, they're always at `message.resource.attributes`.
+</Note>
+
+## Metrics
+
+<CodeGroup>
+```json Deprecated (OpenTelemetry Metrics)
+{
+  "message": {
+    "name": "app_currency_counter_total",
+    "kind": "incremental",
+    "tags": {
+      "service_name": "currencyservice",
+      "service_namespace": "opentelemetry-demo",
+      "telemetry_sdk_language": "cpp",
+      "telemetry_sdk_name": "opentelemetry",
+      "telemetry_sdk_version": "1.8.2",
+      "currency_code": "USD"
+    },
+    "value": {
+      "type": "counter",
+      "value": 2,
+      "name": "app_currency_counter",
+      "description": "",
+      "unit": "",
+      "aggregation_temporality": 1,
+      "is_monotonic": true,
+      "flags": 0,
+      "exemplars": [],
+      "start_time_unix": "2023-04-18T17:43:59.995034076Z",
+      "time_unix": "2023-04-18T17:44:00.995418807Z"
+    }
+  },
+  "metadata": {
+    "data_provider": "otlp",
+    "original_type": "sum",
+    "attributes": { "currency_code": "USD" },
+    "resource": {
+      "attributes": {
+        "service.name": "currencyservice",
+        "service.namespace": "opentelemetry-demo",
+        "telemetry.sdk.language": "cpp",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.8.2"
+      },
+      "dropped_attributes_count": 0
+    },
+    "scope": {
+      "name": "app_currency",
+      "version": "1.3.0",
+      "attributes": {},
+      "dropped_attributes_count": 0
+    }
+  },
+  "timestamp": "2023-04-18T17:44:00.995418807Z"
+}
+```
+
+```json OpenTelemetry (Metrics output)
+{
+  "message": {
+    "type": "metric",
+    "resource": {
+      "attributes": {
+        "service.name": "checkout",
+        "service.namespace": "shop",
+        "k8s.namespace.name": "shop",
+        "k8s.pod.name": "checkout-7d9f8c6b5-x2k4p",
+        "k8s.container.name": "checkout"
+      }
+    },
+    "scope": {
+      "name": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver",
+      "version": "0.153.0",
+      "attributes": {}
+    },
+    "record": {
+      "metric": {
+        "name": "k8s.pod.memory.major_page_faults",
+        "description": "Pod memory major_page_faults",
+        "unit": "1"
+      },
+      "dataPoint": {
+        "type": "gauge",
+        "valueType": "int",
+        "value": "179",
+        "attributes": {},
+        "droppedAttributesCount": 0,
+        "startTimeUnixNano": "1779221503000000000",
+        "timeUnixNano": "1780449069447026056"
+      }
+    }
+  },
+  "annotations": {
+    "app": "checkout",
+    "host": "checkout-7d9f8c6b5-x2k4p"
+  },
+  "timestamp": "2026-06-03T01:11:09.447026056Z"
+}
+```
+</CodeGroup>
+
+| | Deprecated | OpenTelemetry |
+|---|---|---|
+| **Event model** | Mezmo metric: `message.name`, `kind`, `tags`, `value` | OpenTelemetry metric and data point: `message.record.metric`, `message.record.dataPoint` |
+| **Metric name** | `message.name`, normalized (for example, counters get a `_total` suffix) | `message.record.metric.name`, the original OpenTelemetry name |
+| **Metric type** | `message.kind` (`incremental` / `absolute`) and `message.value.type` (`counter`, `gauge`, …) | `message.record.dataPoint.type` (`gauge`, `sum`, …) and `valueType`; no `kind` |
+| **Value** | Number in `message.value.value` | String in `message.record.dataPoint.value` |
+| **Description and unit** | `message.value.description`, `message.value.unit` | `message.record.metric.description`, `message.record.metric.unit` |
+| **Labels** | `message.tags`: resource and data point attributes merged, snake_case keys | Kept separate in `message.resource.attributes` and `message.record.dataPoint.attributes`, original dotted keys |
+| **Times** | `message.value.start_time_unix`, `time_unix` (ISO 8601) | `message.record.dataPoint.startTimeUnixNano`, `timeUnixNano` (nanosecond strings) |
+
+<Note>
+Which fields appear in `dataPoint` depends on the metric type. The example above is a gauge. Sums, histograms, and summaries can carry other fields.
+</Note>
+
+## Traces
+
+<CodeGroup>
+```json Deprecated (OpenTelemetry Traces)
+{
+  "message": {
+    "name": "featureflagservice.repo.query:featureflags",
+    "kind": 3,
+    "trace_id": "c4cea222120a566ceaf6334500ab0128",
+    "span_id": "75e57f4609adff0e",
+    "parent_span_id": "3e40b326a3290897",
+    "trace_state": "",
+    "start_timestamp": "2023-09-08T00:18:28.669047999Z",
+    "end_timestamp": "2023-09-08T00:18:28.669820750Z",
+    "status": { "code": 0, "message": null },
+    "events": [],
+    "links": [],
+    "dropped_attributes_count": 0,
+    "dropped_events_count": 0,
+    "dropped_links_count": 0,
+    "hostname": null
+  },
+  "metadata": {
+    "level": "trace",
+    "attributes": {
+      "db.instance": "ffs",
+      "db.type": "sql",
+      "query_time_microseconds": 489,
+      "total_time_microseconds": 546
+    },
+    "resource": {
+      "attributes": {
+        "service.name": "featureflagservice",
+        "service.instance.id": "featureflagservice@d69d857131ac",
+        "telemetry.sdk.language": "erlang",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.2.1"
+      },
+      "dropped_attributes_count": 0,
+      "schema_url": ""
+    },
+    "scope": {
+      "name": "opentelemetry_ecto",
+      "version": "1.0.0",
+      "schema_url": "",
+      "attributes": {}
+    }
+  },
+  "timestamp": "2023-09-08T00:18:28.669047999Z"
+}
+```
+
+```json OpenTelemetry (Traces output)
+{
+  "message": {
+    "type": "trace",
+    "resource": {
+      "attributes": {
+        "service.name": "checkout",
+        "service.namespace": "shop",
+        "service.version": "2.4.0",
+        "host.name": "checkout-host-01",
+        "process.runtime.name": "nodejs"
+      }
+    },
+    "scope": {
+      "name": "@opentelemetry/instrumentation-http",
+      "version": "0.218.0",
+      "attributes": {}
+    },
+    "record": {
+      "name": "POST",
+      "kind": 2,
+      "traceId": "bca4d8a2e7921b183605a8da1c3d3b9b",
+      "spanId": "3a8bdb9cd7462418",
+      "flags": 257,
+      "startTimeUnixNano": "1780449350894000000",
+      "endTimeUnixNano": "1780449350895065736",
+      "status": { "code": 0 },
+      "attributes": {
+        "http.method": "POST",
+        "http.route": "/orders",
+        "http.status_code": "400",
+        "net.peer.port": "36582"
+      },
+      "droppedAttributesCount": 0,
+      "droppedEventsCount": 0,
+      "droppedLinksCount": 0
+    }
+  },
+  "annotations": {
+    "app": "checkout",
+    "host": "checkout-host-01"
+  },
+  "timestamp": "2026-06-03T01:15:50.894Z"
+}
+```
+</CodeGroup>
+
+| | Deprecated | OpenTelemetry |
+|---|---|---|
+| **Span** | `message` | `message.record` |
+| **IDs** | `message.trace_id`, `span_id`, `parent_span_id`, `trace_state` | `message.record.traceId`, `spanId`, `parentSpanId` (camelCase; empty IDs may be left out) |
+| **Times** | `message.start_timestamp`, `end_timestamp` (ISO 8601) | `message.record.startTimeUnixNano`, `endTimeUnixNano` (nanosecond strings) |
+| **Span attributes** | `metadata.attributes`, with typed values (for example, `"http.status_code": 200`) | `message.record.attributes`; values may be strings (for example, `"http.status_code": "400"`) |
+| **Resource and scope** | `metadata.resource.attributes`, `metadata.scope` | `message.resource.attributes`, `message.scope` |
+| **Level** | `metadata.level` is `"trace"` | Not set; use `message.type == "trace"` |
+| **Annotations** | None | `app`, `host` |
+| **Dropped counts** | `message.dropped_attributes_count`, etc. | `message.record.droppedAttributesCount`, etc. |
+
+## Migrating from the deprecated sources
+
+When you replace the deprecated sources with the **OpenTelemetry** source:
+
+1. Add one **OpenTelemetry** source, and connect each downstream processor to its **Logs**, **Metrics**, or **Traces** output.
+2. Update the field paths your processors use, following the tables above. For example:
+   - Logs: `message` becomes `message.record.body`
+   - Metrics: `message.name` becomes `message.record.metric.name`
+   - Traces: `message.trace_id` becomes `message.record.traceId`
+   - All signals: `metadata.resource…` becomes `message.resource.attributes…`
+3. Convert values before doing math or numeric comparisons: metric values, `*UnixNano` times, and many attribute values arrive as strings.
+4. Check for anything that relies on fields the new source doesn't set, such as `annotations.level` on logs or `metadata.level` on traces.
+5. If a destination expects Mezmo metric events, add a processor that remaps the OpenTelemetry metric fields to the Mezmo metric format first.

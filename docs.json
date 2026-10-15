@@ -387,6 +387,7 @@
               "telemetry-pipelines/how-to-use-shared-source-in-pipeline",
               "telemetry-pipelines/sudden-increase-in-source-volume",
               "telemetry-pipelines/otel-collector",
+              "telemetry-pipelines/opentelemetry-event-shapes",
               "telemetry-pipelines/create-processor-groups",
               "telemetry-pipelines/percentage-volume-increase"
             ]
