@@ -90,3 +90,17 @@ A per-agent `aura.scratchpad_usage` SSE event (with `agent_id`, `tokens_intercep
 In orchestration, large task results are saved to artifact files under `{memory_dir}/{run_id}/artifacts/`. The scratchpad read tools resolve files anywhere under a per-agent read root, not just the scratchpad subdir. For orchestration workers the read root is the session dir, so result artifacts are explorable **in place** without copying.
 
 When a worker reads an artifact back with `read_artifact`, the same budget rules apply: an artifact that fits is inlined and recorded against the budget; one that exceeds the limit comes back as a scratchpad pointer that the worker explores in place with the read tools (`head`, `grep`, `slice`, …) — never copied into the scratchpad. The coordinator has no scratchpad, so its `read_artifact` always returns inline content.
+
+If a worker asks `read_artifact` for a filename that doesn't exist in the current run, the response has `found: false` and lists the run's artifact filenames in `available`, so the worker can retry with a correct name. The list holds up to 40 names. When the run has more, `available_omitted` gives the number left out.
+
+### Hand Content to Workers with `write_artifact`
+
+Workers don't see the conversation history, so the coordinator must pass them everything a task needs. When that content is too large or too exact to restate in a task description, such as a runbook draft or a set of literal values, the coordinator saves it as an artifact and attaches it to the task:
+
+1. The coordinator calls `write_artifact` with a `filename` and the full `content`. AURA saves the file to `{memory_dir}/{run_id}/artifacts/` and returns the stored `filename`.
+2. The coordinator lists that filename in the task's `artifacts` field when it calls `create_plan`. A task can also list existing artifacts from the current run, such as a worker's result or a tool-output file.
+3. The worker's context gets an `INPUT ARTIFACTS` section that tells it to load each listed file with `read_artifact` before it starts.
+
+AURA renames each file the coordinator writes to `coordinator-{name}.{ext}`, so `runbook-draft.md` is stored as `coordinator-runbook-draft.md`. A name without a valid extension gets `.txt`. Because of the prefix, the coordinator can't overwrite worker results or tool-output artifacts, and every write stays inside the run's artifacts directory. Writing the same name again replaces the file, and the response reports `replaced: true`.
+
+Artifacts need execution persistence, which is on when `memory_dir` is set. Without it, `write_artifact` returns `written: false` with an error, and `create_plan` rejects any plan whose tasks list artifacts. `create_plan` also rejects a plan that lists a file that doesn't exist in the current run. The rejection names the missing files and the artifacts that are available, so the coordinator can correct the plan.

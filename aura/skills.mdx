@@ -58,7 +58,7 @@ Records store only the invocation: the tool and its arguments, never the skill c
 
 Each skill log belongs to one chat session and one serving agent. AURA identifies the agent by its `alias`, or by its `name` when no alias is set. If a client switches agents but keeps the same chat session, the new agent starts with its own log and doesn't receive skills the previous agent loaded.
 
-AURA takes the chat session ID from the first of these sources that the request provides:
+AURA takes the chat session ID from the first of these sources that the request provides. An empty or whitespace-only value counts as not provided, so AURA moves on to the next source:
 
 1. The `chat_session_id` key in the request body's `metadata` object
 2. The `X-Chat-Session-Id` request header
