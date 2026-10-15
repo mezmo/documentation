@@ -17,12 +17,12 @@ Client POST /v1/chat/completions
          ▼
 ┌─────────────────────────────────────┐
 │ Shutdown middleware check           │
-│   (503 if shutdown_token cancelled) │
+│   (503 if `shutdown_token` cancelled) │
 └─────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────┐
-│ Generate request_id (UUID)          │
+│ Generate `request_id` (UUID)          │
 └─────────────────────────────────────┘
          │
          ▼
@@ -59,7 +59,7 @@ Client POST /v1/chat/completions
                     ▼
 ┌─────────────────────────────────────┐
 │ Cleanup (RAII guard)                │
-│   - Unregister cancellation         │
+│   - Un-register cancellation         │
 │   - Unsubscribe progress            │
 │   - Unsubscribe tool events         │
 └─────────────────────────────────────┘

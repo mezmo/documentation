@@ -146,6 +146,7 @@ RSyslog
 ruleset
 runbook(s?)
 serverless
+sidebarTitle
 signup
 Splunk
 SRE(s?)
