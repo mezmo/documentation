@@ -22,7 +22,7 @@ Processors and destinations built for the deprecated sources won't work with the
 | **`message`** | The signal payload: log body string, Mezmo metric, or span | An envelope: `{ type, resource, scope, record }` |
 | **Resource and scope** | `metadata.resource`, `metadata.scope` | `message.resource`, `message.scope` |
 | **Record attributes** | `metadata.attributes` (metrics: also merged into `message.tags`) | `message.record.attributes` (metrics: `message.record.dataPoint.attributes`) |
-| **Field naming** | snake_case (`span_id`, `observed_timestamp`) | OpenTelemetry JSON camelCase (`spanId`, `observedTimeUnixNano`) |
+| **Field naming** | snake case (`span_id`, `observed_timestamp`) | OpenTelemetry JSON camel case (`spanId`, `observedTimeUnixNano`) |
 | **Times** | ISO 8601 strings | Nanoseconds since the Unix epoch, as strings |
 | **Numeric values** | Numbers | Often strings (metric values, many attribute values) |
 | **`metadata`** | OpenTelemetry context | Request metadata only, if present |
@@ -362,7 +362,7 @@ Which fields appear in `dataPoint` depends on the metric type. The example above
 | | Deprecated | OpenTelemetry |
 |---|---|---|
 | **Span** | `message` | `message.record` |
-| **IDs** | `message.trace_id`, `span_id`, `parent_span_id`, `trace_state` | `message.record.traceId`, `spanId`, `parentSpanId` (camelCase; empty IDs may be left out) |
+| **IDs** | `message.trace_id`, `span_id`, `parent_span_id`, `trace_state` | `message.record.traceId`, `spanId`, `parentSpanId` (camel case; empty IDs may be left out) |
 | **Times** | `message.start_timestamp`, `end_timestamp` (ISO 8601) | `message.record.startTimeUnixNano`, `endTimeUnixNano` (nanosecond strings) |
 | **Span attributes** | `metadata.attributes`, with typed values (for example, `"http.status_code": 200`) | `message.record.attributes`; values may be strings (for example, `"http.status_code": "400"`) |
 | **Resource and scope** | `metadata.resource.attributes`, `metadata.scope` | `message.resource.attributes`, `message.scope` |
