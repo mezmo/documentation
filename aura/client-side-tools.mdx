@@ -79,7 +79,9 @@ enable_client_tools = true
 client_tool_filter = ["Read", "ListFiles", "Find*"]   # optional; omitted/empty = all
 ```
 
-`client_tool_filter` is a list of glob patterns matched against the request's `tools[].function.name`. An empty or omitted filter means all client tools are available. A request that supplies tools never reaches an agent that did not opt in.
+`client_tool_filter` is a list of patterns matched against the request's `tools[].function.name`. An empty or omitted filter means all client tools are available. A request that supplies tools never reaches an agent that did not opt in.
+
+The patterns use the same syntax as `mcp_filter`, including `*`, `?`, `[abc]`, and `{a,b}`. See [Tool-Name Patterns](/aura/configuration-reference#tool-name-patterns). A pattern outside that syntax, such as one containing a space, stops the config from loading. Client-side tools don't come from an MCP server, so a `<namespace>:<name>` pattern never matches one.
 
 ## Client-side configuration (AURA CLI)
 

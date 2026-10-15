@@ -28,6 +28,8 @@
  *   TAG_RENAMES       keep two sources' identically named tags in separate groups
  *   DEPRECATIONS      mark matching operations deprecated, with a migration note
  *
+ * Tag names are normalized to title case, so sources that disagree on casing
+ * (`account` and `Account`) share one navigation group instead of rendering two.
  * Every tag an operation references ends up declared at the top level, and tags
  * nothing references are pruned, so the rendered navigation has no unlabelled or
  * empty groups. A newly added spec that introduces a tag with no description
@@ -81,8 +83,8 @@ DESCRIPTION
   Each source's paths are namespaced by the sub-path of its own server URL, so
   a spec served from ${DEFAULTS.base_server}/v3 contributes its paths under /v3.
   Schemas shared across sources are deduplicated, superseded auth schemes are
-  dropped, and tags are reconciled so no navigation group renders unlabelled or
-  empty. Operations tagged Internal or Experimental are omitted.
+  dropped, and tags are title-cased and reconciled so no navigation group
+  renders duplicated, unlabelled or empty. Operations tagged Internal or Experimental are omitted.
 
   The merge is deterministic. A duplicated path, a conflicting schema or
   security scheme, or a server that cannot be folded into the base server
@@ -231,7 +233,15 @@ const TAG_DESCRIPTIONS = {
 , 'Parsing Template': 'Manage custom log parsing templates.'
 , 'Screens': 'Create and manage custom UI layouts for display on large format screens.'
 , 'Enterprise v1': 'Legacy enterprise management endpoints, superseded by the Enterprise API.'
+, 'Pipeline': 'Manage account-wide pipeline settings and control pipeline processing.'
 }
+
+/**
+ * Words left lowercase when a tag name is title-cased, unless they lead it.
+ */
+const TAG_MINOR_WORDS = new Set([
+  'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'of', 'on', 'or', 'the', 'to'
+])
 
 /**
  * Per-source tag renames, applied to both operations and declared tags. Without
@@ -240,6 +250,9 @@ const TAG_DESCRIPTIONS = {
  */
 const TAG_RENAMES = {
   'log-analysis': {Enterprise: 'Enterprise v1'}
+  // pipeline's Account tag only covers pipeline settings; the platform-wide
+  // Account group belongs to auth-provider-service.
+, 'pipeline': {Account: 'Pipeline'}
 }
 
 /**
@@ -392,9 +405,22 @@ function load(file) {
     : JSON.parse(raw)
 }
 
+/**
+ * Title-cases a tag name. Only words written entirely in lowercase letters are
+ * touched, so deliberate casing and tokens such as `v1` come through unchanged.
+ */
+function normalizeTagName(name) {
+  return name.split(' ').map((word, index) => {
+    if (!/^[a-z]+$/.test(word)) return word
+    if (index > 0 && TAG_MINOR_WORDS.has(word)) return word
+    return word[0].toUpperCase() + word.slice(1)
+  }).join(' ')
+}
+
+/** Compared after normalizing, so a source tagging `internal` is still caught. */
 function isPrivateOperation(operation) {
   const tags = operation.tags || []
-  return tags.some((tag) => PRIVATE_TAGS.has(tag))
+  return tags.some((tag) => PRIVATE_TAGS.has(normalizeTagName(tag)))
 }
 
 /**
@@ -412,11 +438,14 @@ function isInternalPath(pathname) {
   })
 }
 
-/** Returns the original array when no rename applies, to avoid pointless copies. */
-function applyTagRenames(tags, renames) {
-  if (!renames || !Array.isArray(tags)) return tags
+/**
+ * Applies a source's renames, then normalizes casing. Returns the original
+ * array when nothing changes, to avoid pointless copies.
+ */
+function applyTagRenames(tags, renames = {}) {
+  if (!Array.isArray(tags)) return tags
 
-  const renamed = tags.map((tag) => renames[tag] || tag)
+  const renamed = tags.map((tag) => normalizeTagName(renames[tag] || tag))
   return renamed.some((tag, index) => tag !== tags[index]) ? renamed : tags
 }
 
@@ -721,11 +750,16 @@ function main(argv) {
     const renames = TAG_RENAMES[source.name] || {}
 
     for (const tag of doc.tags || []) {
-      const name = renames[tag.name] || tag.name
+      const name = normalizeTagName(renames[tag.name] || tag.name)
       if (PRIVATE_TAGS.has(name) || diagnostics.tagNames.has(name)) continue
 
       diagnostics.tagNames.add(name)
-      merged.tags.push(name === tag.name ? tag : {...tag, name})
+      // A renamed tag's source description was written for the old name, so
+      // copy from TAG_DESCRIPTIONS takes precedence when there is any.
+      merged.tags.push(name === tag.name
+        ? tag
+        : {...tag, name, description: TAG_DESCRIPTIONS[name] || tag.description}
+      )
     }
 
     diagnostics.summary.push({

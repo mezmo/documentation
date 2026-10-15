@@ -44,11 +44,14 @@ CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura -- webserver
 
 Full agent compositions that combine an LLM provider with real MCP tool servers and tailored system prompts. Each file documents its prerequisites and required environment variables.
 
+The system prompts in `incident-response-mezmo.toml`, `incident-response-datadog.toml`, and `kubernetes-sre.toml` tell the agent to query the last 5 minutes of telemetry by default. To look further back, name the window in your request, for example "check error rates over the past 2 hours." To change the default, edit the 5-minute instruction in the config's `system_prompt`.
+
 | File | Description |
 |------|-------------|
 | [`devops-assistant.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/devops-assistant.toml) | GitHub MCP |
 | [`incident-response-mezmo.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-mezmo.toml) | PagerDuty + Mezmo |
 | [`incident-response-datadog.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-datadog.toml) | PagerDuty + Datadog |
+| [`incident-response-checkly.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-checkly.toml) | Checkly |
 | [`kubernetes-sre.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/kubernetes-sre.toml) | K8s MCP + Prometheus |
 
 ### Serving Multiple Agents

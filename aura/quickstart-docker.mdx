@@ -41,6 +41,8 @@ docker exec -it aura ./aura --api-url http://localhost:8080
 
 It renders the coordinator's plan and worker activity as the response streams.
 
+By default, the coordinator and workers query the last 5 minutes of metrics, logs, traces, and alerts. To look further back, name the window in your request, for example "check error rates over the past 2 hours." To change the default, edit the 5-minute instructions in `quickstart.toml`, in the coordinator's `[agent].system_prompt` and in each worker's `preamble`.
+
 <Tip>Check startup progress with `docker compose logs -f aura`.</Tip>
 
 ### Or use a browser

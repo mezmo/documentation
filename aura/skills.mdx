@@ -5,7 +5,7 @@ description: "Package task-specific instructions that AURA agents pull in only w
 
 Skills package task-specific instructions that the agent pulls in only when a task calls for them. Each skill is a directory in the [Agent Skills format](https://agentskills.io/specification): a `SKILL.md` file with YAML frontmatter (`name`, `description`) followed by the instructions, plus optional `references/`, `scripts/`, and `assets/` subdirectories for supporting files.
 
-Rather than inlining every skill into the system prompt, AURA appends only a catalog of names and descriptions. The LLM calls the `load_skill` tool to fetch a skill's full instructions on demand, and `read_skill_file` to fetch individual resource files. `read_skill_file` resolves symlinks and rejects any path that escapes the skill directory.
+Rather than inlining every skill into the system prompt, AURA appends only a catalog of names and descriptions. The LLM calls the `load_skill` tool to fetch a skill's full instructions on demand, and `read_skill_file` to fetch individual resource files. `read_skill_file` resolves symlinks and rejects any path that escapes the skill directory. A skill the agent loads stays in context on later turns of the same conversation, as described in [Skill Persistence Across Turns](#skill-persistence-across-turns).
 
 ## Configuration
 
@@ -45,3 +45,76 @@ local = [{ source = "./knowledge-skills" }]   # worker-specific skills
 [orchestration.worker.operations.skills]
 local = []                                    # no skills for this worker
 ```
+
+## Skill Persistence Across Turns
+
+OpenAI-compatible clients resend only user and assistant messages on each turn, so a skill loaded on an earlier turn would otherwise drop out of context. AURA records each successful `load_skill` and `read_skill_file` call and replays it into the next turn's history at the point where the agent first made it. The agent keeps the skill's instructions without loading the skill again.
+
+Persistence is on whenever the agent has `[agent.skills]` sources configured. You don't need to enable it.
+
+Records store only the invocation: the tool and its arguments, never the skill content. On each turn, AURA re-reads the skill files from the agent's configured sources, so edits to a skill take effect on the next turn. If you remove a skill from the agent's configuration, AURA skips its records. They replay again if you restore the skill.
+
+### How AURA Identifies a Conversation
+
+Each skill log belongs to one chat session and one serving agent. AURA identifies the agent by its `alias`, or by its `name` when no alias is set. If a client switches agents but keeps the same chat session, the new agent starts with its own log and doesn't receive skills the previous agent loaded.
+
+AURA takes the chat session ID from the first of these sources that the request provides. An empty or whitespace-only value counts as not provided, so AURA moves on to the next source:
+
+1. The `chat_session_id` key in the request body's `metadata` object
+2. The `X-Chat-Session-Id` request header
+3. The `x-openwebui-chat-id` request header, which carries the Open WebUI chat ID
+4. A new ID that the server generates
+
+Streaming responses return the session ID in the `X-Chat-Session-Id` response header. Non-streaming responses return it in `metadata.chat_session_id`. Send the same ID on every turn of the conversation. A client that sends no session ID gets a new one on each request, so its skills don't carry over.
+
+This request continues a conversation, so AURA replays the skills recorded for `review-session-7f3a9c`:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "stream": true,
+    "metadata": {"chat_session_id": "review-session-7f3a9c"},
+    "messages": [
+      {"role": "user", "content": "Review this diff with the code-review skill."},
+      {"role": "assistant", "content": "<previous agent answer>"},
+      {"role": "user", "content": "Now check the tests."}
+    ]
+  }'
+```
+
+AURA replays skills only when the request includes earlier messages. A request that contains only one user message gets no replayed skills.
+
+<Warning>
+AURA doesn't tie chat session IDs to a caller identity. Any request that sends a session ID continues that session's skill log, so use session IDs that are hard to guess.
+</Warning>
+
+### Where Skill Logs Are Stored
+
+AURA keeps skill logs in the server's session store, the same store that holds A2A tasks and parked HITL approvals. Choose the backend with the `AURA_SESSION_STORE` environment variable:
+
+| Backend | Where logs live | Expiry |
+|---|---|---|
+| `memory` (default) | Process memory on each instance. A restart clears the logs, and past 1,024 logs the store evicts the least recently used one. | No time limit |
+| `file` | Files under `AURA_SESSION_STORE_PATH`, which survive a restart. | `AURA_SESSION_STORE_SKILLS_TTL_SECS` |
+| `redis` | Redis or Valkey, shared by every instance, so any instance can serve the next turn. | `AURA_SESSION_STORE_SKILLS_TTL_SECS` |
+
+`AURA_SESSION_STORE_SKILLS_TTL_SECS` defaults to `86400` (24 hours), and `0` disables expiry. Each `load_skill` or `read_skill_file` call restarts the timer, so a log expires that many seconds after the agent last calls a skill tool in the session. To configure the backend, see [Session Store](/aura/configuration-reference#session-store-durable-and-multi-pod-deployments).
+
+### Limits and Context Cost
+
+Persistence has these limits:
+
+- Each agent's log in a session holds up to 64 distinct invocations. Loading the same skill or resource file again doesn't add a record. When a log is full, AURA logs a warning and stops recording new invocations, and the tool call still succeeds.
+- Each turn replays up to 256 KiB of skill content, starting with the newest invocations. An invocation that doesn't fit in the remaining budget is skipped for that turn.
+- Replayed skills count toward the model's context window on every turn. An agent that loads many skills or large resource files has less context left for the conversation. To start over without replayed skills, use a new chat session ID.
+
+### Orchestration Mode
+
+In orchestration mode, AURA records only the coordinator's skill invocations. Workers run per task and receive no chat history, so skills a worker loads aren't replayed on later turns.
+
+### What Clients See
+
+When `AURA_CUSTOM_EVENTS=true`, a streaming turn that replays skills emits an `aura.skills_rehydrated` event at stream start. The event lists each replayed invocation. For the payload, see [Event Formats](/aura/streaming-api-guide#event-formats).
+
+Some clients echo the agent's `load_skill` and `read_skill_file` calls back in `messages`. When the agent has skills configured, AURA drops those echoed calls and any tool messages that answer them. The stored records replay the same invocations, so the skill content isn't added twice.

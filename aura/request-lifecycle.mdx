@@ -5,7 +5,7 @@ description: "Request flow, timeout configuration, cancellation, and graceful sh
 
 ## Overview
 
-AURA manages per-request state (cancellation tokens, subscriptions) across streaming SSE connections. This document covers the lifecycle, timeout configuration, and known limitations.
+Each request to AURA starts a run. The run owns the request's state: a cancellation token and an event channel that carries tool, MCP progress, usage, and approval events to the response stream. That state is created when the run starts and released when it ends. This document covers the lifecycle, timeout configuration, and known limitations.
 
 ---
 
@@ -22,22 +22,29 @@ Client POST /v1/chat/completions
          │
          ▼
 ┌─────────────────────────────────────┐
-│ Generate `request_id` (UUID)          │
+│ Prepare the request                 │
+│   - Generate `request_id`           │
+│   - Build the agent and connect its │
+│     MCP servers (each up to         │
+│     connect_timeout_secs)           │
+│   - Replay recorded skill calls     │
 └─────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────┐
 │ Spawn producer task                 │
-│   - Register cancellation token     │
-│   - Subscribe to progress events    │
-│   - Subscribe to tool events        │
+│   - Start the run (own cancellation │
+│     token and event channel)        │
+│   - Read the run's event channel    │
 └─────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────┐
-│ Stream chat with TimeoutHook        │
-│   - Tool calls set thread context   │
-│   - Tool results clear context      │
+│ Stream chat with the run's hooks    │
+│   - Check deadline and cancellation │
+│   - Tool calls queue their IDs      │
+│     (single-agent runs)             │
+│   - Tool results dequeue them       │
 └─────────────────────────────────────┘
          │
          ├──────────────────┬──────────────────┐
@@ -49,19 +56,16 @@ Client POST /v1/chat/completions
          │                  │                  │
          │                  ▼                  ▼
          │          ┌──────────────────┐  ┌──────────────────┐
-         │          │ Cancel token     │  │ Cancel hook +    │
-         │          │ Send MCP cancel  │  │  registry        │
-         │          │ Evict from pool  │  │ Send [DONE]      │
-         │          └──────────────────┘  │ Then MCP cleanup │
-         │                  │             │ (no pool evict)  │
-         │                  │             └──────────────────┘
+         │          │ Cancel run token │  │ Cancel run token │
+         │          │ Send MCP cancel  │  │ Send [DONE]      │
+         │          │ Close MCP conns  │  │ Then MCP cleanup │
+         │          └──────────────────┘  └──────────────────┘
+         │                  │                  │
          └──────────┬───────┴──────────────────┘
                     ▼
 ┌─────────────────────────────────────┐
 │ Cleanup (RAII guard)                │
-│   - Un-register cancellation         │
-│   - Unsubscribe progress            │
-│   - Unsubscribe tool events         │
+│   - Cancel pending HITL approvals   │
 └─────────────────────────────────────┘
 ```
 
@@ -83,7 +87,7 @@ Client POST /v1/chat/completions
 
 - **First chunk timeout (90 sec)**: Catches provider connection failures early. If the LLM hasn't sent any data within this window, the request is aborted rather than hanging for the full stream timeout. The window is sized for reasoning models, which can legitimately take over a minute before the first chunk.
 - **Stream inactivity timeout (disabled by default)**: Closes the gap between the first-chunk timeout, which guards only the opening chunk, and the stream timeout, which is the whole-request budget. Once streaming starts, a provider that goes silent between chunks runs all the way to the stream timeout by default. Enable this to fail a stalled stream sooner.
-- **Stream timeout (15 min)**: Supports long-running MCP tools. Set to 0 to disable (not recommended).
+- **Stream timeout (15 min)**: Supports long-running MCP tools. It's the only setting that caps total request length. Set it to `0` to remove the cap (not recommended). Without the cap, no setting limits how long a request runs. The first chunk timeout stops applying once output starts, and the stream inactivity timeout, when enabled, bounds only the gaps between stream items. Non-streaming requests have neither window, so the stream timeout is their only time limit.
 - **Heartbeat (15 sec)**: Standard SSE keepalive. Detects disconnect during silent tool execution.
 
 ### Tuning Stream Inactivity Timeouts
@@ -106,13 +110,13 @@ Aura pins OpenAI to Chat Completions, which streams nothing while the model is t
 
 ## Tool Event Correlation
 
-Rig spawns tool execution in separate tokio tasks. The hook context (where the LLM decides to call a tool) and the execution context (where MCP actually runs) are decoupled, requiring a mechanism to correlate `tool_call_id` across these boundaries. AURA does this with a per-request FIFO queue. This relies on Rig's streaming mode executing tools sequentially within a request; see [Rig Fork Changes](https://github.com/mezmo/aura/blob/main/docs/rig-fork-changes.md) for the validation methodology if you're tracking Rig upstream compatibility.
+Rig spawns tool execution in separate tokio tasks. The hook context (where the LLM decides to call a tool) and the execution context (where MCP actually runs) are decoupled, requiring a mechanism to correlate `tool_call_id` across these boundaries. AURA does this with a FIFO queue that the run holds, so the queue lives and ends with the run. This relies on Rig's streaming mode executing tools sequentially within a request; see [Rig Fork Changes](https://github.com/mezmo/aura/blob/main/docs/rig-fork-changes.md) for the validation methodology if you're tracking Rig upstream compatibility.
 
 ---
 
 ## Cleanup Mechanism
 
-Request resources (cancellation registration, progress/tool-event subscriptions) are cleaned up via an RAII guard that ensures cleanup runs even on panic. If the async runtime is already gone (process exit), cleanup is skipped. Resources are reclaimed with the process.
+The run's cancellation token, event channel, and tool-call queue belong to the run, so they're released when the run ends. An RAII guard cancels the request's pending HITL approvals, and runs even on panic. If the async runtime is already gone (process exit), cleanup is skipped. Resources are reclaimed with the process.
 
 ---
 
@@ -120,17 +124,17 @@ Request resources (cancellation registration, progress/tool-event subscriptions)
 
 On client disconnect or timeout:
 
-1. The cancellation token signals all waiting code
-2. Aura sends `notifications/cancelled` to MCP servers
-3. The agent is evicted from its connection pool to prevent stale connections
+1. The run's cancellation token signals all waiting code, including tool calls paused for a HITL approval.
+2. AURA sends `notifications/cancelled` to MCP servers.
+3. AURA closes the request's MCP connections.
 
-MCP servers receive the cancellation notification and can abort in-progress operations.
+MCP servers receive the cancellation notification and can abort in-progress operations. Each request builds its own agent and MCP connections, so a later request never reuses a closed connection.
 
 ---
 
 ## Graceful Shutdown
 
-The server uses a two-phase shutdown with separate cancellation tokens:
+The server signals shutdown through two cancellation tokens:
 
 | Token | Cancelled | Purpose |
 |-------|-----------|---------|
@@ -141,18 +145,18 @@ The server uses a two-phase shutdown with separate cancellation tokens:
 
 1. **SIGTERM/SIGINT** received
 2. **Phase 1 (immediate)**: `shutdown_token` cancelled. Middleware returns 503 for all new requests
-3. **Grace period**: In-flight streams continue running for up to `SHUTDOWN_TIMEOUT_SECS` (default 30s). Streams that complete naturally during this window are unaffected.
+3. **Grace period**: In-flight streams continue running for up to `SHUTDOWN_TIMEOUT_SECS` (default 30s). Streams that complete naturally during this window are unaffected. If every in-flight request finishes within this window, the server skips to step 6.
 4. **Phase 2 (drain)**: `stream_shutdown_token` cancelled. Remaining streams:
-   - Cancel hook + request registry (stops in-flight MCP tool execution)
+   - Cancel the run's token (stops in-flight MCP tool execution and pending HITL approvals)
    - Send `[DONE]` to client (before MCP cleanup, so client gets clean termination)
    - Run MCP cleanup (send `notifications/cancelled`, close connections)
-   - No pool eviction (pool is dying with the server)
-5. **Server stops**: Workers have 10s to complete Phase 2 cleanup
+5. **Phase 3 (abort)**: Remaining streams have 5s to finish Phase 2. If request tasks are still running after that, the server logs `Stream shutdown grace period expired, aborting stragglers` and aborts them, so their spans close before the telemetry flush.
+6. **Shutdown complete**: The server logs `shutdown complete` with two fields. `clean_shutdown` is `true` when no request had to be aborted. `unaborted_tasks` is `true` when the abort step didn't finish within 400 ms.
+7. **Telemetry flush**: The server stops and flushes buffered OpenTelemetry spans, waiting up to 5s for the export.
 
 ### Shutdown vs Disconnect/Timeout
 
 | Behavior | Disconnect/Timeout | Shutdown |
 |----------|-------------------|----------|
-| Pool eviction | Yes | No (pool is dying) |
 | `[DONE]` timing | After MCP cleanup (Timeout) / skipped (Disconnect) | Before MCP cleanup |
 | Grace period | None: immediate cancel | Configurable (`SHUTDOWN_TIMEOUT_SECS`) |

@@ -41,9 +41,16 @@ url = "https://approvals.example.com/aura"
 timeout_secs = 300
 ```
 
-`require_approval` is a list of glob patterns matched against MCP tool names.
+`require_approval` is a list of patterns matched against MCP tool names.
 When an agent calls a matching tool, Aura requests approval through the
 configured route before the MCP tool runs.
+
+The patterns use the same syntax as `mcp_filter`. See
+[Tool-Name Patterns](/aura/configuration-reference#tool-name-patterns). To gate
+a tool from one MCP server only, prefix the pattern with the server's
+`[mcp.servers.<name>]` key and `:`. For example, `k8s:restart_*` gates
+`restart_*` tools from `[mcp.servers.k8s]` but not same-named tools from other
+servers. A pattern outside the syntax stops Aura from starting.
 
 A tool is gated if it matches **any** pattern in the list, so pattern order does
 not affect whether a tool is gated. To leave a tool ungated, do not list a
@@ -127,6 +134,7 @@ wire shape with `kind` tags for `scope` and `origin`:
   "items": [
     {
       "tool_name": "restart_deployment",
+      "tool_namespace": "k8s",
       "arguments": {
         "namespace": "prod",
         "deployment": "api"
@@ -145,7 +153,7 @@ Fields:
 | `request_id` | Aura request id for the chat completion. |
 | `scope` | Which agent surface is asking, independent of why. `kind = "single"` for a single-agent run or `kind = "worker"` for an orchestration worker. Both HITL origins carry a scope. |
 | `origin` | Why approval was requested. `kind = "config_gate"` (a configured glob matched the tool call, carries the matched glob) or `kind = "agent_requested"` (the agent called `request_approval`, carries the reason). |
-| `items` | Tool call payloads awaiting approval. One item per request. |
+| `items` | Tool call payloads awaiting approval. One item per request. Each item carries `tool_name` and `arguments`. For an MCP tool, it also carries `tool_namespace`, the `[mcp.servers.<name>]` key of the server that provides the tool. |
 
 ## Webhook response
 
@@ -191,7 +199,8 @@ data: { ... }
 `aura.approval_requested` includes `decision_id`, `tool_name`, `origin`, and
 `scope`. `aura.approval_pending` is emitted only by the conversational route and
 contains the attended prompt payload that an Aura-aware client renders before
-posting a decision. `aura.approval_completed` includes `decision_id`, terminal
+posting a decision. Both events also include `tool_namespace` when the tool
+comes from an MCP server. `aura.approval_completed` includes `decision_id`, terminal
 `outcome`, `duration_ms`, and `scope`. Outcome kinds are `approved`, `denied`,
 `timed_out`, `cancelled`, and `errored`; `errored` means the approval channel
 failed before a human decision was obtained.
