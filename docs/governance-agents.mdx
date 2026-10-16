@@ -14,7 +14,6 @@ The **AURA Agents** page is available when the AI Governance feature is enabled 
 The **AURA Agents** page lists the runtime agents registered to your account. Each row shows:
 
 - The agent's name, with its description as subtext when one is set
-- Runtime name and version
 - Instance ID
 - Status
 - Date registered
@@ -70,14 +69,12 @@ For how AURA approval gates work, see [Human-in-the-Loop Approval Gates](../aura
 
 ## Agent Fields
 
-Get these values from whoever deployed or operates the agent runtime.
+Get the instance ID from whoever deployed or operates the agent.
 
 | Field | Description |
 | ---- | ---- |
 | **Name** | Required. A name for the agent. |
-| **Runtime Name** (`runtime_name`) | Required. The name of the runtime the agent runs on, for example `aura`. |
 | **Instance ID** (`instance_id`) | Required. Identifies the running instance of the agent. It only needs to be unique within your account. The same instance ID can be registered under more than one account. |
-| **Version** | Required. The agent's version. |
 | **Description** | Optional. A description of the agent. |
 
 ## Assign a Governance Policy
