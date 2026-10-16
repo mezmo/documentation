@@ -136,7 +136,7 @@ Lists available Mezmo v3 pipelines.
 
 #### `get_pipeline`
 
-Gets details for a specific Mezmo v3 pipeline, including root-level DAG/configuration fields such as `sources`, `transforms`, and `sinks` when returned by the Pipeline API.
+Gets details for a specific Mezmo v3 pipeline, including root-level DAG/configuration fields such as `sources`, `transforms`, and `sinks` when returned by the Mezmo API.
 
 **Parameters:**
 
@@ -161,11 +161,11 @@ Creates an empty draft Mezmo pipeline. Sources, transforms, and destinations are
 
 #### Pipeline node discovery
 
-Use these tools to discover and inspect the source, transform/processor, and destination/sink schemas available from the Pipeline API before building a pipeline:
+Use these tools to discover and inspect the source, transform/processor, and destination/sink schemas available from the [Mezmo API](/docs/api) before building a pipeline:
 
 - `get_node_catalog`: Returns the raw `GET /pipeline/node` catalog.
 - `search_pipeline_node_schemas`: Searches source, transform/processor, and destination/sink node schemas by `kind` and/or a free-text `query`, without surfacing nested JSON Schema fragments as selectable nodes.
-- `get_pipeline_node_schema`: Inspects a single node schema (`node_type`, optional `kind`) before constructing a Pipeline API body.
+- `get_pipeline_node_schema`: Inspects a single node schema (`node_type`, optional `kind`) before constructing a Mezmo API request body.
 
 **Example:**
 "What source node types are available for HTTP ingestion?"
@@ -175,7 +175,7 @@ Use these tools to discover and inspect the source, transform/processor, and des
 
 - `add_pipeline_source`: Adds a source node to an existing pipeline from catalog/schema-backed payload fields (`pipeline_id`, `node_type`, optional `title`, `description`, `user_config`, `extra_fields`).
 - `add_pipeline_transform`: Adds a transform/processor node, wired to upstream nodes via raw UUIDs or aliases (`pipeline_id`, `node_type`, `inputs`, optional `title`, `description`, `user_config`, `extra_fields`).
-- `add_pipeline_destination`: Adds a destination node, mapped to the Pipeline API sink endpoint (same parameters as `add_pipeline_transform`).
+- `add_pipeline_destination`: Adds a destination node, mapped to the Mezmo API pipeline sink endpoint (same parameters as `add_pipeline_transform`).
 - `create_pipeline_access_key`: Creates a source gateway access key (`gateway_route_id`, `title`, optional `key_type`, `extra_fields`). Generated secret values are redacted from the MCP response.
 - `update_pipeline_component`: Updates an existing source, transform/processor, or destination/sink with a raw `PUT` payload (`pipeline_id`, `component_id`, `kind`, `payload`). Inspect `get_pipeline` and the relevant node schema first.
 - `delete_pipeline_component`: Deletes an existing source, transform/processor, or destination/sink (`pipeline_id`, `component_id`, `kind`). Use explicit confirmation before calling this, since it's destructive.
