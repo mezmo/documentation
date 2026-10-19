@@ -12,12 +12,12 @@ Add Mezmo MCP and you can:
 - 🕵️ Run advanced **Root-cause analysis** over recent logs
 - 📦 List, describe, **create, and edit Pipelines**
 - 🔌 Tap **live pipeline traffic** for inspection
-- 📤 Export and filter **Logs** with powerful query syntax
+- 📊 Filter, group, and chart **Logs** with powerful query syntax
 - 🔎 Review **AI Investigations** for your account
 
 ## Overview
 
-Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients, including [AURA](/aura/quickstart), Mezmo's own agentic SRE harness.
+Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and query logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients, including [AURA](/aura/quickstart), Mezmo's own agentic SRE harness.
 
 ## Available Tools & Examples
 
@@ -682,8 +682,6 @@ Use relative time ranges like `last 15 minutes` or `last 1 hour` to ensure your 
 - Prefer values like `last_15_minutes`, `last_hour` when supported.
 - Keep prompts simple; add filters gradually
 - Add filters step by step. See [Query Syntax](#query-syntax) for available fields.
-- Use `export_logs` for raw data only
-- For dashboards or offline analysis, use `export_logs`; otherwise prefer RCA.
 
 ---
 
@@ -720,7 +718,7 @@ Add a `[mcp.servers.mezmo]` block to your AURA config (`config.toml` or a file i
 [mcp.servers.mezmo]
 transport = "http_streamable"
 url = "https://mcp.mezmo.com/mcp"
-description = "Mezmo root-cause analysis, log analysis, export, and pipeline management"
+description = "Mezmo root-cause analysis, log analysis, and pipeline management"
 
 [mcp.servers.mezmo.headers]
 Authorization = "Bearer <SERVICE KEY>"
