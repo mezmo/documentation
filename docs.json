@@ -390,6 +390,7 @@
               "telemetry-pipelines/sudden-increase-in-source-volume",
               "telemetry-pipelines/otel-collector",
               "telemetry-pipelines/opentelemetry-event-shapes",
+              "telemetry-pipelines/llm-agent-traces-opentelemetry",
               "telemetry-pipelines/create-processor-groups",
               "telemetry-pipelines/percentage-volume-increase"
             ]

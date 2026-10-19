@@ -1,0 +1,212 @@
+---
+title: "Send LLM and AI Agent Traces with OpenTelemetry"
+description: "Instrument an LLM application or AI agent with OpenTelemetry and send its GenAI traces, including Claude Platform traces, to a Mezmo Pipeline."
+---
+
+You can send traces from LLM applications and AI agents to a Mezmo Pipeline with OpenTelemetry (OTel). Each span records one step, such as a model call, an agent turn, or a tool use, with its latency, token usage, and IDs. After the spans reach your Pipeline, you can filter, sample, and enrich them, then route them to the Destinations you already use.
+
+Most LLM tracing libraries follow the [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/), which name span attributes with a `gen_ai.` prefix, for example `gen_ai.request.model` and `gen_ai.usage.input_tokens`. Mezmo receives these spans through the [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source), the same OTLP endpoint you use for any other trace.
+
+## Before You Begin
+
+You need:
+
+- A Pipeline with an [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source). Connect the Source's **Traces** output to the Processors and Destinations that should receive your spans.
+- A Mezmo [ingestion key](/docs/ingestion-key#ingestion-keys). In the Mezmo Web App, go to **Settings > Organization > API Keys**.
+- An application that emits OpenTelemetry spans, either through an SDK with built-in tracing, such as the Claude SDK, or through your own instrumentation.
+
+Every sender uses these connection settings:
+
+| Setting | Value |
+| --- | --- |
+| OTLP endpoint | `https://logs.mezmo.com/otel` |
+| Protocol | OTLP over HTTP, with protobuf or JSON encoding. The endpoint doesn't accept gRPC. |
+| Authentication header | `apikey`, set to your ingestion key |
+
+<Note>
+Use the endpoint without a `/v1/traces` path. The OpenTelemetry SDK and the OpenTelemetry Collector add the path for each signal.
+</Note>
+
+## Configure the OpenTelemetry Exporter
+
+The OpenTelemetry SDK reads its exporter settings from standard environment variables, so most applications can send traces to Mezmo without code changes to the exporter. Set these variables in the environment where your application runs:
+
+```bash
+export OTEL_SERVICE_NAME="support-agent"
+export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
+export OTEL_EXPORTER_OTLP_ENDPOINT="https://logs.mezmo.com/otel"
+export OTEL_EXPORTER_OTLP_HEADERS="apikey=<YOUR_INGESTION_KEY>"
+
+# Emit the latest GenAI semantic conventions from instrumentation libraries that support them.
+export OTEL_SEMCONV_STABILITY_OPT_IN="gen_ai_latest_experimental"
+```
+
+- `OTEL_SERVICE_NAME` becomes the `service.name` resource attribute. Mezmo uses it to set the `app` annotation on each span, so pick a name that identifies the application or agent.
+- `OTEL_SEMCONV_STABILITY_OPT_IN` affects only instrumentation libraries that read it. Some libraries emit older GenAI attribute names unless you set it. If you already set this variable for other features, add `gen_ai_latest_experimental` to its comma-separated value.
+
+If your services already send telemetry to an [OpenTelemetry Collector](/telemetry-pipelines/otel-collector) that exports to Mezmo, point the application at the Collector's OTLP receiver instead, and let the Collector forward the spans.
+
+## Send Traces from Your Application
+
+### Trace Claude SDK Calls
+
+The Claude SDK emits OpenTelemetry spans for Messages API requests, tool runner tool uses, and Claude Managed Agents session requests. It sends them to the tracer provider that your application registers. Claude SDK tracing is in beta. See [Set up OpenTelemetry with the Claude SDK](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk) for other languages and every option.
+
+1. Install the Claude SDK, the OpenTelemetry SDK, and the OTLP HTTP exporter:
+
+   ```bash
+   pip install --upgrade anthropic opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
+   ```
+
+2. Set the environment variables from [Configure the OpenTelemetry Exporter](#configure-the-opentelemetry-exporter).
+3. Register a tracer provider before your first Claude call:
+
+   ```python
+   from anthropic import Anthropic
+   from opentelemetry import trace
+   from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+   from opentelemetry.sdk.trace import TracerProvider
+   from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+   # The exporter reads the Mezmo endpoint and ingestion key from the OTEL_EXPORTER_OTLP_* variables.
+   provider = TracerProvider()
+   provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+   trace.set_tracer_provider(provider)
+
+   # content_mode="content" adds prompts and responses to spans. The default, "metadata_only", leaves them out.
+   client = Anthropic(
+       open_telemetry={"tracer_provider": provider, "traces": {"content_mode": "content"}}
+   )
+
+   message = client.messages.create(
+       model="claude-opus-5-5",
+       max_tokens=1024,
+       messages=[{"role": "user", "content": "Summarize today's error spikes."}],
+   )
+   print(message.content)
+
+   # Send buffered spans before a short-lived script exits.
+   provider.force_flush()
+   ```
+
+4. Run the application. Each request produces an `anthropic.messages.create` span on the **Traces** output of your OpenTelemetry Source.
+
+<Warning>
+With `content_mode="content"`, spans carry the full prompts and responses that your application exchanges with Claude. Mezmo then processes and stores that content under your Pipeline's Destinations and their retention settings. Use the default `metadata_only` mode when prompts can contain data that must not leave your application.
+</Warning>
+
+### Trace Claude API and Managed Agents Activity
+
+The Claude API can also send spans for every request in your Claude Console organization, including model runs, server tool uses, and Claude Managed Agents turns, without code changes. You need the admin role in the Claude Console organization. Claude API tracing is in beta. See [Set up OpenTelemetry with the Claude API](https://platform.claude.com/docs/en/manage-claude/opentelemetry/api) for the full reference.
+
+1. In the Claude Console, open the [OpenTelemetry settings page](https://platform.claude.com/settings/telemetry-destinations) and select **Add destination**.
+2. In **Provider**, select **Custom**.
+3. In **OTLP endpoint URL**, enter `https://logs.mezmo.com/otel`.
+4. In **Request headers**, add a header named `apikey` with your Mezmo ingestion key as its value.
+5. In **Content mode**, select **Metadata only** or **Full content**.
+6. In **Workspaces**, select the workspaces whose spans Mezmo should receive.
+7. Select **Add destination**.
+8. In the destination's **More actions** menu, select **Test**.
+
+The test sends an `anthropic.test` span to your OpenTelemetry Source. Spans from the Claude API carry the resource attribute `service.name` set to `claude-platform`, so they arrive with the `app` annotation `claude-platform`.
+
+If you also trace the Claude SDK, each Messages API request has both an SDK span and an API span. To count tokens once per request, follow Anthropic's guidance on [counting tokens](https://platform.claude.com/docs/en/manage-claude/opentelemetry#counting-tokens).
+
+### Add GenAI Attributes to Your Own Spans
+
+When your LLM provider or agent framework has no tracing of its own, create the spans yourself and set the GenAI attributes on them. This example records one chat call with the OpenTelemetry Python SDK:
+
+```python
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+provider = TracerProvider()
+provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer("support-agent")
+
+with tracer.start_as_current_span("chat gpt-4o", kind=trace.SpanKind.CLIENT) as span:
+    span.set_attribute("gen_ai.operation.name", "chat")
+    span.set_attribute("gen_ai.provider.name", "openai")
+    span.set_attribute("gen_ai.request.model", "gpt-4o")
+
+    # Call your model here, then record what it returned.
+    span.set_attribute("gen_ai.response.model", "gpt-4o-2024-08-06")
+    span.set_attribute("gen_ai.usage.input_tokens", 412)
+    span.set_attribute("gen_ai.usage.output_tokens", 96)
+
+provider.force_flush()
+```
+
+For the full list of attributes and span names, see the [GenAI semantic conventions for spans](https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/).
+
+## Work with GenAI Spans in Your Pipeline
+
+The OpenTelemetry Source passes each span through in its OpenTelemetry JSON form, with GenAI attributes under `message.record.attributes`. A model call span looks like this on the **Traces** output:
+
+```json
+{
+  "message": {
+    "type": "trace",
+    "resource": {
+      "attributes": {
+        "service.name": "support-agent",
+        "host.name": "agent-host-01"
+      }
+    },
+    "scope": {
+      "name": "support-agent",
+      "attributes": {}
+    },
+    "record": {
+      "name": "chat gpt-4o",
+      "kind": 3,
+      "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+      "spanId": "00f067aa0ba902b7",
+      "startTimeUnixNano": "1792443306688749000",
+      "endTimeUnixNano": "1792443308102331000",
+      "status": { "code": 0 },
+      "attributes": {
+        "gen_ai.operation.name": "chat",
+        "gen_ai.provider.name": "openai",
+        "gen_ai.request.model": "gpt-4o",
+        "gen_ai.response.model": "gpt-4o-2024-08-06",
+        "gen_ai.usage.input_tokens": "412",
+        "gen_ai.usage.output_tokens": "96"
+      }
+    }
+  },
+  "annotations": {
+    "app": "support-agent",
+    "host": "agent-host-01"
+  },
+  "timestamp": "2026-10-19T20:55:06.688Z"
+}
+```
+
+Processor data fields start at the event's `message`, and attribute names that contain dots go in quotation marks. See [Syntax for Editing Pipeline Component Configuration Values](/telemetry-pipelines/syntax-for-editing-pipeline-component-configuration-values) for details. Use these data fields when you configure Processors:
+
+| To work with | Data field |
+| --- | --- |
+| The application or agent | `.resource.attributes."service.name"` |
+| The kind of operation, such as `chat`, `invoke_agent`, or `execute_tool` | `.record.attributes."gen_ai.operation.name"` |
+| The model that served the request | `.record.attributes."gen_ai.response.model"` |
+| Token usage | `.record.attributes."gen_ai.usage.input_tokens"` and `.record.attributes."gen_ai.usage.output_tokens"` |
+| A whole conversation or agent session | `.record.attributes."gen_ai.conversation.id"` |
+| Failed operations | `.record.status.code`, where `2` means error |
+
+Attribute values often arrive as strings, so convert token counts to numbers before you add or compare them. For the complete event shape, see [OpenTelemetry Event Shapes](/telemetry-pipelines/opentelemetry-event-shapes#traces).
+
+To keep GenAI spans apart from your other traces, add a [Route](/telemetry-pipelines/route-processor) Processor that matches on `gen_ai.operation.name`. To reduce trace volume, use the experimental [Trace Sampling](/telemetry-pipelines/trace-sampling-processor) Processor, which can sample traces with errors at a different rate from other traces. To forward the spans to another tool that accepts OTLP, connect them to an [OpenTelemetry](/telemetry-pipelines/open-telemetry-destination) Destination.
+
+## Troubleshoot Trace Delivery
+
+| Problem | What to check |
+| --- | --- |
+| The exporter or the Claude Console reports HTTP status `401` or `403` | The `apikey` header is missing or holds the wrong value. Set it to a valid Mezmo ingestion key. |
+| The exporter fails to send spans over gRPC, for example on port `4317` | The endpoint accepts only OTLP over HTTP. Set `OTEL_EXPORTER_OTLP_PROTOCOL` to `http/protobuf`, or use an OTLP HTTP exporter. |
+| The endpoint returns HTTP status `413` | A single span is larger than the maximum message size. This happens most often with full prompt and response content. Lower the content limit, for example with the Claude SDK's `traces.max_content_bytes` option or the Claude Console's **Maximum content size in MB** setting. |
+| No spans arrive from a short-lived script | The script exits before the batch processor sends its spans. Call `provider.force_flush()` before the script ends. |
+| Spans arrive without GenAI attributes | Check that your instrumentation library supports the GenAI semantic conventions, and set `OTEL_SEMCONV_STABILITY_OPT_IN` to `gen_ai_latest_experimental`. |
