@@ -177,6 +177,11 @@ Example configurations are in the [`examples/`](https://github.com/mezmo/aura/tr
 | `PORT` | `8080` | Server port |
 | `AURA_ENABLE_A2A` | `false` | Enable A2A protocol endpoints (`/a2a/v1/*`, `/.well-known/agent-card.json`). Disabled by default. See [A2A Integration](/aura/a2a-implementation) |
 | `AURA_SERVER_URL` | host/port | Canonical public origin published in the A2A agent card. Set when running behind a proxy, load balancer, or in Kubernetes. See [A2A Integration](/aura/a2a-implementation#agent-card-url-aura_server_url) |
+| `AURA_ENABLE_SLACK` | `false` | Enable the Slack ingress: the server connects to Slack over Socket Mode and answers mentions and direct messages. Needs the two tokens below. See [Slack Integration](/aura/slack-integration) |
+| `AURA_SLACK_BOT_TOKEN` | *(none)* | Slack bot user OAuth token (`xoxb-`) the ingress reads threads and posts replies with |
+| `AURA_SLACK_APP_TOKEN` | *(none)* | Slack app-level token (`xapp-`, scope `connections:write`) the ingress opens its Socket Mode connection with |
+| `AURA_SLACK_AGENT` | *(none)* | Agent name or alias the Slack ingress runs. Falls back to `DEFAULT_AGENT`, or to the only loaded config |
+| `AURA_SLACK_CONCURRENCY` | `4` | Maximum Slack messages answered at once; further messages wait for a slot |
 | `DEFAULT_AGENT` | *(none)* | Agent name or alias used when `model` is omitted. Not needed when only one config is loaded. |
 | `AURA_CUSTOM_EVENTS` | `false` | Emit `aura.*` SSE events alongside OpenAI-compatible chunks |
 | `AURA_EMIT_REASONING` | `false` | Emit `aura.reasoning` events (requires `AURA_CUSTOM_EVENTS=true`) |
