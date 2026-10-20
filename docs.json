@@ -405,7 +405,6 @@
               "telemetry-pipelines/set-in-stream-alerts",
               "telemetry-pipelines/example-in-stream-alert-configurations",
               "telemetry-pipelines/getting-started-with-the-mezmo-platform",
-              "telemetry-pipelines/api-references",
               "telemetry-pipelines/view-event-metrics",
               "telemetry-pipelines/configure-surge-detection-alerts",
               "telemetry-pipelines/archive-restore-data-tutorial",
@@ -489,7 +488,7 @@
             ]
           },
           {
-            "group": "Pipeline API Quickstart",
+            "group": "Mezmo API Pipeline Quickstart",
             "pages": [
               "pipeline-api-quickstart/getting-started-with-the-mezmo-pipeline-api"
             ]
@@ -561,6 +560,14 @@
     },
     {
       "source": "/pipeline-api",
+      "destination": "/docs/api"
+    },
+    {
+      "source": "/docs/api-referencesk9h",
+      "destination": "/docs/api"
+    },
+    {
+      "source": "/telemetry-pipelines/api-references",
       "destination": "/docs/api"
     },
     {
