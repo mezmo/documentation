@@ -9,7 +9,7 @@ This destination allows you to send metrics data to Datadog.
 
 ## Configuration
 
-You can only use the Datadog Metrics destination with the [Datadog Agent](/telemetry-pipelines/mezmo-datadog-source-source), [HTTP Source ](/telemetry-pipelines/http-source)and the [Prometheus Remote Write Source](/telemetry-pipelines/prometheus-remote-write-destination) as the sources configured in your pipeline.
+You can only use the Datadog Metrics destination with the [Datadog Agent](/telemetry-pipelines/mezmo-datadog-source-source), [HTTP Source](/telemetry-pipelines/http-source), [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source), and [Prometheus Remote Write Source](/telemetry-pipelines/prometheus-remote-write-destination) as the sources configured in your pipeline.
 
 Metrics sent from Mezmo to Datadog are considered **Custom Metrics** within Datadog and will have an impact on your bill. 
 
@@ -20,3 +20,11 @@ Metrics sent from Mezmo to Datadog are considered **Custom Metrics** within Data
 | Datadog API Key | The API key for your Datadog application. | 
 | Compression | Options for compressing your metrics. | 
 | Datadog Site | The Datadog region to send your metrics to. | 
+
+## OpenTelemetry Metrics
+
+Metrics from the [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) are mapped the same way the Datadog Agent maps OTLP metrics:
+
+- The instrumentation scope name and version become the `instrumentation_scope` and `instrumentation_scope_version` tags. Scope attributes also become tags.
+- Histograms are sent as sketches that carry the exact count and sum reported by OpenTelemetry. Delta histograms also carry the exact min and max.
+- Exemplars, metric descriptions, data point flags, and start times aren't sent.
