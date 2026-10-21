@@ -237,9 +237,9 @@ data:
 ```
 
 Note:
-- Successful tool results include the `result` field (truncated per `TOOL_RESULT_MAX_LENGTH`, default 1000 chars)
-- Tool errors are automatically detected from Rig's error format prefixes (`ToolCallError:`, `JsonError:`, `Tool returned an error:`)
-- When detected, `success` is set to `false` and the `error` field contains the full error message
+- If the tool call worked, `success` is `true` and `result` has the tool's output, cut to `TOOL_RESULT_MAX_LENGTH` characters (default 1000).
+- If the tool call failed, `success` is `false` and `error` has the error message. There is no `result`.
+- A tool call fails if the tool returns an error, or if an MCP server marks its result as an error (`isError`).
 
 **Reasoning** (requires both flags):
 ```bash
@@ -735,7 +735,7 @@ data:
 }
 ```
 
-Note: `task_id` is omitted if it could not be determined. `result` is truncated per `TOOL_RESULT_MAX_LENGTH` and omitted when empty. `worker_id` names the worker that ran the tool, the same value as on the matching `tool_call_started` event. Older AURA servers omit `worker_id` from this event. To attribute a completion from one of them, match its `tool_call_id` to the `tool_call_started` event.
+Note: `task_id` is omitted if it could not be determined. If the tool call failed, `success` is `false` and `result` has the error message. `result` is truncated per `TOOL_RESULT_MAX_LENGTH` and omitted when empty. `worker_id` names the worker that ran the tool, the same value as on the matching `tool_call_started` event. Older AURA servers omit `worker_id` from this event. To attribute a completion from one of them, match its `tool_call_id` to the `tool_call_started` event.
 
 **Tool coverage:** these events fire for the coordinator (`worker_id: "main"`) as well as workers. They cover MCP tools, the skill tools (`load_skill`, `read_skill_file`), and orchestration operations (`read_artifact`, `write_artifact`, `submit_result`, `list_prior_runs`). For `write_artifact`, the event's `arguments` replace the `content` value with its length, such as `"[1200 chars written to artifact]"`. The full content is in the saved artifact. Scratchpad exploration tools are suppressed by default and emit only when `AURA_EMIT_SCRATCHPAD_TOOL_EVENTS` is set.
 
@@ -932,7 +932,7 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
             "type": "function",
             "function": {
               "name": "",
-              "arguments": "{\"files\":[\"a.txt\",\"b.txt\"]}"
+              "arguments": "\"Found 2 files: a.txt, b.txt\""
             }
           }
         ]
@@ -941,6 +941,8 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
   ]
 }
 ```
+
+`arguments` holds the tool's result as a JSON string, cut to `TOOL_RESULT_MAX_LENGTH` characters (default 1000). A cut result ends in `... [truncated]`. Open WebUI adds it to the call's empty `arguments`, so together they read as valid JSON.
 
 **Final chunk**:
 ```json
