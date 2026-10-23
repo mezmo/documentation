@@ -1,0 +1,82 @@
+---
+title: "Trace Insights"
+description: "Use Trace Insights to see how your services call each other, find slow and failing dependencies, and open failed traces to see which spans failed and why."
+---
+
+Trace Insights builds a map of your services from the OpenTelemetry traces your Pipelines receive. Use it to see which services call each other, spot slow or failing dependencies, and follow a failed trace to the span that caused the failure.
+
+## Before You Start
+
+- Add an [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) to a Pipeline and send traces to it. Trace Insights draws services only from the traces that source receives.
+- Your role needs permission to read traces.
+
+## Open Trace Insights
+
+1. Log in to the [Mezmo Web App](https://app.mezmo.com/).
+2. In the left-hand navigation, select **Home** or **Pipelines**.
+3. Select **Service Map**.
+
+Trace Insights opens on the **Service map** tab. You can also open it from the **Service Maps** card on the home page, which opens the **Overview** tab.
+
+Trace Insights has two tabs, **Overview** and **Service map**. The header shows when the data was last updated. Select **Refresh** to load the latest data.
+
+## Read the Overview
+
+The **Overview** tab summarizes the services on the map. Each count shows the current state of the map, not a trend over time.
+
+| Tile | What it counts |
+| --- | --- |
+| **Services** | Services seen in traced requests. |
+| **Dependencies** | Calls from one service to another, with the number of sampled calls between services. |
+| **Slow dependencies** | Dependencies with p95 latency over 1 second. |
+| **Failing dependencies** | Dependencies that recorded at least one error. |
+
+Below the tiles, three cards rank the services and dependencies that most need attention:
+
+- **Slowest dependencies** ranks dependencies by p95 latency, averaged over each dependency's operations by sample count.
+- **Busiest services** ranks services by sampled calls, with their incoming and outgoing counts.
+- **Services with errors** ranks services by the errors recorded on their dependencies, whether the service is the caller or the one being called.
+
+Select any row to open that service or dependency on the service map.
+
+## Explore the Service Map
+
+The **Service map** tab draws each service as a node and each dependency between two services as a line. The legend in the corner explains the styling:
+
+- Thicker lines carry more traffic.
+- Line color marks dependencies with p95 latency over 750 milliseconds and over 1 second.
+- A node with a highlighted border recorded errors.
+- When a trace is open, its path through the services is highlighted.
+
+Use the controls in the header to focus the map:
+
+- **Find a service**: Enter a service name and select it to select that service on the map.
+- **Open a trace by id**: Enter a trace ID to open that trace.
+- **Hide services**: Select the services to remove from the map. The Overview counts and rankings leave them out too. Your browser remembers the hidden services for each account. To show every service again, select **Show all** in the menu, or the **x** on the **Hidden** label next to the tabs.
+
+### View Service and Dependency Details
+
+Select a node or line to open its details next to the map.
+
+For a service, the details show its incoming and outgoing samples and its incoming and outgoing dependencies. Calls with no traced caller, such as requests from outside your traced services, are grouped under **Entry point**. Select **Isolate Service** to show only that service and the services it calls. Select **Reset Isolation** to show the full map again.
+
+For a dependency, the details show the source and target services, a sample count, and a p95 latency weighted by each operation's samples.
+
+Both views list operations in a table with **Operation**, **P95 Latency**, and **Sample Count** columns. The table starts sorted by p95 latency, slowest first. Select a column heading to sort by it. Operations with no recorded latency always appear last and show **No data**. When a table groups operations by dependency, select a dependency's row to collapse or expand its operations.
+
+## Investigate Failed Traces
+
+A failed trace is a trace with at least one failed span. Slow traces that did not fail are not included.
+
+1. On the **Service map** tab, select a service.
+2. In the details, select the **Failed Traces** tab. When there are more failed traces than the list shows, the count reads as the most recent of the total.
+3. Select a trace ID to open the trace.
+
+The trace panel shows the trace's timestamp, ID, and duration, and a timeline of its spans. Above the timeline, a list names each failed span with its service, its operation, and the reason it failed. Select a failed span to expand it, highlight it on the timeline, and open its details.
+
+**Span Details** shows the span's service, name, operation, kind, status, duration, and start and end times. For a failed span, the status gives the reason it failed. For other spans, it shows the protocol status, such as an HTTP status code, when the span recorded one. Select the start time to view the logs from that moment in the log viewer.
+
+## Related Topics
+
+- [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source)
+- [Use the Mezmo Assistant](/docs/use-ai-assistant) to analyze traces in chat

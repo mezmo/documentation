@@ -262,6 +262,7 @@
               "telemetry-pipelines/build-deploy-mezmo-pipeline",
               "telemetry-pipelines/view-pipeline-data",
               "telemetry-pipelines/monitor-data-pipelines",
+              "telemetry-pipelines/trace-insights",
               "telemetry-pipelines/about-mezmo-trial",
               "telemetry-pipelines/configure-responsive-pipelines",
               "telemetry-pipelines/replay-buffered-data",
