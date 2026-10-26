@@ -1,0 +1,118 @@
+---
+title: "AI Governance Agents"
+description: "Register, edit, and delete runtime AI (AURA) agents, and assign each a governance policy, under AI Governance."
+---
+
+A Governance agent is a runtime AI agent registered to your Mezmo account under AI Governance. Registering a runtime agent gives it its own service account and a single access key, which authenticates the agent's calls to Mezmo. Registering an agent also lets you assign a governance policy that controls what the agent can do. You'll find the **AURA Agents** page in the **Governance** area of the Mezmo web app, next to **Policies**. This page was previously named **Agents**. [Learn more about Mezmo AURA](https://mezmo.com/aura).
+
+<Note>
+The **AURA Agents** page is available when the AI Governance feature is enabled for your account. If it is not enabled, you will not see the **Governance** area. Depending on your permissions, you might not see the **AURA Agents** page, or you might not be able to register, edit, or delete agents.
+</Note>
+
+## The AURA Agents List
+
+The **AURA Agents** page lists the runtime agents registered to your account. Each row shows:
+
+- The agent's name, with its description as subtext when one is set
+- Instance ID
+- Status
+- Date registered
+- The name of the assigned governance policy, shown as a link to [AI Governance Policies](/docs/governance-policies), or **None** when no policy is assigned
+
+## Register an Agent
+
+Before you begin, the AI Governance feature must be enabled for your account.
+
+Registering an agent uses a wizard with three steps. A step rail above the form shows your progress through **Details**, **Policy**, and **Finished**.
+
+1. Open **Governance** > **Agents** to open the **AURA Agents** page, then choose to register an agent.
+2. On the **Details** step, complete the required agent fields and the optional description. See [Agent Fields](#agent-fields) for the detail.
+3. On the **Policy** step, assign a governance policy, or choose to assign one later. See [Assign a Governance Policy](#assign-a-governance-policy).
+4. The **Finished** step opens after a successful save. Copy the one-time access key, and note the agent ID and service account ID.
+5. Add the configuration snippet from the **Finished** step to your AURA agent. See [Connect the Agent to AURA](#connect-the-agent-to-aura).
+
+<Warning title="Copy the access key now">
+The access key is shown only once, at registration. Copy it and store it securely before you leave the page, because Mezmo does not show it again, including when you edit the agent.
+</Warning>
+
+## Connect the Agent to AURA
+
+The **Finished** step shows a `config.toml` snippet to add to your AURA agent's configuration. The snippet routes the agent's tool calls to your Mezmo account for approval, where the agent's governance policy decides whether each call runs, waits for a person, or is refused.
+
+The snippet looks like this example. Copy it from the **Finished** step, because the wizard fills in your account's API host.
+
+```toml config.toml
+[hitl]
+require_approval = ["*"]
+
+[hitl.park]
+enabled = true
+
+[hitl.route]
+mode = "webhook"
+delivery = "poll"
+url = "https://api.mezmo.com/governance/workflow/authorize"
+poll_url = "https://api.mezmo.com/governance/workflow/authorize"
+timeout_secs = 100
+headers = { Authorization = "Bearer {{ env.MEZMO_GOVERNANCE_TOKEN }}" }
+```
+
+| Setting | What it does |
+| ---- | ---- |
+| `require_approval = ["*"]` | Sends every tool call the agent makes to Mezmo for a decision. |
+| `[hitl.park]` | Lets the agent pause a tool call while it waits for the decision. |
+| `mode`, `delivery`, `url`, and `poll_url` | Send each tool call to the Mezmo governance authorize endpoint, then poll that endpoint for the decision. |
+| `timeout_secs` | Sets how many seconds AURA waits for a decision. If no decision arrives in time, the tool call does not run. |
+| `headers` | Authenticates each request with a bearer token that AURA reads from the `MEZMO_GOVERNANCE_TOKEN` environment variable. Set that variable in the agent's environment before you start it. |
+
+For how AURA approval gates work, see [Human-in-the-Loop Approval Gates](../aura/hitl). The **Finished** step also links to a complete AURA example configuration on GitHub.
+
+## Agent Fields
+
+Get the instance ID from whoever deployed or operates the agent.
+
+| Field | Description |
+| ---- | ---- |
+| **Name** | Required. A name for the agent. |
+| **Instance ID** (`instance_id`) | Required. Identifies the running instance of the agent. It only needs to be unique within your account. The same instance ID can be registered under more than one account. |
+| **Description** | Optional. A description of the agent. |
+
+## Assign a Governance Policy
+
+A governance policy controls what a registered agent can do. For every tool call the agent makes, its policy decides whether the call runs, waits for a person's approval, or the policy refuses it.
+
+Assigning a policy is optional. An agent with no policy is ungoverned until you create a policy and assign it. You can assign or change an agent's policy later by editing the agent.
+
+To assign a policy on the **Policy** step:
+
+1. Pick a governance policy from the dropdown. To leave the agent ungoverned for now, choose **No policy**.
+2. Review the summary for the selected policy, which shows its description, its default (fall-through) action, its rule count, and its created date. The default action applies when no rule matches a tool call. See [AI Governance Policies](/docs/governance-policies) for what each default action does. The **Policy** step also has a **View policy** link that opens the selected policy's detail page in a new browser tab, so you keep your progress in the wizard.
+
+When you edit an agent, the **Policy** step pre-fills the agent's current policy.
+
+If no policies exist yet, the step shows an empty state that directs you to create a policy first. See [AI Governance Policies](/docs/governance-policies) to create one.
+
+## Edit an Agent
+
+1. Open an agent from the **AURA Agents** page.
+2. Choose edit.
+3. The **Details** step opens with the agent's current values already entered. Change the fields you want. See [Agent Fields](#agent-fields) for the detail.
+4. The **Policy** step opens with the agent's current policy pre-filled. Assign or change the policy. See [Assign a Governance Policy](#assign-a-governance-policy).
+5. Save your changes.
+6. The **Finished** step opens and shows the configuration snippet for connecting the agent to AURA. See [Connect the Agent to AURA](#connect-the-agent-to-aura). The access key is not shown when you edit an agent, so you cannot retrieve it in edit mode.
+
+## Delete an Agent
+
+1. On the **AURA Agents** page, open the agent you want to remove. This opens the edit wizard.
+2. From the edit wizard, choose the delete action.
+3. Confirm the deletion when prompted.
+
+Deleting an agent unregisters it from your account and cannot be undone. The confirmation includes an option to also delete the service account and access key associated with the agent.
+
+If the agent is deleted but its service account cannot be removed, the app reports a partial success rather than failing the whole operation.
+
+## Related Topics
+
+- [AI Governance Policies](/docs/governance-policies)
+- [Mezmo MCP](/docs/mezmo-mcp)
+- [Use the Mezmo Assistant](/docs/use-ai-assistant)

@@ -188,6 +188,7 @@ uninstallations
 [Uu]nmute(s|d)?
 [Uu]npause
 unparsed
+unregister(s|ed)?
 url
 userinfo
 uuid(s?)
