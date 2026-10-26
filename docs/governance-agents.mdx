@@ -1,118 +1,116 @@
 ---
 title: "AI Governance Agents"
-description: "Register, edit, and delete runtime AI (AURA) agents, and assign each a governance policy, under AI Governance."
+description: "Register AURA agents in Mezmo, choose the service account each one signs in with, assign a governance policy, and connect AURA to Mezmo."
 ---
 
-A Governance agent is a runtime AI agent registered to your Mezmo account under AI Governance. Registering a runtime agent gives it its own service account and a single access key, which authenticates the agent's calls to Mezmo. Registering an agent also lets you assign a governance policy that controls what the agent can do. You'll find the **AURA Agents** page in the **Governance** area of the Mezmo web app, next to **Policies**. This page was previously named **Agents**. [Learn more about Mezmo AURA](https://mezmo.com/aura).
+An AI Governance agent is an [AURA](../aura/index) agent registered to your Mezmo account. Registering an agent tells Mezmo which service account the agent signs in with and which policy decides its tool calls. This page explains how to register, connect, edit, and delete agents. For how agents fit into AI Governance, see [AI Governance](./ai-governance).
 
-<Note>
-The **AURA Agents** page is available when the AI Governance feature is enabled for your account. If it is not enabled, you will not see the **Governance** area. Depending on your permissions, you might not see the **AURA Agents** page, or you might not be able to register, edit, or delete agents.
-</Note>
+Agents are listed on the **AURA Agents** page. To open it, select **AI Governance** in the left navigation, then select **Agents**.
+
+## How Mezmo Identifies an Agent
+
+Each agent signs in to Mezmo with the access key of a service account. When a tool call arrives, Mezmo looks up the agent from those credentials and evaluates the call against the agent's policy. A service account can belong to only one active agent at a time.
+
+The access key decides which agent is calling. The agent's instance ID is a label that helps you tell agents apart.
 
 ## The AURA Agents List
 
-The **AURA Agents** page lists the runtime agents registered to your account. Each row shows:
+Each row on the **AURA Agents** page shows:
 
-- The agent's name, with its description as subtext when one is set
-- Instance ID
-- Status
-- Date registered
-- The name of the assigned governance policy, shown as a link to [AI Governance Policies](/docs/governance-policies), or **None** when no policy is assigned
+- **Name**, with the agent's description under it
+- **Policy**, the assigned policy, or **None**
+- **Instance ID**
+- **Status**
+- **Registered**, the date the agent was registered
+
+Select a policy name to open that policy. With `agent` Write, each row also has an **Edit** button.
 
 ## Register an Agent
 
-Before you begin, the AI Governance feature must be enabled for your account.
+Register an agent before you connect it to Mezmo, so that Mezmo can recognize its tool calls.
 
-Registering an agent uses a wizard with three steps. A step rail above the form shows your progress through **Details**, **Policy**, and **Finished**.
+Before you begin:
 
-1. Open **Governance** > **Agents** to open the **AURA Agents** page, then choose to register an agent.
-2. On the **Details** step, complete the required agent fields and the optional description. See [Agent Fields](#agent-fields) for the detail.
-3. On the **Policy** step, assign a governance policy, or choose to assign one later. See [Assign a Governance Policy](#assign-a-governance-policy).
-4. The **Finished** step opens after a successful save. Copy the one-time access key, and note the agent ID and service account ID.
-5. Add the configuration snippet from the **Finished** step to your AURA agent. See [Connect the Agent to AURA](#connect-the-agent-to-aura).
+- You need `agent` Write. To choose an existing service account, you also need `service_account` Read. To create one, you need `service_account` Write. See [Permissions](./ai-governance#permissions).
+- [Create a policy](./governance-policies#create-a-policy) for the agent. You can register an agent without a policy, but Mezmo refuses every tool call from it until you assign one.
+- Get the agent's instance ID. Run [`aura governance info`](../aura/cli-reference#show-instance-ids-aura-governance-info) where the agent runs to print it.
 
-<Warning title="Copy the access key now">
-The access key is shown only once, at registration. Copy it and store it securely before you leave the page, because Mezmo does not show it again, including when you edit the agent.
+To register an agent:
+
+1. On the **AURA Agents** page, select **Register Agent**.
+2. On the **Details** step, enter the agent's details. See [Agent Fields](#agent-fields).
+3. Select **Continue**.
+4. On the **Service Account** step, choose the service account the agent signs in with. The list shows only service accounts that no other agent uses. To create a service account, select **Create Service Account**, enter a name, and select **Create**.
+5. If you created a service account, copy its access key from the **New Service Account Key** window and store it securely, then select **Done**.
+6. Select **Continue**.
+7. On the **Policy** step, choose the policy for this agent, or choose **No policy (assign later)**. The step shows the policy's description, fallthrough, and number of rules. Select **View policy** to open the policy in a new browser tab.
+8. Select **Register Agent**.
+
+The **Finished** step confirms the registration and shows the agent ID, the service account ID, and the configuration to add to AURA.
+
+<Warning title="Copy a new access key before you leave">
+When you create a service account in the wizard, its access key appears only once: in the **New Service Account Key** window and again on the **Finished** step. Mezmo can't show the key again. If you choose an existing service account, the wizard shows only the key's last characters.
 </Warning>
 
 ## Connect the Agent to AURA
 
-The **Finished** step shows a `config.toml` snippet to add to your AURA agent's configuration. The snippet routes the agent's tool calls to your Mezmo account for approval, where the agent's governance policy decides whether each call runs, waits for a person, or is refused.
+The **Finished** step shows a `config.toml` section to add to your AURA agent's configuration. It turns on an approval gate for every tool call and sends each call to your Mezmo account for a decision. Copy it from the **Finished** step, because the wizard fills in your account's API host.
 
-The snippet looks like this example. Copy it from the **Finished** step, because the wizard fills in your account's API host.
+To connect the agent:
 
-```toml config.toml
-[hitl]
-require_approval = ["*"]
+1. Copy the configuration from the **Finished** step into the agent's `config.toml`.
+2. In the environment where the agent runs, set `MEZMO_GOVERNANCE_TOKEN` to the access key of the agent's service account.
+3. Restart the agent.
 
-[hitl.park]
-enabled = true
+The configuration authenticates each request with that access key. If you rotate the service account's key, update `MEZMO_GOVERNANCE_TOKEN` with the new key.
 
-[hitl.route]
-mode = "webhook"
-delivery = "poll"
-url = "https://api.mezmo.com/governance/workflow/authorize"
-poll_url = "https://api.mezmo.com/governance/workflow/authorize"
-timeout_secs = 100
-headers = { Authorization = "Bearer {{ env.MEZMO_GOVERNANCE_TOKEN }}" }
-```
+For how AURA approval gates work, see [Human-in-the-Loop Approval Gates](../aura/hitl).
 
-| Setting | What it does |
-| ---- | ---- |
-| `require_approval = ["*"]` | Sends every tool call the agent makes to Mezmo for a decision. |
-| `[hitl.park]` | Lets the agent pause a tool call while it waits for the decision. |
-| `mode`, `delivery`, `url`, and `poll_url` | Send each tool call to the Mezmo governance authorize endpoint, then poll that endpoint for the decision. |
-| `timeout_secs` | Sets how many seconds AURA waits for a decision. If no decision arrives in time, the tool call does not run. |
-| `headers` | Authenticates each request with a bearer token that AURA reads from the `MEZMO_GOVERNANCE_TOKEN` environment variable. Set that variable in the agent's environment before you start it. |
+### Share the Agent's Tool Catalog
 
-For how AURA approval gates work, see [Human-in-the-Loop Approval Gates](../aura/hitl). The **Finished** step also links to a complete AURA example configuration on GitHub.
+Mezmo keeps a catalog of the MCP servers, tools, and arguments that your agents use. The catalog suggests tool names, namespaces, and arguments as you write policy rules, evaluate policies, and build test cases. Mezmo adds a tool to the catalog the first time an agent calls it.
+
+To add tools that the agent has not called yet, with their descriptions and argument types, run [`aura governance sync`](../aura/cli-reference#sync-the-mcp-tool-catalog-aura-governance-sync). The sync sends the agent's MCP tool inventory to Mezmo. It needs a `[governance.catalog]` section in the agent's configuration.
 
 ## Agent Fields
 
-Get the instance ID from whoever deployed or operates the agent.
-
 | Field | Description |
 | ---- | ---- |
-| **Name** | Required. A name for the agent. |
-| **Instance ID** (`instance_id`) | Required. Identifies the running instance of the agent. It only needs to be unique within your account. The same instance ID can be registered under more than one account. |
-| **Description** | Optional. A description of the agent. |
-
-## Assign a Governance Policy
-
-A governance policy controls what a registered agent can do. For every tool call the agent makes, its policy decides whether the call runs, waits for a person's approval, or the policy refuses it.
-
-Assigning a policy is optional. An agent with no policy is ungoverned until you create a policy and assign it. You can assign or change an agent's policy later by editing the agent.
-
-To assign a policy on the **Policy** step:
-
-1. Pick a governance policy from the dropdown. To leave the agent ungoverned for now, choose **No policy**.
-2. Review the summary for the selected policy, which shows its description, its default (fall-through) action, its rule count, and its created date. The default action applies when no rule matches a tool call. See [AI Governance Policies](/docs/governance-policies) for what each default action does. The **Policy** step also has a **View policy** link that opens the selected policy's detail page in a new browser tab, so you keep your progress in the wizard.
-
-When you edit an agent, the **Policy** step pre-fills the agent's current policy.
-
-If no policies exist yet, the step shows an empty state that directs you to create a policy first. See [AI Governance Policies](/docs/governance-policies) to create one.
+| **Agent Name** | Required. 2 to 128 characters. Use letters, numbers, spaces, and the characters `_`, `.`, and `-`, with single spaces between words. |
+| **Description** | Optional. Up to 512 characters. |
+| **Instance ID** | Required. Up to 256 characters. Must be unique among the active agents in your account. You can't change it after you register the agent. |
 
 ## Edit an Agent
 
-1. Open an agent from the **AURA Agents** page.
-2. Choose edit.
-3. The **Details** step opens with the agent's current values already entered. Change the fields you want. See [Agent Fields](#agent-fields) for the detail.
-4. The **Policy** step opens with the agent's current policy pre-filled. Assign or change the policy. See [Assign a Governance Policy](#assign-a-governance-policy).
-5. Save your changes.
-6. The **Finished** step opens and shows the configuration snippet for connecting the agent to AURA. See [Connect the Agent to AURA](#connect-the-agent-to-aura). The access key is not shown when you edit an agent, so you cannot retrieve it in edit mode.
+Edit an agent to change its name, description, service account, or policy.
+
+1. On the **AURA Agents** page, select **Edit** on the agent's row.
+2. On the **Details** step, change the name or description, then select **Continue**.
+3. On the **Service Account** step, keep or change the service account, then select **Continue**.
+4. On the **Policy** step, keep or change the policy.
+5. Select **Save**.
+
+A new policy applies from the agent's next tool call. The **Finished** step shows the agent's AURA configuration again. It doesn't show the access key.
 
 ## Delete an Agent
 
-1. On the **AURA Agents** page, open the agent you want to remove. This opens the edit wizard.
-2. From the edit wizard, choose the delete action.
-3. Confirm the deletion when prompted.
+Deleting an agent unregisters it. Mezmo then refuses tool calls signed with its service account's key. You can't undo a deletion.
 
-Deleting an agent unregisters it from your account and cannot be undone. The confirmation includes an option to also delete the service account and access key associated with the agent.
+Before you begin, you need `agent` Manage.
 
-If the agent is deleted but its service account cannot be removed, the app reports a partial success rather than failing the whole operation.
+1. On the **AURA Agents** page, select **Edit** on the agent's row.
+2. On the **Details** step, select **Delete**.
+3. Optional. To delete the agent's service account and access key too, select **Also delete the service account (and its access key) associated with this agent**.
+4. Confirm the deletion.
+
+If you keep the service account, you can choose it for another agent. If the agent is deleted but its service account can't be, Mezmo shows a message that only the agent was deleted. You can then delete the service account from the **API Keys** page.
+
+## Service Accounts Used by Agents
+
+Service accounts are listed under **Settings** > **Organization** > **API Keys**. You can't delete a service account that an agent uses. Instead of a delete button, its row shows an icon that links to the agent. To delete the service account, first delete the agent or give the agent a different service account.
 
 ## Related Topics
 
-- [AI Governance Policies](/docs/governance-policies)
-- [Mezmo MCP](/docs/mezmo-mcp)
-- [Use the Mezmo Assistant](/docs/use-ai-assistant)
+- [AI Governance Policies](./governance-policies)
+- [AI Governance Workflows](./governance-workflows)
+- [AURA CLI governance commands](../aura/cli-reference#governance-commands-aura-governance)

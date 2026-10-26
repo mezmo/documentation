@@ -199,10 +199,19 @@
             "pages": [
               "docs/mezmo-mcp",
               "docs/use-ai-assistant",
-              "docs/governance-policies",
-              "docs/governance-agents",
               "docs/ai-investigations",
-              "docs/governance-workflows",
+              {
+                "group": "AI Governance",
+                "pages": [
+                  "docs/ai-governance",
+                  "docs/governance-overview-dashboard",
+                  "docs/governance-agents",
+                  "docs/governance-policies",
+                  "docs/governance-policy-testing",
+                  "docs/governance-workflows",
+                  "docs/governance-slack-approvals"
+                ]
+              },
               "docs/ingestion-integrations/akamai-cloud-monitor-logs"
             ]
           },

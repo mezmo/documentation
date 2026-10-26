@@ -1,68 +1,95 @@
 ---
 title: "AI Governance Workflows"
-description: "List and review the tool-call approval workflows that an AI Governance policy escalates for a decision."
+description: "Review the tool-call requests your AURA agents send, and approve or deny the ones an AI Governance policy holds for approval."
 ---
 
-An AI Governance workflow is a single tool-call approval request that a governance policy escalated for a decision. When a policy evaluates a tool call and the outcome is **Require Approval**, the call is surfaced here as a workflow that needs a person's approval. While the workflow awaits a decision its status is **Pending**; after a decision it is **Approved** or **Denied**. The tool calls being evaluated come from **AURA** agents registered to your account. Workflows live in the **Governance** area of the Mezmo web app, alongside **Agents** and **Policies**, where the list is headed **Workflow Decisions**.
+An AI Governance workflow is the record of one request from an agent: the tool calls the agent wanted to run, and how each one was decided. Use the **Workflows** page to see what your agents asked to do, and to approve or deny the requests that a policy holds for a person. This page explains how to find, review, and decide workflows. To decide from Slack instead, see [Approve AI Governance Requests in Slack](./governance-slack-approvals).
 
-<Note>
-AI Governance is available when the feature is enabled for your account. If the feature is not enabled, you will not see the **Governance** area. To have it turned on, contact Mezmo.
-</Note>
-
-## Access and Permissions
-
-What you can do with workflows depends on your access level.
-
-- To view the Workflows list and a workflow's detail, you need **read** access.
-- To make a decision on a workflow, you need **write** access. If the workflow's policy names an approver role, you must also belong to that role. See [Making a Decision](#making-a-decision).
-
-With read-only access, you can view workflows, but you cannot approve or deny them. To get a decision, share the workflow's URL with someone who can decide it.
+To open your workflows, select **AI Governance** in the left navigation, then select **Workflows**. The page is headed **Workflow Decisions**. Viewing workflows needs `workflow` Read, and deciding them needs `workflow` Write. See [Permissions](./ai-governance#permissions).
 
 ## How a Workflow Is Created
 
-When an AURA agent proposes a tool call, the agent's governance policy evaluates the call against its rules. Most calls resolve on their own: the policy allows the call, or it denies the call outright. A workflow appears here only when the evaluation escalates the call for a person's approval, because the outcome is **Require Approval**. For how a policy reaches an outcome, see [AI Governance Policies](/docs/governance-policies). For the agents that make the calls, see [AI Governance Agents](/docs/governance-agents).
+Mezmo records a workflow for every request an agent sends, whatever the outcome. When an AURA agent sends tool calls, the agent's policy evaluates each one. The workflow's status follows from the outcome:
 
-## The Workflows List
-
-The **Workflow Decisions** list shows the workflows for your account. Each row describes one workflow.
-
-| Column | Description |
+| Status | What happened |
 | ---- | ---- |
-| **Status** | The workflow's current state: **Pending**, **Approved**, or **Denied**. |
-| **Workflow** | The workflow, identified by its first gated or denied tool call. |
-| **Agent** | The AURA agent that made the tool call. |
-| **Policy** | The governance policy that evaluated the call. |
-| **Tool Calls** | The number of tool calls in the workflow. |
-| **Requested** | When the workflow was raised. |
+| **Approved** | The policy allowed every call, or a person approved the request. |
+| **Denied** | The policy denied a call, or a person denied the request. |
+| **Pending** | The policy held a call for approval, and the request is waiting for a person. |
+| **Expired** | Nobody approved or denied the request within the approval window. |
 
-Status tabs above the list filter it to **All**, **Pending**, **Approved**, or **Denied**. You can also filter by **Agent** and by **Policy**. These filters are reflected in the page URL, so you can share a filtered view or return to it with your browser's back button.
+For how policies reach an outcome, see [AI Governance Policies](./governance-policies#how-a-policy-decides). For the agents that send requests, see [AI Governance Agents](./governance-agents).
 
-The list is paginated. Use **Previous** and **Next** to move between pages.
+A workflow keeps a copy of the agent and policy as they were when it was created. It still reads correctly after the agent or policy is renamed, changed, or deleted.
 
-Selecting a row opens that workflow's detail. See [The Workflow Detail](#the-workflow-detail).
+## Find Workflows
 
-## The Workflow Detail
+The **Workflow Decisions** list shows each workflow's **Status**, a summary of the request under **Workflow**, the **Agent**, the **Policy**, the **Tool Calls**, and when it was **Requested**. The newest workflows are first.
 
-Selecting a workflow opens its detail page, which shows:
+To narrow the list:
 
-- A **status badge** for the workflow's current state.
-- A **headline** naming the first tool call that was gated or denied.
-- **Tool-call cards**, one per call in the workflow. Each card shows the tool's name, the arguments passed to it, and any dependencies between calls.
-- A **Request** panel with the workflow's metadata.
-- A **Timeline** of the workflow's events.
+- Select a status tab: **All**, **Pending**, **Approved**, **Denied**, or **Expired**.
+- Choose an agent from **All Agents** or a policy from **All Policies**. These filters apply to the page of results you're viewing.
 
-## Making a Decision
+The filters are saved in the page URL, so you can share a filtered view. The first page of the list refreshes every 30 seconds. Select a row to open the workflow.
 
-On a **Pending** workflow, when decision-making is enabled for your account, a reader with write access sees a **Decision Gate** with a **reason** field and **Deny** and **Approve Workflow** controls. A reader with read-only access can open the workflow but does not see the Decision Gate.
+When requests are waiting, the **AI Governance** item in the left navigation shows how many. Hover over it to see the newest pending workflows, and select one to open it.
 
-You also need to belong to the approver role that the workflow's policy requires. The policy names this role when it's configured. See [AI Governance Policies](/docs/governance-policies). Without that role, write access alone does not let you decide. If the policy names no approver role, write access is enough. The required role is fixed when the workflow is created, so editing or deleting the policy later does not change who can decide on a pending workflow. You can still change who can decide by updating who belongs to that role. See [Role-Based Access Control](/docs/rbac).
+## Review a Workflow
 
-<Note>
-The ability to approve or deny workflows is still rolling out and may not yet be available for your account.
-</Note>
+A workflow's detail page shows:
 
-## Related
+- The status, when the request was made, and a headline that names the first call the policy held or denied
+- For a decided workflow, who decided it, when, and the reason they gave. A workflow that the policy decided shows **Approved by policy** or **Denied by policy**.
+- **Tool Calls**: each call's tool, namespace, intent, and arguments, the outcome the policy gave it, and any code and message from the deciding rule. A call that runs after other calls lists them.
+- **Agent & Policy**: the agent that sent the request and the policy that evaluated it, with links to each. If either has since been deleted, it's marked as no longer existing.
+- **Timeline**: when the workflow was recorded, how the policy evaluated it, and how it was resolved
+- **Request debug info**: identifiers for the request, such as the agent instance, scope, origin, request ID, and decision ID. Select it to expand it.
 
-- [AI Governance Policies](/docs/governance-policies)
-- [AI Governance Agents](/docs/governance-agents)
-- [Human-in-the-Loop Approval Gates](/aura/hitl): Configure approval gates inside AURA itself, separate from this web-app governance surface.
+## Approve or Deny a Workflow
+
+Decide a pending workflow so the agent can continue. Approving runs the held calls. Denying refuses them.
+
+Before you begin:
+
+- You need `workflow` Write.
+- If the workflow's policy names an approving role, you need to be a member of that role. See [Who Can Decide](#who-can-decide).
+
+1. Open the pending workflow.
+2. Optional. Enter a **Reason**. Mezmo records it with the decision and returns it to the agent. Up to 256 characters.
+3. Select **Approve Workflow** or **Deny**.
+
+The workflow's status changes to **Approved** or **Denied**, and the agent receives the decision.
+
+### Who Can Decide
+
+The approving role comes from the policy as it was when the workflow was created. Editing the policy or changing its approving role later doesn't change who can decide workflows that are already pending. To change who can decide them, change who belongs to the role. See [Role-Based Access Control](./rbac).
+
+If the policy names no approving role, anyone with `workflow` Write can decide. Mezmo checks the approving role when you select **Approve Workflow** or **Deny**. If you aren't a member, the decision isn't recorded and an error appears.
+
+If you can't decide a workflow, share its URL with someone who can. To notify approvers automatically, [add Slack channels to the policy](./governance-slack-approvals).
+
+## Expired Workflows
+
+A pending workflow can be approved or denied for 15 minutes. After that, Mezmo no longer accepts a decision, and within a few minutes the workflow's status changes to **Expired**. Its timeline ends with **Expired before a decision was made**.
+
+The agent treats an expired request like a denial, and the held calls don't run.
+
+## Save a Workflow as a Test Case
+
+Turn a real request into a test case, so you can check that later policy changes keep deciding it the same way. You need `policy` Write, and the workflow needs at least one tool call.
+
+1. Open the workflow.
+2. In the **Tool Calls** header, select **Save workflow as**.
+3. Choose where to save it:
+   - **Policy Test Case** adds the case to the test suite of the policy that evaluated the workflow. This option appears only if that policy still exists.
+   - **Test Case Library** saves the case to the **Test Cases** library, where any policy can use it.
+
+The outcomes from the workflow become the case's expectations. Check them before you save. See [Evaluate and Test AI Governance Policies](./governance-policy-testing#test-a-policy).
+
+## Related Topics
+
+- [Approve AI Governance Requests in Slack](./governance-slack-approvals)
+- [AI Governance Policies](./governance-policies)
+- [AI Governance Overview Dashboard](./governance-overview-dashboard)
+- [Human-in-the-Loop Approval Gates](../aura/hitl)

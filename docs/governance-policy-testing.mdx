@@ -1,0 +1,136 @@
+---
+title: "Evaluate and Test AI Governance Policies"
+description: "Dry-run sample tool calls through an AI Governance policy, and keep test suites and saved test cases that catch unwanted changes before you accept a draft."
+---
+
+Check how an AI Governance policy decides before you rely on it, instead of testing with a live agent. Mezmo gives you two tools:
+
+- An **evaluation** sends a batch of sample tool calls through a policy once and shows the outcome for each call and each rule. Nothing is saved.
+- A **test suite** keeps test cases, which are tool calls and the outcomes you expect, so you can rerun the same checks every time you change the policy.
+
+This page explains both, and the **Test Cases** library that holds cases you can reuse with any policy. For how policies decide, see [AI Governance Policies](./governance-policies#how-a-policy-decides).
+
+## Evaluate a Policy
+
+Evaluate a policy to try out tool calls, or to check a draft before you accept it. An evaluation is a dry run: nothing is saved, and no workflow is recorded. Evaluating a draft doesn't take or change its editing hold.
+
+Before you begin, you need `policy` Read. To choose which agent to evaluate as, you also need `agent` Read.
+
+1. Open the evaluation. Use one of these:
+   - On a policy's detail page, select **Run Evaluation**.
+   - In the policy wizard, while editing a draft, select **Evaluate Draft**. This saves the draft first.
+2. On the **Evaluate Tool Calls** page, under **Evaluate Against**, choose **Live Policy** or **Draft**. **Draft** appears only when the policy has a draft.
+3. Optional. In **Evaluate as Agent**, choose one of the policy's active agents. The policy's oldest active agent is selected by default.
+4. Add tool calls. For each call, enter a **Tool Name**, and add any **Arguments** as name and value pairs. Select **Add Tool Call** for more calls. A batch can hold up to 100 calls.
+5. Select **Run Evaluation**.
+
+Enter the tool name as `namespace.tool`, such as `kubectl.rollout_restart`. The text before the first dot is the tool's namespace. To start from the policy's own rules, select **Fill from Rules**. This replaces the batch with one call per rule.
+
+After a run, change any call and select **Run Again**. Switching between **Live Policy** and **Draft** clears the result.
+
+### Read the Results
+
+The results have three parts:
+
+- **The batch verdict.** The outcome for the whole batch, which is the most restrictive outcome of its calls. It also shows the agent the batch was evaluated as and the reason returned to the agent.
+- **Per Call.** Each call's outcome, and the rule that decided it, or a note that no rule matched and the fallthrough decided it.
+- **Per Rule.** For each rule, how many calls it decided, whether it matched but a stricter rule won, or whether it matched nothing.
+
+If the result shows that the engine failed closed, the rules didn't run and Mezmo treats the call as denied. Don't rely on that result. Run the evaluation again.
+
+### Save Evaluated Calls as a Test Case
+
+With `policy` Write, you can keep an evaluated batch as a test case. The outcomes from the evaluation become the case's expectations.
+
+- Select **Save as Test Case** to add the case to this policy's test suite. Check the expectations Mezmo filled in, then select **Save Case**.
+- Select **Save to Library** to save the case to the [Test Cases library](#reuse-test-cases-across-policies).
+
+## Test a Policy
+
+Each policy has one test suite. Mezmo creates it, with no cases, when you create the policy, and deletes it when you delete the policy. Run the suite against a draft before you accept the draft, to confirm that your change doesn't alter decisions you rely on.
+
+Viewing a test suite needs `policy` Read. Adding, editing, or running cases needs `policy` Write. Running needs Write because Mezmo records each run.
+
+To open a policy's test suite, open the policy's detail page and select **Open Suite** on the **Test Suite** card. You can also select **Test Suite** from the policy's row menu on the **Policies** page.
+
+### Test Cases and Expectations
+
+A test case is one or more tool calls sent together, the same way an agent sends them. You can set expectations at two levels:
+
+- **The whole request.** The outcome that the case as a whole must produce, which is the most restrictive outcome of its calls.
+- **Each call.** The outcome that one call must produce, and optionally the code its decision must return.
+
+Each expectation is **Any**, **Allow**, **Approval**, or **Deny**. **Any** records the outcome without grading it.
+
+A case passes when it meets its request expectation and each call meets its own expectation. A case with every expectation set to **Any** is ungraded. Ungraded cases don't count as failures.
+
+<Note>
+The request expectation must be at least as restrictive as every call expectation. For example, a case can't expect **Allow** for the request when one of its calls expects **Deny**. Mezmo won't save a case like that, because it could never pass.
+</Note>
+
+### Add a Test Case
+
+1. On the policy's test suite page, select **Add Case**.
+2. Enter a **Name** and an optional **Description**.
+3. Choose what the whole request should roll up to.
+4. For each tool call, enter the **Tool Name** and the **Tool Namespace**, which is the MCP server the tool comes from. Add any **Arguments**. A call with no namespace is evaluated under the namespace `default`.
+5. Optional. For each call, choose what the call should be, and enter an **Expected Code**.
+6. Select **Add Tool Call** for each more call you need.
+7. Select **Save Case**.
+
+You can also add cases in these ways:
+
+- Select **Add from Library** to copy saved cases from the [Test Cases library](#reuse-test-cases-across-policies).
+- Save evaluated calls with **Save as Test Case**. See [Save Evaluated Calls as a Test Case](#save-evaluated-calls-as-a-test-case).
+- Save a recorded workflow. On a workflow's detail page, select **Save workflow as** > **Policy Test Case**. See [AI Governance Workflows](./governance-workflows#save-a-workflow-as-a-test-case).
+
+To change a case, select **Edit Case** on its row. The **Edit Case** menu also has **Export to Library** and **Remove Case**.
+
+### Run the Test Suite
+
+1. On the policy's test suite page, under **Run Against**, choose **Live Policy**, **Draft**, or **Both**. **Draft** and **Both** appear only when the policy has an open draft. **Both** is the default when they do.
+2. Select **Run Suite**.
+
+For the live policy and the draft, the results show how many graded cases passed, failed, and were ungraded. They also show rule coverage: how many of the policy's rules decided at least one call, and which rules no case reaches. Use the filters to show only failing cases, ungraded cases, or the cases that the draft changes. Select a case to see each call's expected and actual outcome, code, and the rule that decided it.
+
+Accepting a draft doesn't require its test suite to pass, so check the results before you accept.
+
+The **Test Suite** card on the policy's detail page shows the last run's pass counts, such as **Live · 9 of 10 pass**. The card keeps the last run only while your browser session lasts. To run the suite from the card, select **Run Suite**.
+
+## Reuse Test Cases Across Policies
+
+The **Test Cases** library holds test cases that belong to no policy. Save a case there once, then copy it into any policy's test suite or run it through any policy's evaluation. To open the library, select **AI Governance** in the left navigation, then select **Test Cases**.
+
+A test suite holds its own copy of each case. Editing or deleting a case in the library never changes a suite that already holds a copy.
+
+To add a case to the library, use one of these:
+
+- On the **Test Cases** page, select **New Test Case**, build the case, and select **Save to Library**.
+- On an evaluation's results, select **Save to Library**.
+- On a workflow's detail page, select **Save workflow as** > **Test Case Library**. The case records which workflow it came from.
+- In a test suite, select **Export to Library** from a case's **Edit Case** menu.
+
+On the **Test Cases** page, each case's **Edit Case** menu offers:
+
+- **Evaluate**: choose a policy and open its evaluation with the case's tool calls. The case's expectations aren't carried over. With `policy` Read only, this is the only option.
+- **Add to Suite**: choose a policy and copy the case into its test suite.
+- **Delete Case**: permanently delete the case from the library.
+
+## Limits
+
+| Item | Limit |
+| ---- | ---- |
+| Tool calls in one evaluation | 100 |
+| Cases in one test suite | 50 |
+| Tool calls in one test case | 100 |
+| Test case name | 2 to 128 characters |
+| Test case description | Up to 512 characters |
+| Tool name and namespace in a test case | Up to 128 characters each |
+| Argument name | Up to 64 characters |
+| Expected code | Up to 35 characters |
+
+## Related Topics
+
+- [AI Governance Policies](./governance-policies)
+- [AI Governance Workflows](./governance-workflows)
+- [AI Governance](./ai-governance)
