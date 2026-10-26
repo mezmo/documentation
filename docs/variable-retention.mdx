@@ -4,7 +4,7 @@ description: "Create rules that apply custom retention periods to specific log l
 ---
 
 <Note>
-This feature is only available for customers on an Enterprise plan, and is restricted to **Owner** and **Admin** user roles. Please contact your Customer Support Manager or [support@mezmo.com](mailto:support@mezmo.com) for more information.
+This feature is only available for customers on an Enterprise plan. Access is governed by the Variable Retention permission levels described in the [Permissions](#permissions) section below. Please contact your Customer Support Manager or [support@mezmo.com](mailto:support@mezmo.com) for more information.
 </Note>
 
 ## About Variable Retention
@@ -23,11 +23,25 @@ Variable Retention also includes a **Usage Dashboard,** where you can view the t
 - **Exclusion Rules** apply before any Variable Retention rules. If you want to apply a Variable Retention rule to an excluded log line, be sure to [make an exception in the corresponding Exclusion Rule](/docs/exclusion-rules)  to not exclude it.
 - New Variable Retention rules may require up to five minutes to take effect, as will changes to existing rules
 
+## Permissions
+
+Variable Retention has three cumulative permission levels. **Manage** includes everything in **Write**, and **Write** includes everything in **Read**.
+
+- **Read**: open the **Variable Retention Rules** page and view the list of rules. You cannot make any changes at this level.
+- **Write**: everything Read allows, plus add a rule, edit a rule, reorder rules or change a rule's priority, and enable or disable a rule.
+- **Manage**: everything Write allows, plus delete a rule.
+
+If your permission level does not allow an action, its control appears disabled on the **Variable Retention Rules** page.
+
+You assign these levels to roles at **Settings** &gt; **Organization** &gt; **Roles**. Click a role, then click the **Permissions** tab and set the level for **Variable Retention**. See [Role-Based Access Control](/docs/rbac) for details.
+
 ## Create and Manage a Variable Retention Rule
 
 You can create a Variable Retention Rule by specifying the retention period for the log lines, and then the log line search criteria.
 
 ### Create a Variable Retention Rule
+
+This action requires the **Write** permission level. See [Permissions](#permissions).
 
 1. In the Mezmo user interface, go to **Settings** &gt; **Usage** &gt; **Variable Retention**.
 2. Click **Add Rule**.
@@ -38,17 +52,25 @@ You can create a Variable Retention Rule by specifying the retention period for 
 
 ### Enable or Disable a Variable Retention Rule
 
+This action requires the **Write** permission level. See [Permissions](#permissions).
+
 You can disable or enable a Variable Retention rule by using the on/off switch on the right side of the rule.
 
 ### Edit a Variable Retention Rule
+
+This action requires the **Write** permission level. See [Permissions](#permissions).
 
 Click the three dot icon next to the rule on/off switch and click **Edit** to make changes to the rule **Name**, **Retention Period**, or search criteria.
 
 ### Delete a Variable Retention Rule
 
+This action requires the **Manage** permission level. See [Permissions](#permissions).
+
 Click the three dot icon next to the rule on/off switch and click **Delete** to remove the rule.
 
 ### Manage Variable Retention Rule Priority
+
+This action requires the **Write** permission level. See [Permissions](#permissions).
 
 Variable Retention rule priorities determine which rule should be applied to a log line if it matches multiple retention rules. Rules with lower priority numbers take precedence over rules with higher priority numbers. For example, if a log line matches a rule with a priority of 5, and a rule with a priority of 20, only the rule with the priority of 5 will be applied.
 

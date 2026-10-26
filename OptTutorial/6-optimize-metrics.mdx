@@ -7,7 +7,7 @@ description: "Build a Mezmo pipeline that enriches, state-routes, aggregates, an
 
 ## Step 1: Create a new Pipeline to handle and route OpenTelemetry Metrics
 
-Create a new Mezmo Pipeline by clicking [New Pipeline](https://app.mezmo.com/pipelines/pipeline/new) in the platform.  Give this a name like `Metric Handler`, select Create Blank Pipeline, then select Continue at the bottom. 
+Create a new Mezmo Pipeline by clicking [New Pipeline](https://app.mezmo.com/pipelines/pipeline/new) in the platform. Give this a name like `Metric Handler`, select Create Blank Pipeline, then select Continue at the bottom. 
 
 ## Step 2: Add OpenTelemetry Metric Source
 
@@ -15,13 +15,13 @@ Click `Add Source` and select your OpenTelemetry Metric source from the `Shared 
 
 ## Step 3: Insert State Enrichment
 
-As we did with the previous pipeline, we will prepare the data to take advantage of [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) in the future by enriching each metric with the current pipelines operational state.   Click the `three dots` on your Otel Metric Source and select `Add Node->Add Processor->Script Execution`.
+As we did with the previous pipeline, we will prepare the data to take advantage of [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) in the future by enriching each metric with the current pipelines operational state. Click the `three dots` on your Otel Metric Source and select `Add Node->Add Processor->Script Execution`.
 
 <Frame caption="Metric State Enrichment">
   ![Image](/images/OptTutorial/76pknbpszl4xfabgzustgpnrf5hyvccmflxji3yow646vsg2cn206x8q0f4g0mwu.png)
 </Frame>
 
-Paste in the following JavaScript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable by tagging this data in-flight.
+Paste in the following JavaScript and click `Save`. Note that the script does a bit more than add the `operational_state` state variable by tagging this data in-flight.
 
 ```javascript
 function processEvent(message, metadata, timestamp, annotations) {
@@ -42,7 +42,7 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 ## Step 4: Route Based on State
 
-After the initial Enrichment processor, let's route the data flow based on that `operational_state`.  Connect a Route processor to the Enrichment Script with the following configuration:
+After the initial Enrichment processor, let's route the data flow based on that `operational_state`. Connect a Route processor to the Enrichment Script with the following configuration:
 
 - Title: `State Router`
 - Route 1:
@@ -63,7 +63,7 @@ You will end up with a pipeline that looks like the following
 
 ## Step 5: Normalize and Aggregate in Normal State
 
-A common approach to reduce Metric data volumes is to aggregate those metrics and reduce their cardinality. Mezmo makes this incredibly easy with intuitive processors.  We will implement a 5 min aggregation on all incoming metrics and trim off the tags being used.  Connected to your `Normal` and `Unmatched` outputs from the `State Router`, add a `Script Execution` processor with the following script:
+A common approach to reduce Metric data volumes is to aggregate those metrics and reduce their cardinality. Mezmo makes this incredibly easy with intuitive processors. We will implement a 5 min aggregation on all incoming metrics and trim off the tags being used. Connected to your `Normal` and `Unmatched` outputs from the `State Router`, add a `Script Execution` processor with the following script:
 
 ```javascript
 function processEvent(message, metadata, timestamp, annotations) {
@@ -97,7 +97,7 @@ Next, we will limit the cardinality of that `host_id` tag to 10 by connecting a 
 - Value Limit: `10`
 - Mode: `Probablistic`
 
-Finally, let's aggregate on a 5 min window by adding an `Aggregate` processor.  Leave the default configuration, only changing the following:
+Finally, let's aggregate on a 5 min window by adding an `Aggregate` processor. Leave the default configuration, only changing the following:
 
 - Interval (seconds): `300`
 
@@ -107,7 +107,7 @@ Finally, let's aggregate on a 5 min window by adding an `Aggregate` processor.  
 
 ## Step 6: Sending Data Downstream Systems
 
-Now, connect all outputs to a Blackhole destination.  This is simply a placeholder for any Observability system you'd like.  Explore our destinations in-app or in our [docs](/telemetry-pipelines/supported-telemetry-data-destinations) to easily send telemetry data downstream into tools, data lakes and more.
+Now, connect all outputs to a Blackhole destination. This is simply a placeholder for any Observability system you'd like. Explore our destinations in-app or in our [docs](/telemetry-pipelines/supported-telemetry-data-destinations) to easily send telemetry data downstream into tools, data lakes and more.
 
 You should have a pipeline that looks like the following.
 

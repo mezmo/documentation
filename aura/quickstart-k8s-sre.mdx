@@ -241,7 +241,7 @@ To verify the tools AURA actually discovered at runtime:
 kubectl logs -l app.kubernetes.io/name=aura | grep -i "tool"
 ```
 
-<Warning>If a tool name in `mcp_filter` doesn't match any real tool, it's silently ignored. If *none* match, the worker has zero tools and will fail.</Warning>
+<Warning>If a tool name in `mcp_filter` doesn't match any real tool, it's silently ignored. If *none* match, the worker has zero tools and will fail. An entry that breaks the [tool-name pattern syntax](/aura/configuration-reference#tool-name-patterns), such as one containing a space, isn't ignored: it stops AURA from starting.</Warning>
 
 ## Cleanup
 

@@ -25,7 +25,7 @@ CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura -- webserver --ver
 
 ## Minimal Configs
 
-Bare-minimum configs to get running with a single LLM provider. No MCP tools — just add an API key.
+Bare-minimum configs to get running with a single LLM provider. No MCP tools: just add an API key.
 
 ```bash
 export OPENAI_API_KEY="sk-..."
@@ -44,11 +44,14 @@ CONFIG_PATH=examples/minimal/openai.toml cargo run --bin aura -- webserver
 
 Full agent compositions that combine an LLM provider with real MCP tool servers and tailored system prompts. Each file documents its prerequisites and required environment variables.
 
+The system prompts in `incident-response-mezmo.toml`, `incident-response-datadog.toml`, and `kubernetes-sre.toml` tell the agent to query the last 5 minutes of telemetry by default. To look further back, name the window in your request, for example "check error rates over the past 2 hours." To change the default, edit the 5-minute instruction in the config's `system_prompt`.
+
 | File | Description |
 |------|-------------|
 | [`devops-assistant.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/devops-assistant.toml) | GitHub MCP |
 | [`incident-response-mezmo.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-mezmo.toml) | PagerDuty + Mezmo |
 | [`incident-response-datadog.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-datadog.toml) | PagerDuty + Datadog |
+| [`incident-response-checkly.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/incident-response-checkly.toml) | Checkly |
 | [`kubernetes-sre.toml`](https://github.com/mezmo/aura/blob/main/examples/complete/kubernetes-sre.toml) | K8s MCP + Prometheus |
 
 ### Serving Multiple Agents
@@ -67,5 +70,4 @@ Self-contained Docker Compose setups for specific use cases. Each has its own gu
 
 | Quickstart | Description |
 |-----------|-------------|
-| [Orchestration — Math MCP](/aura/quickstart-orchestration-math) | Multi-agent orchestration with coordinator/worker architecture and a math tool server |
 | [Kubernetes SRE](/aura/quickstart-k8s-sre) | AI-powered SRE agent on KIND with Kubernetes and Prometheus MCP servers |

@@ -6,7 +6,7 @@ description: "Reference for the message schema, required fields, and display nam
 If you choose to restore data to the [Mezmo Log Analysis Destination](/telemetry-pipelines/mezmo-destination), it must conform to the schema shown in this topic.
 
 <Note>
-This schema is what appears in the `message` property within the Pipeline.  The contents of `message`  is what is sent to the archive.
+This schema is what appears in the `message` property within the Pipeline. The contents of `message`  is what is sent to the archive.
 </Note>
 
 ## Primary Fields
@@ -19,8 +19,8 @@ This schema is what appears in the `message` property within the Pipeline.  The 
 | `level` | Indicates the level of severity and it displayed in the collapsed line. | 
 | `_label` | JSON Object containing the key and values of labels appearing as yellow chips under LABELS in expanded view. | 
 | `_tag` | JSON Object containing the key and values of tags appearing as purple chips under TAGS in expanded view. | 
-| `_rawline` | This is usually the entire raw line.  If set is displayed just above line identifiers. | 
-| `_meta` | JSON Object of metadata fields and values.  If `_logtype` is meta, these values will be displayed in a special section at the top of the expanded view. | 
+| `_rawline` | This is usually the entire raw line. If set is displayed just above line identifiers. | 
+| `_meta` | JSON Object of metadata fields and values. If `_logtype` is meta, these values will be displayed in a special section at the top of the expanded view. | 
 
 ## Line Identifier Display Names for Fields
 

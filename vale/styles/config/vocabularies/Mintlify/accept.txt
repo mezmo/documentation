@@ -42,6 +42,7 @@ Datadog('?s?)
 datetime
 dedupe
 deduplicat(e|es|ion|ing)
+dequeue
 deserialization
 dev
 discoverability
@@ -68,6 +69,7 @@ fmt
 frontmatter
 GBs
 gemini
+get_
 Github
 Grafana
 Gzip
@@ -148,6 +150,7 @@ RSyslog
 ruleset
 runbook(s?)
 serverless
+sidebarTitle
 signup
 Splunk
 SRE(s?)
@@ -161,6 +164,7 @@ subdir
 substring(s?)
 Sysdig
 Syslog
+task_(started|completed)
 tcp
 Throughputs
 Tiering
@@ -168,6 +172,7 @@ timeframe
 toggleable
 TOML
 toolset
+tool_call_(started|completed)
 tool_start
 tokeniz(er|ation)
 tokio
@@ -180,6 +185,7 @@ unexpressible
 ungated
 uninstallations
 [Uu]nmount(s|ed|ing)?
+[Uu]nmute(s|d)?
 [Uu]npause
 unparsed
 url

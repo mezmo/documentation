@@ -1,0 +1,105 @@
+---
+title: "Breaking Changes: 5 October 2026"
+description: "Find out which tool-name patterns stop AURA v0.2.18 from starting, what `:`, `[abc]`, and `{a,b}` now match, and which MCP server provides a shared tool name."
+---
+
+# 5 October 2026
+
+# !!BREAKING CHANGES!!
+
+## Summary
+
+AURA v0.2.18 changes how tool-name patterns and shared MCP tool names work:
+
+- **Invalid patterns stop startup.** AURA now checks every tool-name pattern when it loads the config. This covers `[agent].mcp_filter`, `[orchestration.worker.<name>].mcp_filter`, `[hitl].require_approval`, `[agent].client_tool_filter`, and the keys of `[mcp.servers.<name>.scratchpad]`.
+- **Some patterns match differently.** `:`, `[abc]`, and `{a,b}` now have pattern meanings in `mcp_filter`, `client_tool_filter`, and scratchpad keys instead of matching those characters literally. In `require_approval`, `:` now scopes a pattern to one MCP server.
+- **Shared tool names resolve to one server.** When multiple MCP servers advertise the same tool name, the server whose `[mcp.servers.<name>]` key sorts first always provides it.
+- **The web server connects to MCP servers before it starts accepting requests.** Slow or unreachable servers lengthen startup.
+
+<Warning>**CONFIGS WITH AN INVALID TOOL-NAME PATTERN FAIL TO LOAD AND THE APP FAILS TO START.** See [Startup Errors](#startup-errors).</Warning>
+
+For the full pattern syntax, see [Tool-Name Patterns](/aura/configuration-reference#tool-name-patterns) in the configuration reference.
+
+## Why
+
+Before this release, the pattern fields didn't share one syntax:
+
+- `mcp_filter`, `client_tool_filter`, and scratchpad keys understood only `*` and `?`, and treated every other character literally.
+- `require_approval` accepted `[abc]` and `{a,b}`, but `mcp_filter` didn't.
+- A pattern that could never match a tool name, such as one containing a space, loaded without an error. The mistake showed up only as a tool that was never selected or never gated.
+- Patterns had no way to tell apart tools with the same name from different MCP servers. Which server's tool the agent could call could change from run to run.
+
+## Patterns That Now Fail at Startup
+
+A pattern that loaded before can now stop AURA from starting:
+
+| Pattern | Why it fails | Fix |
+| --- | --- | --- |
+| `"list pods"`, `"get+user"` | Only letters, digits, `_`, `-`, `/`, and `.` are allowed outside wildcards, classes, and alternatives. | Remove the character, or match it with `?` or `*`. |
+| `""` | A pattern can't be empty. | Remove the entry. An empty list such as `mcp_filter = []` is still valid. |
+| `"git\\*"` | There is no escape character. | Remove the `\`. |
+| `"github::*"`, `"a:b:c"`, `"github:"` | A pattern can contain only one `:`, with a non-empty segment on each side. | Use `<namespace>:<name>`, such as `"github:*"`. |
+| `"get_[*]"`, `"get_{a,{b,c}}"`, `"get_[abc"` | A class holds only literal characters, alternatives can't nest, and every `[` and `{` needs its closing bracket. | Rewrite the class or alternative, for example `"get_{a,b,c}"`. |
+| A run of more than 64 letters, digits, `_`, `-`, `/`, and `.` | A literal run can be at most 64 characters, even when a wildcard follows it. | Shorten the run, or replace part of it with `?` or `*`. |
+
+## Patterns That Now Match Differently
+
+These patterns load without an error but select different tools than before:
+
+| Pattern | Before | Now |
+| --- | --- | --- |
+| `github:create_issue` | Matched only a tool literally named `github:create_issue`. | Matches `create_issue` from `[mcp.servers.github]`. In `client_tool_filter`, it never matches. |
+| `pod[sx]` | In `mcp_filter`, `client_tool_filter`, and scratchpad keys, matched only the literal name `pod[sx]`. | Matches `pods` or `podx`. |
+| `get_{pods,events}` | In `mcp_filter`, `client_tool_filter`, and scratchpad keys, matched only the literal name `get_{pods,events}`. | Matches `get_pods` or `get_events`. |
+
+`[hitl].require_approval` already treated `[abc]` and `{a,b}` as a class and an alternation, so only the meaning of `:` changed there.
+
+## Shared Tool Names Resolve to One Server
+
+AURA presents MCP tools to the model by their bare names, so only one server's tool can hold a given name. When more than one server advertises the same tool name, the agent now always gets the tool from the server whose `[mcp.servers.<name>]` key sorts first. Only servers whose tool passes the agent's or worker's `mcp_filter` count. For example, `[mcp.servers.alpha]` wins over `[mcp.servers.beta]`, whatever transport each server uses.
+
+Text-fallback tool calls (`fallback_tool_parsing`) now resolve to the same server. Before, they could call the first server that advertised the name, even a server the agent's `mcp_filter` excluded.
+
+The web server logs a warning for each shared name at startup, and [`aura governance sync`](./cli-reference#sync-the-mcp-tool-catalog-aura-governance-sync) prints the same warning:
+
+```text
+agent '<agent>': MCP tool '<name>' is advertised by <count> servers (<servers>); only '<winner>' will be reachable. Scope each agent with [agent].mcp_filter, or rename the tool on all but one server.
+```
+
+The warning names the server that sorts first and doesn't account for `mcp_filter`, so an agent's filter can select a different server than the warning names.
+
+## Web Server Startup Takes Longer
+
+To find shared tool names, the web server now connects to each agent's MCP servers once before it starts accepting requests. The servers are checked one at a time, and each connection can take up to [`[mcp].connect_timeout_secs`](/aura/configuration-reference#mcp). The check starts each `stdio` server's command.
+
+The check sends only static `headers`. A server that needs headers from `headers_from_request` logs a connection warning at startup, and the web server still starts.
+
+## Migration
+
+To upgrade a config to AURA v0.2.18:
+
+1. Check every pattern in `mcp_filter`, `require_approval`, `client_tool_filter`, and scratchpad keys against [Tool-Name Patterns](/aura/configuration-reference#tool-name-patterns). Fix each pattern listed in [Patterns That Now Fail at Startup](#patterns-that-now-fail-at-startup).
+2. Search `mcp_filter`, `client_tool_filter`, and scratchpad keys for `:`, `[`, and `{`. Confirm that the new meaning selects the tools you want.
+3. Start the web server and look for `is advertised by` warnings in the startup log. For each shared name, confirm that the winning server is the one you want.
+4. Optional. To use a shared tool from a server other than the winner, scope `mcp_filter` to that server, for example `mcp_filter = ["other-server:*"]`. You can also rename the tool on all but one server.
+5. Check that your startup and readiness probe timeouts leave room for the MCP connection check: up to `[mcp].connect_timeout_secs` for each MCP server of each agent.
+
+## Startup Errors
+
+An invalid pattern fails config load. The web server and CLI exit before they bind a port or open the REPL, and the error includes one of these messages.
+
+A character, construct, or `:` that the syntax doesn't allow:
+
+```text
+invalid tool name pattern at column <column>: expected a name character (a-z A-Z 0-9 _ - . /), a wildcard (* ?), a class ([abc]), or an alternate ({a,b})
+```
+
+To fix it, correct the pattern at the reported column.
+
+A literal run longer than 64 characters:
+
+```text
+tool name pattern has a run of <length> literal characters ending at column <column>; the limit is 64
+```
+
+To fix it, shorten the run that ends at the reported column, or replace part of it with `?` or `*`.

@@ -90,7 +90,7 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 ## 3 - Create the Custom Apache App Logs Parsing Processor Chain
 
-As you saw in the Data Profile from step 4, the OTel data being sent by`frontend-proxy` is an unparsed, custom [format defined by the OpenTelemetry demo](https://github.com/mezmo/opentelemetry-demo/blob/main/src/frontend-proxy/envoy.tmpl.yaml#L80).  This data needs to be send through a specialized processor chain that contains a [Route Processor](/telemetry-pipelines/route-processor), a [Parse Sequentially Processor](/telemetry-pipelines/parse-sequentially-processor) that includes a Grok parser, and a [Script Execution Processor](/telemetry-pipelines/js-script-processor) to structure it and make it more easily searchable.
+As you saw in the Data Profile from step 4, the OTel data being sent by`frontend-proxy` is an unparsed, custom [format defined by the OpenTelemetry demo](https://github.com/mezmo/opentelemetry-demo/blob/main/src/frontend-proxy/envoy.tmpl.yaml#L80). This data needs to be send through a specialized processor chain that contains a [Route Processor](/telemetry-pipelines/route-processor), a [Parse Sequentially Processor](/telemetry-pipelines/parse-sequentially-processor) that includes a Grok parser, and a [Script Execution Processor](/telemetry-pipelines/js-script-processor) to structure it and make it more easily searchable.
 
 ### Route Custom Apache App Data
 
@@ -209,7 +209,7 @@ For the `unmatched` logs that pass through the Router, you only need to sample a
 
 ## 7 - Connect to Mezmo Log Analysis
 
-Finally, we will send all of this data into Mezmo Log Analysis.  Because of our earlier work normalizing data in Step 3, we can simply add a final Destination to all nodes (including the `Incident` and `Deploy` paths).
+Finally, we will send all of this data into Mezmo Log Analysis. Because of our earlier work normalizing data in Step 3, we can simply add a final Destination to all nodes (including the `Incident` and `Deploy` paths).
 
 1. In the Pipeline Map, click Add Destination.
 2. Select Mezmo Log Analysis, enter these settings, then click **Save**.
@@ -232,7 +232,7 @@ Our final step is to initiate and grab the state ID for the pipeline in Normal o
 
 Click the **State** menu in the upper-left corner of the active pipeline, change the state to `Incident`, then change it back to `Normal.`
 
-Now that has been initiated, you will need get the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here.  Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
+Now that has been initiated, you will need get the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here. Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
 
 ```bash
 curl --request GET \
@@ -241,7 +241,7 @@ curl --request GET \
 
 ```
 
-Take the response and save the `STATE_ID` for later.  You will find it in the `operational_state`'s data packet, which should look something like this:
+Take the response and save the `STATE_ID` for later. You will find it in the `operational_state`'s data packet, which should look something like this:
 
 ```bash
 {
@@ -298,15 +298,15 @@ Take the response and save the `STATE_ID` for later.  You will find it in the `o
 
 ## 9 - View In Mezmo Log Analysis
 
-Navigate to Log Analysis and view the incoming data.  In particular, if you used the `tag` above you can simply search for `tag:otel-demo`.
+Navigate to Log Analysis and view the incoming data. In particular, if you used the `tag` above you can simply search for `tag:otel-demo`.
 
-First, look for the aggregated data by searching for `tag:otel-demo "flooded homepage"`.  Notice that instead of raw lines like we saw in the Profile, we now have an aggregated message to watch saving tens of thousands of log lines.
+First, look for the aggregated data by searching for `tag:otel-demo "flooded homepage"`. Notice that instead of raw lines like we saw in the Profile, we now have an aggregated message to watch saving tens of thousands of log lines.
 
 <Frame caption="Log Analysis Flooded Log View">
   ![Image](/images/guide-to-pipeline-architecture/40hkp95u1y2avyptoper7m0xo2b438dbcogw4ctstuj3fd6bfggphzv2tr7hkwyx.png)
 </Frame>
 
-Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`.  While logs are displayed nicely in the Log Viewer, you can expand a line and see all the nested structure that is easily searchable.  For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy resp_code:(>=200 AND <300)`
+Second, check out the newly parsed data by searching for `tag:otel-demo app:frontend-proxy`. While logs are displayed nicely in the Log Viewer, you can expand a line and see all the nested structure that is easily searchable. For instance, to see all 2xx responses enter the query `tag:otel-demo app:frontend-proxy resp_code:(>=200 AND <300)`
 
 <Frame caption="Log Analysis Custom Apache Log View">
   ![Image](/images/guide-to-pipeline-architecture/s21m4d88t3w8zk49ylrw45ba9b7btmq2ulj83a2b5py6me7jlm3vdws43uh078qe.png)

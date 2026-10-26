@@ -13,7 +13,7 @@ Run `git clone https://github.com/open-telemetry/opentelemetry-demo` into a fold
 
 ## Step 2: Configure `src/otel-collector/otelcol-config-extras.yml` with Shared Source Credentials
 
-Grab the URL and saved Access Keys from your Log, Metric and Trace Shared Sources (don't worry, if you didn't save the key you can always create a new one).  Modify[ src/otel-collector/otelcol-config-extras.yml](https://github.com/open-telemetry/opentelemetry-demo/blob/main/src/otel-collector/otelcol-config-extras.yml) with the proper credentials and save.  Note that Log, Metrics and Traces will each have their own unique URL and Access Keys.
+Grab the URL and saved Access Keys from your Log, Metric and Trace Shared Sources (don't worry, if you didn't save the key you can always create a new one). Modify[ src/otel-collector/otelcol-config-extras.yml](https://github.com/open-telemetry/opentelemetry-demo/blob/main/src/otel-collector/otelcol-config-extras.yml) with the proper credentials and save. Note that Log, Metrics and Traces will each have their own unique URL and Access Keys.
 
 #### Example OpenTelemetry Extras Configuration YAML
 
@@ -53,4 +53,4 @@ From the top level of the repo, run the following command
 
 `docker compose up --force-recreate --remove-orphans --detach`
 
-You will now have a running OpenTelemetry Demo instance up and running at `http://localhost:8080`.  To learn more about the demo's capabilities, check out their [extensive docs](https://opentelemetry.io/docs/demo/docker-deployment/#verify-the-web-store-and-telemetry).  For this workshop, we will be taking advantage of the default output.
+You will now have a running OpenTelemetry Demo instance up and running at `http://localhost:8080`. To learn more about the demo's capabilities, check out their [extensive docs](https://opentelemetry.io/docs/demo/docker-deployment/#verify-the-web-store-and-telemetry). For this workshop, we will be taking advantage of the default output.

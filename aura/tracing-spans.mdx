@@ -7,7 +7,7 @@ description: "Enable OpenTelemetry, understand AURA's span layout, and interpret
 
 OpenTelemetry support is enabled by default via the `otel` feature. Configure
 your OTLP endpoint using standard environment variables (for example
-`OTEL_EXPORTER_OTLP_ENDPOINT`) to export traces — no endpoint set means no
+`OTEL_EXPORTER_OTLP_ENDPOINT`) to export traces. No endpoint set means no
 OTel layer is installed.
 
 AURA emits spans using the [OpenInference](https://github.com/Arize-ai/openinference/tree/main/spec)
@@ -22,8 +22,8 @@ observability tools.
 
 Every request produces two traces:
 
-1. **HTTP trace** — covers the request/response lifecycle
-2. **Agent trace** — covers the LLM/tool execution
+1. **HTTP trace**: covers the request/response lifecycle
+2. **Agent trace**: covers the LLM/tool execution
 
 The agent trace is rooted at `agent.stream` with `parent: None` so Phoenix
 sees it as an independent trace root with all LLM I/O attributes.
@@ -38,7 +38,7 @@ chat_completions (CHAIN)
 ### Single-agent mode
 
 ```text
-agent.stream (AGENT, ROOT)
+agent.stream (LLM, ROOT)
   └── agent.turn (LLM)
       ├── execute_tool (TOOL)
       │   └── mcp.tool_call (TOOL)
@@ -49,12 +49,12 @@ agent.stream (AGENT, ROOT)
 ### Orchestration mode
 
 ```text
-agent.stream (AGENT, ROOT)
+agent.stream (LLM, ROOT)
   └── orchestration (CHAIN)
-        ├── orchestration.planning (CHAIN)
+        ├── orchestration.planning (LLM)
         │   └── agent.turn (LLM) → execute_tool → mcp.tool_call
         └── orchestration.iteration (CHAIN)
-            └── orchestration.worker (AGENT)
+            └── orchestration.worker (LLM)
                 └── agent.turn (LLM) → execute_tool → mcp.tool_call
 ```
 
@@ -71,11 +71,11 @@ agent.stream (AGENT, ROOT)
 |------|-----------|
 | `orchestration` | `orchestration.goal`, `orchestration.max_iterations`, `orchestration.routing` (direct/clarification/orchestrated) |
 | `orchestration.planning` | `orchestration.phase` |
-| `orchestration.iteration` | `orchestration.iteration`, `orchestration.task_count`, `orchestration.quality_score`, `orchestration.will_replan` |
+| `orchestration.iteration` | `orchestration.iteration`, `orchestration.task_count`, `orchestration.post_execute_decision` (`respond_directly`, `create_plan`, `request_clarification`, or `coordinator_error`), `orchestration.decision_latency_seconds`, `orchestration.planning_ms`, `orchestration.execution_ms`, `orchestration.task_compute_ms`, `orchestration.tool_ms` |
 | `orchestration.worker` | `orchestration.task_id`, `orchestration.worker`, `orchestration.task` |
 
-Token usage (`llm.token_count.*`) is recorded on all orchestration phase
-spans (planning, worker).
+The `agent.turn` spans under each orchestration phase (planning and worker)
+record token usage (`llm.token_count.*`). The phase spans themselves don't.
 
 ### Tool spans (`execute_tool`)
 
@@ -86,21 +86,36 @@ lifecycle events, and the approval ingress endpoint (see
 [Human-in-the-Loop Approval Gates](/aura/hitl)).
 
 The attribute is stamped before the approval outcome is known, so every gated
-call carries it regardless of outcome — `approved`, `denied`, `timed_out`,
+call carries it regardless of outcome: `approved`, `denied`, `timed_out`,
 `cancelled`, or `errored`. It is stamped for gated calls only; ungated tool
 calls carry no `decision_id` attribute.
 
 `decision_id` sits on the `execute_tool` (TOOL) parent, not on the nested
 `mcp.tool_call` child, where the tool's own status and errors land.
 
+### MCP Tool Call Spans
+
+Each `mcp.tool_call` span identifies the tool it ran with these attributes:
+
+| Attribute | Value |
+|-----------|-------|
+| `tool.name` | The bare tool name the model called, such as `create_issue`. |
+| `tool.namespace` | The `[mcp.servers.<name>]` key of the MCP server that ran the tool, such as `github`. |
+
+AURA never adds the namespace to `tool.name`. See
+[Scope a Pattern to One MCP Server](/aura/configuration-reference#scope-a-pattern-to-one-mcp-server)
+for how namespaces work in tool-name patterns.
+
 ## OpenInference span kinds
 
 | Kind | Spans |
 |------|-------|
-| **LLM** | `chat`, `chat_streaming`, `agent.turn` |
+| **LLM** | `chat`, `chat_streaming`, `agent.turn`, `agent.stream`, `agent.prompt`, `agent.chat`, `orchestration.planning`, `orchestration.worker` |
 | **TOOL** | `execute_tool`, `mcp.tool_call` |
-| **AGENT** | `agent.stream`, `agent.prompt`, `agent.chat`, `orchestration.worker` |
-| **CHAIN** | `chat_completions`, `streaming_completion`, `orchestration`, `orchestration.planning`, `orchestration.iteration` |
+| **RETRIEVER** | `vector.search` |
+| **CHAIN** | `chat_completions`, `streaming_completion`, `orchestration`, `orchestration.iteration`, and any other span |
+
+AURA exports its agent-level spans as LLM spans. These are `agent.stream`, `agent.prompt`, `agent.chat`, `orchestration.planning`, and `orchestration.worker`. As LLM spans, they show their recorded tools and invocation parameters in the Phoenix LLM span view. Only `agent.turn` spans carry token counts, so Phoenix computes cost from the turns.
 
 `chat`, `agent.prompt`, and `agent.chat` are non-streaming entry points; the trace diagrams above cover the streaming path, which is the one AURA's HTTP/CLI backends use.
 
@@ -122,9 +137,25 @@ When `OTEL_RECORD_CONTENT=true`, prompt/completion text and tool
 arguments/results are recorded as span attributes, truncated to
 `OTEL_CONTENT_MAX_LENGTH` (default 1000 bytes, rounded to a UTF-8 boundary).
 
+## Export at Shutdown
+
+AURA exports a span only after the span ends. At shutdown, AURA flushes the
+spans that are still buffered:
+
+- **Web server**: After [graceful shutdown](/aura/request-lifecycle#graceful-shutdown)
+  completes, the server flushes buffered spans and waits up to 5 seconds for the
+  export. The server first aborts any request still running after the drain
+  window, so those spans end and are part of the flush.
+- **Standalone CLI**: On SIGTERM, the CLI flushes buffered spans and then exits
+  with code `143`. For details, see [SIGTERM Handling](/aura/cli-reference#sigterm-handling).
+  The CLI doesn't stop a query that is still running. That query's
+  `agent.stream` root span and any other open spans never end, so AURA doesn't
+  export them. Spans that already ended, such as finished `agent.turn` and
+  `mcp.tool_call` spans, arrive in your trace backend without their root.
+
 ## Known limitations
 
 - **Tool error propagation**: Tool errors are only recorded on the
   `mcp.tool_call` child span, not on Rig's
-  `execute_tool` parent. This is intentional — `mcp.tool_call` is the
+  `execute_tool` parent. This is intentional. `mcp.tool_call` is the
   canonical TOOL span for Phoenix.

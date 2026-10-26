@@ -7,7 +7,7 @@ description: "Build a Mezmo pipeline that enriches, state-routes, and samples Op
 
 ## Step 1: Create a new Pipeline to handle and route OpenTelemetry Traces
 
-Create a new Mezmo Pipeline by clicking [New Pipeline](https://app.mezmo.com/pipelines/pipeline/new) in the platform.  Give this a name like `Trace Handler`. Select Create Blank Pipeline then Continue. 
+Create a new Mezmo Pipeline by clicking [New Pipeline](https://app.mezmo.com/pipelines/pipeline/new) in the platform. Give this a name like `Trace Handler`. Select Create Blank Pipeline then Continue. 
 
 ## Step 2: Add OpenTelemetry Trace Source
 
@@ -15,9 +15,9 @@ Click `Add Source` and select your OpenTelemetry Trace source from the `Shared S
 
 ## Step 3: Insert State Enrichment
 
-We will add the script to enrich each trace with the current pipelines operational state to be able to take advantage of [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) in the future by.   Click the `three dots` on your Otel Trace Source and select `Add Node->Add Processor->Script Execution`.
+We will add the script to enrich each trace with the current pipelines operational state to be able to take advantage of [Responsive Pipelines](/telemetry-pipelines/configure-responsive-pipelines) in the future by. Click the `three dots` on your Otel Trace Source and select `Add Node->Add Processor->Script Execution`.
 
-Paste in the following JavaScript and click `Save`.  Note that the script does a bit more than add the `operational_state` state variable by tagging this data in-flight.
+Paste in the following JavaScript and click `Save`. Note that the script does a bit more than add the `operational_state` state variable by tagging this data in-flight.
 
 ```javascript
 function processEvent(message, metadata, timestamp, annotations) {
@@ -38,7 +38,7 @@ function processEvent(message, metadata, timestamp, annotations) {
 
 ## Step 4: Route Based on State
 
-After the initial Enrichment processor, let's route the data flow based on that `operational_state`.  Connect a Route processor to the Enrichment Script with the following configuration:
+After the initial Enrichment processor, let's route the data flow based on that `operational_state`. Connect a Route processor to the Enrichment Script with the following configuration:
 
 - Title: `State Router`
 - Route 1:
@@ -73,7 +73,7 @@ Add a 1/10 Trace Sample processor connected to the Normal and Unmatched routes w
 
 ## Step 6: Sending Data Downstream Systems
 
-Now, connect all outputs to a Blackhole destination.  This is simply a placeholder for any Observability system you'd like.  Explore our destinations in-app or in our [docs](/telemetry-pipelines/supported-telemetry-data-destinations) to easily send telemetry data downstream into tools, data lakes and more.
+Now, connect all outputs to a Blackhole destination. This is simply a placeholder for any Observability system you'd like. Explore our destinations in-app or in our [docs](/telemetry-pipelines/supported-telemetry-data-destinations) to easily send telemetry data downstream into tools, data lakes and more.
 
 <Frame caption="Trace Blackhole Connected">
   ![Image](/images/OptTutorial/3pbtrljw9y9inu9g9qrilxttnsitnq2mp0ejwa31uatfzqlgnkc2uxjx8q3obqlf.png)

@@ -1,0 +1,8 @@
+# Rung: Stated, unconditional
+# Source: KB style/client_style_guide.md:53 — "Plurals: never write customer(s). Use standard plural forms."
+extends: existence
+message: "Use a standard plural form, not '%s'."
+level: error
+nonword: true
+tokens:
+  - '\w+\(s\)'

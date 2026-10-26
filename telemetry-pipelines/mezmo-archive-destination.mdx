@@ -13,11 +13,11 @@ If your data is being sent to the archive storage location  on  May 13, 2024, fo
 
 `bucket / year=2024 / month=05 / day=13`
 
-By default, data is written to the Archive Destination every five minutes (though you can change this with the `Batch Timeout`value). or at 20k lines, or 10MB of data , whichever comes first.  Since these files are typically very small, there is an hourly  mechanism that will combine these smaller files into larger merged log files.
+By default, data is written to the Archive Destination every five minutes (though you can change this with the `Batch Timeout`value). or at 20k lines, or 10MB of data , whichever comes first. Since these files are typically very small, there is an hourly  mechanism that will combine these smaller files into larger merged log files.
 
 ## Configuration
 
-Configuration is similar to our S3 and Azure Blob Storage destinations, and appropriate rights must be set up for these destinations before configuring the Pipeline Destination.  Check out the topics for [AWS S3 Storage](/telemetry-pipelines/s3-destination) and [Azure Blob Storage](/telemetry-pipelines/azure-blob-storage-destination) for more details.
+Configuration is similar to our S3 and Azure Blob Storage destinations, and appropriate rights must be set up for these destinations before configuring the Pipeline Destination. Check out the topics for [AWS S3 Storage](/telemetry-pipelines/s3-destination) and [Azure Blob Storage](/telemetry-pipelines/azure-blob-storage-destination) for more details.
 
 ### Configuration Options
 
@@ -28,7 +28,7 @@ Configuration is similar to our S3 and Azure Blob Storage destinations, and appr
 | **S3 Options** |  | 
 | Access Key ID | The access key ID with permissions to your S3 bucket. | 
 | Secret Access Key | The access key secret with permissions to your S3 bucket. | 
-| Bucket | The bucket name.  <br /><br /> Do not include a leading s3:// or a trailing / | 
+| Bucket | The bucket name. <br /><br /> Do not include a leading s3:// or a trailing / | 
 | Region | Region in which your bucket is located. | 
 | **Azure Blob Storage Options** |  | 
 | Container Name | The name of the Azure Blob container. | 
