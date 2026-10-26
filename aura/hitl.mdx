@@ -101,14 +101,15 @@ mcp_filter = ["k8s_*", "restart_*"]
 ```
 
 The gate is added before the worker's MCP tools execute. A denied call returns a
-successful blocked tool result to the worker:
+blocked tool result to the worker:
 
 ```text
 Tool call blocked by human approval denial: maintenance window not open. Do not execute this action.
 ```
 
 The worker sees that message and can explain the denial to the user. The MCP tool
-itself is not called.
+itself is not called. The tool call's completion event reports `success: false` and
+carries the same message.
 
 ## Webhook request
 
@@ -264,8 +265,9 @@ Use `mock_tool` so the glob matches a tool the worker actually calls. Put the we
 different port than the mock MCP server (9999) to avoid a collision.
 
 Ask an orchestration worker to use the gated tool. An approval should let the
-tool run. A denial with a custom reason should produce a successful blocked tool
-result containing that reason.
+tool run. A denial with a custom reason should produce a blocked tool result
+containing that reason, and the tool call's completion event should report
+`success: false`.
 
 ## Conversational manual smoke test
 
