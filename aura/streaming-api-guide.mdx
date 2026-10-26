@@ -238,7 +238,7 @@ data:
 
 Note:
 - If the tool call worked, `success` is `true` and `result` has the tool's output, cut to `TOOL_RESULT_MAX_LENGTH` characters (default 1000).
-- If the tool call failed, `success` is `false` and `error` has the error message. There is no `result`.
+- If the tool call failed, `success` is `false` and `error` has the error message, cut to `TOOL_RESULT_MAX_LENGTH` characters. There is no `result`.
 - A tool call fails if the tool returns an error, or if an MCP server marks its result as an error (`isError`).
 
 **Reasoning** (requires both flags):
@@ -942,7 +942,10 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 }
 ```
 
-`arguments` holds the tool's result as a JSON string, cut to `TOOL_RESULT_MAX_LENGTH` characters (default 1000). A cut result ends in `... [truncated]`. Open WebUI adds it to the call's empty `arguments`, so together they read as valid JSON.
+`arguments` holds the tool's result, cut to `TOOL_RESULT_MAX_LENGTH` characters (default 1000). A cut result ends in `... [truncated]`. Open WebUI adds it to the call's empty `arguments`, so it is always valid JSON:
+
+- A tool that returns JSON, such as an object, sends it as it is.
+- Text, an error message, or JSON that was cut short is sent as a JSON string, like the example above.
 
 **Final chunk**:
 ```json
