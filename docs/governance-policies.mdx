@@ -1,11 +1,11 @@
 ---
-title: "AI Governance Policies"
-description: "Write AI Governance policy rules that allow, deny, or hold agent tool calls for approval, assign approvers, and change policies safely through drafts and revisions."
+title: "Agent Governance Policies"
+description: "Write Agent Governance policy rules that allow, deny, or hold agent tool calls for approval, assign approvers, and change policies safely through drafts and revisions."
 ---
 
-An AI Governance policy decides, for every tool call an agent makes, whether the call runs (**Allow**), waits for a person to approve it (**Require Approval**), or is refused (**Deny**). This page explains how policies decide, and how to create, change, restore, and delete them. To check a policy with sample tool calls before you rely on it, see [Evaluate and Test AI Governance Policies](./governance-policy-testing).
+An Agent Governance policy decides, for every tool call an agent makes, whether the call runs (**Allow**), waits for a person to approve it (**Require Approval**), or is refused (**Deny**). This page explains how policies decide, and how to create, change, restore, and delete them. To check a policy with sample tool calls before you rely on it, see [Evaluate and Test Agent Governance Policies](./governance-policy-testing).
 
-To open your policies, select **AI Governance** in the left navigation, then select **Policies**. Viewing policies needs `policy` Read, and creating or changing them needs `policy` Write. See [Permissions](./ai-governance#permissions).
+To open your policies, select **AI Governance** in the left navigation, then select **Policies**. Viewing policies needs `policy` Read, and creating or changing them needs `policy` Write. See [Permissions](./agent-governance#permissions).
 
 ## How a Policy Decides
 
@@ -113,7 +113,7 @@ If the right role doesn't exist and you have `role` Write, select **Create a rol
 
 ### Send Approval Notices to Slack
 
-On the **Approvers** step, you can add Slack channels that receive a notice each time the policy holds a call. Approvers can approve or deny from the notice. For the setup and how approvers use the notices, see [Approve AI Governance Requests in Slack](./governance-slack-approvals).
+On the **Approvers** step, you can add Slack channels that receive a notice each time the policy holds a call. Approvers can approve or deny from the notice. For the setup and how approvers use the notices, see [Approve Agent Governance Requests in Slack](./governance-slack-approvals).
 
 ## View a Policy
 
@@ -223,7 +223,7 @@ If you leave **Code** and **Message Shown to the Caller** empty on a rule, Mezmo
 
 ## Related Topics
 
-- [AI Governance](./ai-governance)
-- [Evaluate and Test AI Governance Policies](./governance-policy-testing)
-- [AI Governance Workflows](./governance-workflows)
-- [AI Governance Agents](./governance-agents)
+- [Agent Governance](./agent-governance)
+- [Evaluate and Test Agent Governance Policies](./governance-policy-testing)
+- [Agent Governance Workflows](./governance-workflows)
+- [Governed Agents](./governance-agents)

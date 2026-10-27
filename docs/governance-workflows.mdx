@@ -1,11 +1,11 @@
 ---
-title: "AI Governance Workflows"
-description: "Review the tool-call requests your AI agents send, and approve or deny the ones an AI Governance policy holds for approval."
+title: "Agent Governance Workflows"
+description: "Review the tool-call requests your AI agents send, and approve or deny the ones an Agent Governance policy holds for approval."
 ---
 
-An AI Governance workflow is the record of one request from an agent: the tool calls the agent wanted to run, and how each one was decided. Use the **Workflows** page to see what your agents asked to do, and to approve or deny the requests that a policy holds for a person. This page explains how to find, review, and decide workflows. To decide from Slack instead, see [Approve AI Governance Requests in Slack](./governance-slack-approvals).
+An Agent Governance workflow is the record of one request from an agent: the tool calls the agent wanted to run, and how each one was decided. Use the **Workflows** page to see what your agents asked to do, and to approve or deny the requests that a policy holds for a person. This page explains how to find, review, and decide workflows. To decide from Slack instead, see [Approve Agent Governance Requests in Slack](./governance-slack-approvals).
 
-To open your workflows, select **AI Governance** in the left navigation, then select **Workflows**. The page is headed **Workflow Decisions**. Viewing workflows needs `workflow` Read, and deciding them needs `workflow` Write. See [Permissions](./ai-governance#permissions).
+To open your workflows, select **AI Governance** in the left navigation, then select **Workflows**. The page is headed **Workflow Decisions**. Viewing workflows needs `workflow` Read, and deciding them needs `workflow` Write. See [Permissions](./agent-governance#permissions).
 
 ## How a Workflow Is Created
 
@@ -18,7 +18,7 @@ Mezmo records a workflow for every request an agent sends, whatever the outcome.
 | **Pending** | The policy held a call for approval, and the request is waiting for a person. |
 | **Expired** | Nobody approved or denied the request within the approval window. |
 
-For how policies reach an outcome, see [AI Governance Policies](./governance-policies#how-a-policy-decides). For the agents that send requests, see [AI Governance Agents](./governance-agents).
+For how policies reach an outcome, see [Agent Governance Policies](./governance-policies#how-a-policy-decides). For the agents that send requests, see [Governed Agents](./governance-agents).
 
 A workflow keeps a copy of the agent and policy as they were when it was created. It still reads correctly after the agent or policy is renamed, changed, or deleted.
 
@@ -85,11 +85,11 @@ Turn a real request into a test case, so you can check that later policy changes
    - **Policy Test Case** adds the case to the test suite of the policy that evaluated the workflow. This option appears only if that policy still exists.
    - **Test Case Library** saves the case to the **Test Cases** library, where any policy can use it.
 
-The outcomes from the workflow become the case's expectations. Check them before you save. See [Evaluate and Test AI Governance Policies](./governance-policy-testing#test-a-policy).
+The outcomes from the workflow become the case's expectations. Check them before you save. See [Evaluate and Test Agent Governance Policies](./governance-policy-testing#test-a-policy).
 
 ## Related Topics
 
-- [Approve AI Governance Requests in Slack](./governance-slack-approvals)
-- [AI Governance Policies](./governance-policies)
-- [AI Governance Overview Dashboard](./governance-overview-dashboard)
+- [Approve Agent Governance Requests in Slack](./governance-slack-approvals)
+- [Agent Governance Policies](./governance-policies)
+- [Agent Governance Overview Dashboard](./governance-overview-dashboard)
 - [Human-in-the-Loop Approval Gates](../aura/hitl)
