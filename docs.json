@@ -195,30 +195,11 @@
             ]
           },
           {
-            "group": "Mezmo MCP and AI",
+            "group": "Integrations",
             "pages": [
-              "docs/mezmo-mcp",
-              "docs/use-ai-assistant",
-              "docs/ai-investigations",
-              {
-                "group": "AI Governance",
-                "pages": [
-                  "docs/ai-governance",
-                  "docs/governance-overview-dashboard",
-                  "docs/governance-agents",
-                  "docs/governance-coding-agents",
-                  "docs/governance-policies",
-                  "docs/governance-policy-testing",
-                  "docs/governance-workflows",
-                  "docs/governance-slack-approvals"
-                ]
-              },
+              "docs/ingestion-integrations/github-events",
               "docs/ingestion-integrations/akamai-cloud-monitor-logs"
             ]
-          },
-          {
-            "group": "Integrations",
-            "pages": ["docs/ingestion-integrations/github-events"]
           },
           {
             "group": "Other Topics",
@@ -260,6 +241,32 @@
               "docs/feature-access-matrix",
               "docs/system-cross-domain-identity-management",
               "docs/add-enterprise-admins"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Mezmo MCP and AI",
+        "groups": [
+          {
+            "group": "Mezmo MCP and AI",
+            "pages": [
+              "docs/mezmo-mcp",
+              "docs/use-ai-assistant",
+              "docs/ai-investigations"
+            ]
+          },
+          {
+            "group": "AI Governance",
+            "pages": [
+              "docs/ai-governance",
+              "docs/governance-overview-dashboard",
+              "docs/governance-agents",
+              "docs/governance-coding-agents",
+              "docs/governance-policies",
+              "docs/governance-policy-testing",
+              "docs/governance-workflows",
+              "docs/governance-slack-approvals"
             ]
           }
         ]
