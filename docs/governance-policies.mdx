@@ -95,7 +95,7 @@ The fallthrough decides calls that no rule matches. The wizard has no default, s
 
 For **Deny Outright** and **Send for Approval**, the **Code** starts as `NO_MATCHING_RULE`, and the **Message Shown to the Caller** starts as "No rule in this policy covers this request." You can change both. Allowed fallthrough calls are still recorded as workflows.
 
-<Warning title="Allow fallthrough with few rules lets every call through">
+<Warning>
 Accepted policies take effect right away. If you choose **Allow** as the fallthrough and the policy has few or no rules that deny or hold calls, agents can run almost any tool call. Check your rules before you save.
 </Warning>
 

@@ -54,7 +54,7 @@ Before you begin, [create a policy](./governance-policies#create-a-policy) for t
 4. On the **Policy** step, assign the agent's policy.
 5. On the **Finished** step, copy the `url` value in the `[hitl.route]` table of the `config.toml` section. This URL ends in `/governance/workflow/authorize`, and the plugin uses it as `MEZMO_GOVERNANCE_URL`. The rest of the `config.toml` section applies only to AURA.
 
-<Warning title="Limit the service account to Agent Governance">
+<Warning>
 A governed agent can read its own token. If the service account can change policies or agents, the agent could change its own rules. Give the service account Agent Governance permissions only, without `policy` Write or `agent` Write. A service account without Agent Governance permissions gets an authentication error on every call. See [Permissions](./agent-governance#permissions).
 </Warning>
 
