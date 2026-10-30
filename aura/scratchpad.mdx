@@ -93,10 +93,6 @@ When a worker reads an artifact back with `read_artifact`, the same budget rules
 
 ### How `read_artifact` Sizes Its Results
 
-<Note>
-This behavior is available only in the AURA nightly release.
-</Note>
-
 `read_artifact` doesn't return an oversized artifact whole, so a large worker result can't overflow the caller's context window. What the caller gets back depends on its configuration:
 
 | Configuration | Artifact that fits | Artifact that doesn't fit |
@@ -108,10 +104,6 @@ This behavior is available only in the AURA nightly release.
 When `[agent.llm].context_window` is unset, AURA logs a warning as it builds the agent. Set `context_window` to your model's window so artifacts that fit come back whole.
 
 ### Coordinator Scratchpad
-
-<Note>
-This behavior is available only in the AURA nightly release.
-</Note>
 
 A follow-up turn can ask the coordinator to read a large worker artifact from an earlier run. To keep that read from overflowing the next planning call, the coordinator gets a scratchpad of its own when `[agent.scratchpad]` is enabled and `[agent.llm].context_window` is set. An oversized artifact then comes back to the coordinator as a pointer to explore, the same way it does for workers.
 
