@@ -12,12 +12,12 @@ Add Mezmo MCP and you can:
 - 🕵️ Run advanced **Root-cause analysis** over recent logs
 - 📦 List, describe, **create, and edit Pipelines**
 - 🔌 Tap **live pipeline traffic** for inspection
-- 📤 Export and filter **Logs** with powerful query syntax
+- 📊 Filter, group, and chart **Logs** with powerful query syntax
 - 🔎 Review **AI Investigations** for your account
 
 ## Overview
 
-Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and export logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients, including [AURA](/aura/quickstart), Mezmo's own agentic SRE harness.
+Mezmo MCP is a remote MCP server that connects AI assistants and IDE chat to Mezmo so you can run advanced root-cause analysis, discover and build pipelines, and query logs without hosting anything yourself. It’s built for observability use cases and works across many popular MCP clients, including [AURA](/aura/quickstart), Mezmo's own agentic SRE harness.
 
 ## Available Tools & Examples
 
@@ -145,6 +145,19 @@ Gets details for a specific Mezmo v3 pipeline, including root-level DAG/configur
 **Example:**
 "Show me the details for pipeline 123e4567-e89b-12d3-a456-426614174000"
 "What's the configuration of the production-logs pipeline?"
+
+#### `get_pipeline_health`
+
+Gets the health of a pipeline's sources, transforms, and destinations. If you don't specify a `pipeline_id`, it returns the health of every pipeline in your account. Sources and destinations report their traffic, and each component can carry health log entries with a level, a message, a last-seen time, and whether the entry is stale.
+
+**Parameters:**
+
+- `pipeline_id` (optional): UUID of the pipeline. Omit it to get every pipeline in your account
+- `include_logs` (required): Whether to include component health log entries
+
+**Example:**
+"Is pipeline 123e4567-e89b-12d3-a456-426614174000 healthy?"
+"Show me the health of all my pipelines, including any error logs"
 
 #### `create_pipeline`
 
@@ -360,6 +373,105 @@ Gets details for a specific AI investigation by id. A returned investigation inc
 **Example:**
 "Show me the details for investigation 66f1a2b3c4d5e6f7a8b9c0d1"
 
+### 11. Log Patterns & Change Detection
+
+These tools work on log templates: Mezmo groups similar log lines into masked templates and counts them in time windows. Use them to find what changed against a baseline, then read raw lines with the log analysis tools, using the app, host, severity, and time range from a result. Template text is masked and is not a search query. Data trails real time by seconds, and a window still filling is marked `partial`; it is not a drop in traffic.
+
+<Note>
+These tools appear in the tool list, and are callable, only when Mezmo has log pattern data for your account. If your account has none, the tools are hidden and do not appear. If an agent calls one of these tools while it is unavailable, the server responds with a `tool not found` error, the same as for an unknown tool.
+</Note>
+
+#### `get_log_overview`
+
+Gets per-window totals over a time range: log counts, severity counts, distinct hosts, novel template counts, and the errors of the apps with the most errors. Use it first to pick a range worth narrowing into with `find_log_patterns`.
+
+**Parameters:**
+
+- `from_time` (required): Start of the range, as an RFC3339 timestamp. At most 30 days in the past
+- `to_time` (required): End of the range, as an RFC3339 timestamp
+- `top_apps_limit` (optional): Apps listed per window, ranked by errors, from 0 to 20. Defaults to `5`. Can't be combined with `error_apps`
+- `error_apps` (optional): 1 to 20 apps whose errors each window lists instead of the top apps. Can't be combined with `top_apps_limit`
+- `resolution` (optional): Window width, `5m` or `1h`. Use `1h` for spans of a day or more
+
+**Example:**
+"Give me an overview of my logs over the last 24 hours"
+"Which apps had the most errors in each hour since this morning?"
+
+#### `find_log_patterns`
+
+Finds ranked log templates in a time range, compared against a baseline. By default, templates that changed come first (new templates, or templates whose change score passed the threshold), then come severity, change score, and count. A template is novel when it first appeared in the current range for the apps in the query.
+
+**Parameters:**
+
+- `from_time`, `to_time` (required): The current range, as RFC3339 timestamps. At most 90 days in the past
+- `baseline_from_time`, `baseline_to_time` (optional): The baseline range. Send both or neither. Defaults to the same length immediately before `from_time`
+- `apps`, `namespaces`, `severities` (optional): Only these apps, namespaces, or severity levels
+- `q` (optional): A case-insensitive substring of the template text
+- `novel_only`, `changed_only` (optional): Return only novel or only changed templates. Defaults to `false`
+- `min_count` (optional): Fewest events a novel template needs to count as changed. Defaults to `5`
+- `min_deviation` (optional): Smallest deviation (count divided by baseline count) to return
+- `min_sample_count` (optional): Smallest baseline count a deviation is computed from. Defaults to `10`
+- `sort` (optional): `change_score`, `deviation`, `count`, or `first_seen`
+- `limit` (optional): Maximum templates to return, from 1 to 500. Defaults to `50`
+- `include_exemplars` (optional): Return one example raw line per template. Defaults to `false`. Exemplars make up a third to a half of the response, so request them only when you need a raw line
+
+To find a template that burst from nothing, use `changed_only` or `sort: change_score`. `min_deviation` leaves those templates out.
+
+**Example:**
+"What new error patterns appeared in the checkout-service in the last hour?"
+"Which log patterns grew the most compared to yesterday?"
+
+#### `get_log_pattern_series`
+
+Gets one template's per-window counts over a time range, from a `template_id` returned by `find_log_patterns`. Use `breakdown` to find which app carries a template, or to compare app versions.
+
+**Parameters:**
+
+- `template_id` (required): The `template_id` from a `find_log_patterns` result
+- `from_time`, `to_time` (required): The range, as RFC3339 timestamps. At most 90 days in the past
+- `app` (optional): Only this app's events
+- `version` (optional): Only this app version's events. Requires `app`
+- `namespace` (optional): Only this namespace's events
+- `breakdown` (optional): Adds one series per app (`app`), per app and version (`version`), or per app and namespace (`namespace`)
+- `include_exemplars` (optional): Return one example raw line per point. Defaults to `false`
+
+**Example:**
+"Show me how often that connection-refused pattern occurred over the last day, broken down by app version"
+
+#### `get_log_dimension_changes`
+
+Ranks apps, hosts, or nodes by how much their errors grew against a baseline: what changed first, then change score, errors, and count. Host and node rows list their apps, which you can pass to `find_log_patterns`. Filter to a single host to ask whether errors on that host rose.
+
+**Parameters:**
+
+- `dimension` (required): `apps`, `hosts`, or `nodes`
+- `from_time`, `to_time` (required): The current range, as RFC3339 timestamps. At most 30 days in the past
+- `baseline_from_time`, `baseline_to_time` (optional): The baseline range. Send both or neither. Defaults to the same length immediately before `from_time`
+- `app`, `host`, `node`, `namespace` (optional): Only this app, host, node, or namespace
+- `min_sample_count` (optional): Smallest baseline error count a deviation is computed from. Defaults to `10`
+- `limit` (optional): Maximum records to return, from 1 to 500. Defaults to `50`
+
+**Example:**
+"Which hosts had the biggest increase in errors in the last 30 minutes?"
+"Did errors on host prod-api-01 rise compared to the previous hour?"
+
+### 12. Exclusion Rules
+
+#### `list_exclusion_rules`
+
+Lists your account's log ingestion [exclusion rules](/docs/excluding-log-lines). Each rule has a query that selects log lines to exclude from ingestion. When a rule's `indexonly` is `true`, matching lines are indexed but hidden from live tail and other consumers. Each rule also reports whether it is active and the hosts and apps it applies to.
+
+Takes no parameters.
+
+**Use cases:**
+
+- Understanding why expected logs may be missing
+- Auditing current ingestion filters
+
+**Example:**
+"Why am I not seeing logs from the batch-worker app? Check my exclusion rules"
+"List my active exclusion rules"
+
 ---
 
 ## Query Syntax
@@ -502,8 +614,6 @@ Use relative time ranges like `last 15 minutes` or `last 1 hour` to ensure your 
 - Prefer values like `last_15_minutes`, `last_hour` when supported.
 - Keep prompts simple; add filters gradually
 - Add filters step by step. See [Query Syntax](#query-syntax) for available fields.
-- Use `export_logs` for raw data only
-- For dashboards or offline analysis, use `export_logs`; otherwise prefer RCA.
 
 ---
 
@@ -540,7 +650,7 @@ Add a `[mcp.servers.mezmo]` block to your AURA config (`config.toml` or a file i
 [mcp.servers.mezmo]
 transport = "http_streamable"
 url = "https://mcp.mezmo.com/mcp"
-description = "Mezmo root-cause analysis, log analysis, export, and pipeline management"
+description = "Mezmo root-cause analysis, log analysis, and pipeline management"
 
 [mcp.servers.mezmo.headers]
 Authorization = "Bearer <SERVICE KEY>"
