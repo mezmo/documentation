@@ -455,75 +455,7 @@ Ranks apps, hosts, or nodes by how much their errors grew against a baseline: wh
 "Which hosts had the biggest increase in errors in the last 30 minutes?"
 "Did errors on host prod-api-01 rise compared to the previous hour?"
 
-### 12. Metric Analysis
-
-These tools read Mezmo's analysis of your account's metric series: how each series is classified and which anomalies were found on it. Values are kept in five-minute buckets. Tools that page return a `next_offset` whenever a page is full, so the next page can be empty.
-
-<Note>
-These tools appear in the tool list, and are callable, only when metric analysis is available for your account and the account has analyzed metric series seen within the past month. Otherwise the tools are hidden and do not appear. If an agent calls one of these tools while it is unavailable, the server responds with a `tool not found` error, the same as for an unknown tool.
-</Note>
-
-#### `get_metric_analysis_overview`
-
-Gets an overview of your account's analyzed metric series: how many there are, when they were first and last seen, and how many fall in each classification (emission pattern, variability, seasonality, classification confidence, and metric kind). Series not classified yet count as unknown. Use it first, then `list_metric_analysis_series` or `find_metric_analysis_anomalies`.
-
-Takes no parameters.
-
-**Example:**
-"Give me an overview of my analyzed metrics"
-
-#### `list_metric_analysis_series`
-
-Lists your account's analyzed metric series, most recently seen first, each with its classification and the anomalies it started in the past day. Each result includes a `series_fingerprint` to pass to `get_metric_analysis_series_values`.
-
-**Parameters:**
-
-- `app` (optional): Only series emitted by this service name. An empty string matches series without a service name
-- `environment` (optional): Only series from this environment. An empty string matches series without an environment
-- `emission_pattern` (optional): `continuous`, `irregular`, `scheduled`, or `unknown`
-- `variability` (optional): `spiky`, `stable`, `variable`, or `unknown`
-- `seasonality` (optional): `seasonal`, `notSeasonal`, `notApplicable`, or `unknown`
-- `min_last_seen` (optional): Only series last seen at or after this RFC3339 timestamp
-- `limit` (optional): Maximum series to return, from 1 to 1000. Defaults to `25`
-- `offset` (optional): Series to skip. Pass the previous response's `next_offset`
-- `include_active_periods` (optional): Return each series' observed daily activity windows. Defaults to `false`. They make up most of the response, so request them for a few series at a time
-
-**Example:**
-"List the spiky metric series for the checkout-service in production"
-
-#### `find_metric_analysis_anomalies`
-
-Finds anomalies that started within a time window across every analyzed metric series in your account, most recently active first, each with the series it was found on. An anomaly starts with a run of flagged five-minute buckets and ends with a run of clean ones. Its `ended_at` is projected four buckets past the last flagged one, so it is in the future while the anomaly is still open. `detectors` names what flagged it, for example `missed_schedule`.
-
-**Parameters:**
-
-- `from_time`, `to_time` (required): The window, as RFC3339 timestamps
-- `active_only` (optional): Return only anomalies still open now. Defaults to `false`. Let `to_time` reach the present, since buckets after `to_time` are not seen
-- `limit` (optional): Maximum anomalies to return, from 1 to 1000. Defaults to `50`
-- `offset` (optional): Anomalies to skip. Pass the previous response's `next_offset`
-
-**Example:**
-"Are there any open metric anomalies right now?"
-"Find metric anomalies that started in the last six hours"
-
-#### `get_metric_analysis_series_values`
-
-Gets one analyzed metric series' values in five-minute buckets over a time window, oldest first, from a `series_fingerprint` returned by `list_metric_analysis_series` or `find_metric_analysis_anomalies`. The row shape depends on the series' metric kind: gauge, sum, histogram, exponential histogram, or summary. Use it to see the values around an anomaly.
-
-**Parameters:**
-
-- `series_fingerprint` (required): The `series_fingerprint` from a series or anomaly result
-- `from_time`, `to_time` (required): The window, as RFC3339 timestamps
-- `limit` (optional): Maximum rows to return, from 1 to 1000. Defaults to `288`, one day of five-minute buckets
-- `offset` (optional): Rows to skip. Pass the previous response's `next_offset`
-- `include_buckets` (optional): Return the raw bucket distribution of histogram rows. Defaults to `false`
-
-If the fingerprint names no series in your account, or the series has no data in the window, the response holds no series and no values.
-
-**Example:**
-"Show me the values of that anomalous series around the anomaly"
-
-### 13. Exclusion Rules
+### 12. Exclusion Rules
 
 #### `list_exclusion_rules`
 
