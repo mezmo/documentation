@@ -61,6 +61,7 @@ In the Mezmo web app, Agent Governance is labeled **AI Governance**. Select **AI
 | **Workflows** | Review requests and approve or deny the ones waiting on a person. See [Agent Governance Workflows](./governance-workflows). |
 | **Policies** | Create, change, evaluate, and test policies. See [Agent Governance Policies](./governance-policies). |
 | **Test Cases** | Keep a library of saved test cases to use with any policy. See [Evaluate and Test Agent Governance Policies](./governance-policy-testing). |
+| **Candidate Rules** | Review the MCP tools your agents have called, and add policy rules or test cases from them. Appears when Candidate Rules is enabled for your account. See [Agent Governance Candidate Rules](./governance-candidate-rules). |
 | **Agents** | Register agents and assign their policies. See [Governed Agents](./governance-agents). |
 
 When requests are waiting for approval, a count appears on the **AI Governance** navigation item. Hover over it to see the newest pending workflows.
@@ -75,7 +76,7 @@ Each Agent Governance page needs a permission on your role. Account admins set p
 | ---- | ---- | ---- |
 | `workflow` | Read | View the **Overview** dashboard, the **Workflows** list, and workflow details. |
 | `workflow` | Write | Approve or deny pending workflows, in the web app or from Slack. |
-| `policy` | Read | View and evaluate policies, and view test suites and the **Test Cases** library. |
+| `policy` | Read | View and evaluate policies, view test suites and the **Test Cases** library, and view **Candidate Rules**. |
 | `policy` | Write | Create policies, change them through drafts, fork and revert revisions, and edit and run test suites and test cases. |
 | `policy` | Manage | Delete policies. |
 | `agent` | Read | View the **AURA Agents** list. |
@@ -96,5 +97,6 @@ If a policy names an approving role, you also need to belong to that role to app
 - [Govern Coding Agents with Governance Plugins](./governance-coding-agents): Install the governance plugins for coding agents such as Claude Code, Codex, and Cursor.
 - [Agent Governance Policies](./governance-policies): Write rules, choose the fallthrough, assign approvers, and manage revisions.
 - [Evaluate and Test Agent Governance Policies](./governance-policy-testing): Dry-run tool calls and keep test suites that catch unwanted changes.
+- [Agent Governance Candidate Rules](./governance-candidate-rules): Turn the tool calls your agents have made into policy rules and test cases.
 - [Agent Governance Workflows](./governance-workflows): Review requests and approve or deny them in Mezmo.
 - [Approve Agent Governance Requests in Slack](./governance-slack-approvals): Send approval notices to Slack, and approve or deny from Slack.
