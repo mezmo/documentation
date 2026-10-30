@@ -1,0 +1,126 @@
+---
+title: "Approve Agent Governance Requests in Slack"
+description: "Set up Slack approval notices for Agent Governance policies, so approvers can approve or deny agent tool calls from Slack."
+---
+
+Agent Governance can post a notice to Slack each time a policy holds an agent's tool call for approval. Approvers can approve or deny the request from the notice without opening Mezmo. Because a pending request expires after 15 minutes, Slack notices help approvers decide in time. This page explains how to set up Slack approvals and how approvers use them. For deciding in the Mezmo web app, see [Agent Governance Workflows](./governance-workflows).
+
+## How Slack Approvals Work
+
+Slack approvals use the Mezmo Slack app, the same one that sends Mezmo log alerts to Slack. You don't create or configure a separate Slack app. Mezmo hosts the app and handles the **Approve** and **Deny** buttons.
+
+Setup has three parts:
+
+1. An admin [connects Slack channels](#connect-a-slack-channel) to your Mezmo account.
+2. A policy author [adds those channels to a policy](#add-channels-to-a-policy).
+3. Each approver [links their Slack user](#link-your-slack-user) to their Mezmo user the first time they select **Approve** or **Deny**.
+
+When an approver selects a button, Mezmo records the decision as the Mezmo user their Slack user is linked to. Mezmo checks that user's permissions, so a Slack approval follows the same rules as an approval in the web app.
+
+## Connect a Slack Channel
+
+Connect each Slack channel or direct message that should receive approval notices. If the channel already receives Mezmo alerts, it may already be connected.
+
+Before you begin, you need `integration` Manage and `alert` Write in your Mezmo account, and permission to add apps to the Slack workspace. If your Slack workspace requires approval for new apps, ask a Slack admin to approve the Mezmo app.
+
+1. In the Mezmo web app, go to **Settings** > **Integrations** > **Slack**.
+2. Select **Add Slack channel**. A Slack window opens.
+3. In Slack, choose the channel or direct message to post to, then allow access.
+
+The Slack window shows **Slack connected** and closes. The channel appears in the **Slack Channels** list, with its workspace and channel name and its ID. A private channel appears as **[Private Channel]**.
+
+<Note>
+Approval notices can only go to channels connected with **Add Slack channel**. Webhook URLs listed under **Slack Webhooks** can't receive approval notices. To use one of those channels, connect it with **Add Slack channel**.
+</Note>
+
+## Add Channels to a Policy
+
+Add channels to each policy whose held calls should be announced in Slack. You add channels on the policy's **Approvers** step, when you [create a policy](./governance-policies#create-a-policy) or [change it through a draft](./governance-policies#change-a-policy).
+
+Before you begin, you need `policy` Write, `role` Read, and `integration` Manage.
+
+1. Open the policy wizard, and go to the **Approvers** step.
+2. Recommended. Choose an **Approving role**, so that only members of that role can approve or deny. See [Approvers](./governance-policies#approvers).
+3. Under **Slack notifications**, choose a channel from **Add a Slack channel**. A private channel appears as **Private channel**, with its ID.
+4. Optional. Under **Also notify**, choose who the notice alerts: **Nobody**, **@here**, or **@channel**.
+5. Optional. To mention specific people or user groups, select **Add mention**, enter their Slack ID, and select **Add**.
+6. Repeat steps 3 to 5 for each channel. A policy can notify up to 10 channels.
+7. Finish the wizard, and create the policy or accept the draft.
+
+If a channel you need isn't listed, select **Manage Slack channels** to connect it in a new tab. Then select **Refresh list**.
+
+A posted notice doesn't alert anyone unless they follow every message in the channel, so use **Also notify** or mentions to reach approvers. Each channel can have up to 10 mentions, and **@here** or **@channel** counts as one. Slack notifies people and groups by ID:
+
+- A member ID starts with `U` or `W`. To find it, open the person's Slack profile and choose **Copy member ID** from its menu.
+- A user group ID starts with `S`. It appears in the URL when you view the group in Slack.
+
+## Approve or Deny From Slack
+
+Each notice is headed **Approval needed** and names the agent, the policy, the tools the request wants to run, and the policy's reason for holding it. Notices don't include tool-call arguments. To see the arguments before you decide, select **Open in Mezmo**.
+
+To decide a request from Slack:
+
+1. In the notice, select **Approve** or **Deny**.
+2. Confirm your choice.
+
+The notice changes to **Request approved** or **Request denied** for everyone in the channel, and shows who decided. The agent receives the decision. To decide, you need `workflow` Write in the account and, if the policy names an approving role, membership in that role.
+
+If a request was already decided in Mezmo or has expired, the notice doesn't change on its own. The next time someone selects **Approve** or **Deny**, the notice updates to show the final state, and nothing else is decided.
+
+## Link Your Slack User
+
+The first time you select **Approve** or **Deny** in a notice, Slack shows you a private message asking you to link your Slack account. Nothing is approved or denied yet.
+
+1. In the private message, select **Link your Slack account**. Mezmo opens in your browser. Sign in if you're asked.
+2. On the **Slack** tab of your user preferences, check that the Slack user and workspace are yours, then select **Link Slack User**.
+3. Return to the notice in Slack, and select **Approve** or **Deny** again.
+
+The link prompt can be used only for a limited time. If it has expired, select **Approve** or **Deny** in Slack again to get a new one.
+
+<Warning>
+A linked Slack user can approve and deny requests as you in every Mezmo account you belong to. If you didn't select **Approve** or **Deny** in Slack yourself, select **Cancel** instead of linking.
+</Warning>
+
+You can link one Slack user for each Slack workspace, and each Slack user can be linked to only one Mezmo user.
+
+### Unlink a Slack User
+
+1. In the Mezmo web app, open your user preferences, and select the **Slack** tab.
+2. In **Linked Slack Users**, select **Unlink** next to the Slack user.
+3. Confirm.
+
+After you unlink, that Slack user can't approve or deny requests as you. The next time they select a button, they're asked to link again.
+
+## Troubleshoot Slack Approvals
+
+### The notice has no Approve or Deny buttons
+
+Notices sent to some older Slack connections include only **Open in Mezmo**, because the connection doesn't record its Slack workspace. Decide the request in Mezmo. To get buttons on future notices, connect the channel again with **Add Slack channel**, then [replace the channel on the policy](#a-channel-shows-as-disconnected-channel).
+
+### A channel shows as Disconnected channel
+
+The channel was removed from **Settings** > **Integrations** > **Slack**. Mezmo skips it when sending notices, and the policy wizard won't continue until you remove it. In a draft of the policy, remove the disconnected channel, and add a connected channel instead.
+
+### Slack says the button can no longer be used
+
+Slack shows "This button can no longer be used. Open the request in Mezmo to approve or deny it." when the button has expired, when it was selected from a different Slack workspace than the notice was posted to, when that workspace is no longer connected to the Mezmo account, or when the account is inactive. Open the request in Mezmo to decide it.
+
+### Slack says your Mezmo user can't approve or deny
+
+The Mezmo user your Slack user is linked to is missing something it needs in the request's account. Check which message Slack shows:
+
+- **may not approve or deny requests**: the user needs `workflow` Write. Ask an admin to add it to one of your roles.
+- **does not hold the approver role this policy requires**: ask an admin to add you to the policy's approving role.
+- **is not a member of the account this request belongs to**: ask an admin to invite you to that account.
+
+### Linking fails
+
+- **Slack User Already Linked**: the Slack user is linked to another Mezmo user. That person must unlink it first.
+- **Workspace Already Linked**: you already linked a different Slack user in this workspace. [Unlink it](#unlink-a-slack-user), then select **Approve** or **Deny** in Slack again to get a new link.
+- **Link Used or Expired**: select **Approve** or **Deny** in Slack again to get a new link.
+
+## Related Topics
+
+- [Agent Governance Workflows](./governance-workflows)
+- [Agent Governance Policies](./governance-policies#approvers)
+- [Slack Alert Integration](./slack-alert-integration)

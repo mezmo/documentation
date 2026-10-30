@@ -1,0 +1,230 @@
+---
+title: "Agent Governance Policies"
+description: "Write Agent Governance policy rules that allow, deny, or hold agent tool calls for approval, assign approvers, and change policies safely through drafts and revisions."
+---
+
+An Agent Governance policy decides, for every tool call an agent makes, whether the call runs (**Allow**), waits for a person to approve it (**Require Approval**), or is refused (**Deny**). This page explains how policies decide, and how to create, change, restore, and delete them. To check a policy with sample tool calls before you rely on it, see [Evaluate and Test Agent Governance Policies](./governance-policy-testing).
+
+To open your policies, select **AI Governance** in the left navigation, then select **Policies**. Viewing policies needs `policy` Read, and creating or changing them needs `policy` Write. See [Permissions](./agent-governance#permissions).
+
+## How a Policy Decides
+
+A policy holds a set of rules and a fallthrough:
+
+- Each **rule** matches tool calls by their namespace, tool name, arguments, or any combination of them, and gives one outcome. Rule order doesn't matter.
+- When several rules match a call, the most restrictive outcome wins. **Deny** outranks **Require Approval**, which outranks **Allow**. An approval can't override a matching **Deny** rule.
+- The **fallthrough** decides every call that no rule matches. A policy with no rules sends every call to its fallthrough.
+- A request that holds several tool calls gets the most restrictive outcome of all its calls.
+
+A policy can also name an approving role, whose members approve or deny the calls the policy holds. See [Approvers](#approvers).
+
+Policies are versioned. You never edit a policy in place. You change it through a draft, and accepting the draft creates a new revision. See [Change a Policy](#change-a-policy).
+
+## Create a Policy
+
+Create a policy before you register the agents it governs, so each agent has a policy from its first tool call.
+
+Before you begin, you need `policy` Write.
+
+1. On the **Policies** page, select **New Policy**.
+2. On the **Basics** step, enter a **Policy Name** and an optional **Description**, then select **Continue**. See [Policy Fields](#policy-fields).
+3. On the **Rules** step, select **Add Rule** for each rule you need, then select **Continue**. To start a rule from a tool your agents have already called, select **From candidate rules**. See [Write Rules](#write-rules) and [Add a Rule From the Policy Editor](./governance-candidate-rules#add-a-rule-from-the-policy-editor).
+4. On the **Fallthrough** step, choose what happens to calls that no rule matches, then select **Continue**. See [Choose the Fallthrough](#choose-the-fallthrough).
+5. On the **Approvers** step, choose an **Approving role** and any Slack channels to notify, then select **Continue**. This step is optional. See [Approvers](#approvers).
+6. On the **Review** step, read any validation findings, then select **Create Policy**.
+
+The policy's detail page opens. Assign the policy to agents from the [AURA Agents](./governance-agents#register-an-agent) page.
+
+If you don't have `role` Read, the wizard skips the **Approvers** step.
+
+### Review Findings
+
+The **Review** step checks the policy before you create it. Findings don't stop you from saving, but each one points to a likely mistake:
+
+| Finding | What it means |
+| ---- | ---- |
+| `READY` | The policy compiles as written. |
+| `EMPTY_RULE_SET` | The policy has no rules, so the fallthrough decides every call. |
+| `NO_PERMIT_RULE` | No rule allows anything and the fallthrough denies, so the policy can never let a call through. |
+| `DUPLICATE_MATCH` | Two rules match the same field and value. The stricter outcome wins. |
+| `MISSING_CODE` | A rule that blocks calls has no code, so the agent can't tell why a call was refused. |
+
+## Write Rules
+
+Each rule has these parts:
+
+1. Optional. A **Name**, shown wherever the rule is listed, such as on the dashboard and in evaluation results. Up to 128 characters.
+2. **Match On**: what the rule matches. Choose one or more of **Tool Namespace**, **Tool Name**, and **Tool-Call Arguments**. Every selected match must hold for the rule to apply.
+3. **Outcome When This Rule Matches**: **Allow**, **Require Approval**, or **Deny**.
+4. For **Require Approval** and **Deny**, an optional **Code** and **Message Shown to the Caller**. Both are returned to the agent, so the team that built it can handle the result. See [Policy Fields](#policy-fields).
+
+As you type a namespace, tool name, or argument name, Mezmo suggests values from the tool catalog of the agents assigned to the policy. Select **Search all agents** to see suggestions from every agent in your account. A new policy, or one with no agents yet, always searches all agents. You can also enter values that aren't suggested. For how the catalog is filled, see [Share the Agent's Tool Catalog](./governance-agents#share-the-agents-tool-catalog).
+
+### Match by Namespace or Tool Name
+
+A tool's namespace is the MCP server it comes from, such as `k8s_mcp`. A tool name is one tool, such as `delete`. Tool names can repeat across MCP servers, so combine **Tool Name** with **Tool Namespace** to match one specific tool.
+
+For each, choose a **Comparison** and enter the value:
+
+- **is** or **is not** compares against one value.
+- **is one of** or **is not one of** compares against a list. Press Enter after each value. A list can hold up to 25 values.
+
+Each value can be up to 128 characters.
+
+### Match by Arguments
+
+To match the values an agent passes to a tool, select **Tool-Call Arguments** and add up to 25 argument rows. Each row has an argument name, a comparison, and a value.
+
+| Comparison | Matches when the argument |
+| ---- | ---- |
+| **is** | Equals the value. |
+| **is not** | Doesn't equal the value, or is missing from the call. |
+| **greater than**, **at least**, **less than**, **at most** | Compares as a number. The value must be a number. |
+| **is one of** | Equals one of the listed values. |
+| **is not one of** | Equals none of the listed values, or is missing from the call. |
+
+Argument names use letters, numbers, and underscores, start with a letter or an underscore, and are up to 64 characters. Values are up to 512 characters. Values of `true` and `false` are compared as booleans, and numeric values as numbers.
+
+## Choose the Fallthrough
+
+The fallthrough decides calls that no rule matches. The wizard has no default, so you choose one:
+
+- **Deny Outright** refuses the call with your code and message.
+- **Send for Approval** holds the call for an approver.
+- **Allow** lets the call run. Choose **Allow** only for a policy whose rules exist to block or hold specific calls.
+
+For **Deny Outright** and **Send for Approval**, the **Code** starts as `NO_MATCHING_RULE`, and the **Message Shown to the Caller** starts as "No rule in this policy covers this request." You can change both. Allowed fallthrough calls are still recorded as workflows.
+
+<Warning>
+Accepted policies take effect right away. If you choose **Allow** as the fallthrough and the policy has few or no rules that deny or hold calls, agents can run almost any tool call. Check your rules before you save.
+</Warning>
+
+## Approvers
+
+An approving role decides who can approve or deny the calls that a policy holds. A call is held when a rule's outcome is **Require Approval**, or when the fallthrough is **Send for Approval**.
+
+Naming an approving role is optional but recommended, so that held calls have a clear owner. If a policy names no role, anyone with `workflow` Write can approve or deny its calls. Seeing and choosing approving roles needs `role` Read.
+
+### Assign an Approving Role
+
+On the **Approvers** step, choose a role from **Approving role**, or leave it as **Anyone can approve**.
+
+If the right role doesn't exist and you have `role` Write, select **Create a role**. Enter a **Role name** and, optionally, a role to **Inherit from**, then select **Create role**. The new role can approve or deny tool calls and view policies, and the wizard selects it. To create a role with more permissions, use **Create a role the long way**, which opens the full role form in a new tab. See [Role-Based Access Control](./rbac#create-or-edit-a-role).
+
+### Send Approval Notices to Slack
+
+On the **Approvers** step, you can add Slack channels that receive a notice each time the policy holds a call. Approvers can approve or deny from the notice. For the setup and how approvers use the notices, see [Approve Agent Governance Requests in Slack](./governance-slack-approvals).
+
+## View a Policy
+
+On the **Policies** page, select **View** on a policy's row to open its detail page. The list also shows each policy's rule count, agents, approvers, fallthrough, draft state, warnings, and created date. From a row's menu, you can also open **Run Evaluation** or **Test Suite**.
+
+The detail page shows:
+
+- The **Policy ID**, the current **Revision**, and the created date
+- **Approvers**: the approving role, or **None**, when you have `role` Read
+- **Slack notifications**: the channels the policy notifies, when you have `integration` Manage
+- **Agents**: the agents that use the policy, when you have `agent` Read
+- **Test Suite**: the policy's test suite and its last run. See [Test a Policy](./governance-policy-testing#test-a-policy).
+- **Compiled Rules**: each rule as a sentence, and the fallthrough
+- **Draft**: when a draft is open, select **View Draft** to preview its rules
+- **Revision History**: every revision of the policy. See [Revision History](#revision-history).
+
+Select **Run Evaluation** to try sample tool calls against the policy. See [Evaluate a Policy](./governance-policy-testing#evaluate-a-policy).
+
+## Change a Policy
+
+To change a policy's rules, fallthrough, name, description, approving role, or Slack channels, create a draft, edit it, and accept it. Accepting a draft creates a new revision, and the change takes effect from the next tool call. Changing a policy needs `policy` Write.
+
+1. Open the policy's detail page.
+2. In the draft banner, select **Create Draft**. The policy wizard opens in draft mode.
+3. Make your changes in the wizard.
+4. Optional. To check your changes before they take effect, select **Evaluate Draft**. This saves the draft and opens an evaluation of it. See [Evaluate a Policy](./governance-policy-testing#evaluate-a-policy).
+5. Select **Save and Accept Draft** to apply your changes, or **Save Draft** to keep working on them later.
+
+The detail page then shows the new revision. If the policy has a test suite, run it against the draft before you accept the draft. See [Test a Policy](./governance-policy-testing#test-a-policy).
+
+To come back to a saved draft, open the policy and select **Continue Editing** in the draft banner. The same menu has **Accept Draft** and **Discard Draft**. Discarding a draft removes its changes and leaves the policy as it is.
+
+### Draft Holds
+
+A policy has at most one draft, and one editor holds it at a time. Your hold lasts five minutes. It renews while you have the draft open in the wizard and each time you save.
+
+- While another editor's hold is active, you can't edit, accept, or discard their draft. The banner shows when their hold lapses.
+- After another editor's hold lapses, you can select **Take Over Draft** or **Discard Draft**. Taking over replaces their unaccepted changes with a fresh copy of the current policy. Their work isn't merged.
+- After your own hold lapses, your changes stay in the draft. Select **Continue Editing** to renew your hold. Until you do, another editor can take the draft over.
+
+If the policy changes after you create a draft, for example because someone reverts it, the draft becomes stale and the banner warns you. Discard the stale draft and create a new one, so that your changes start from the current revision.
+
+## Revision History
+
+Every accepted draft, fork, and revert adds a revision to the policy's **Revision History**, at the bottom of its detail page. To jump to it, select **View history** next to the current revision. The history is append-only: restoring an older revision adds a new revision instead of removing later ones. Workflows keep a record of the rules that decided them.
+
+Each revision shows how it was made:
+
+- **Created**: the policy's first revision
+- **Edited**: an accepted draft
+- **Forked**: an accepted draft that started from an older revision
+- **Reverted**: an immediate revert to an older revision
+
+The revision in force is labeled **Current**. Each older revision shows what restoring it would change: rules added, changed, or dropped, and whether the fallthrough would change. Select **View Rules** to see the revision's rules compared to the current policy.
+
+## Restore a Previous Revision
+
+You can bring back an older revision's rules and fallthrough in two ways. Both keep the policy's current name, description, approving role, and Slack channels, and both need `policy` Write.
+
+- **Fork into Draft** opens a draft that starts from the older revision, so you can review and edit it before it takes effect. It isn't available while another draft is open.
+- **Revert to This** restores the older revision right away as a new revision, with no draft or review step.
+
+Use a fork when you want to review the earlier rules first. Use a revert to undo a bad change quickly.
+
+### Fork a Revision Into a Draft
+
+1. In the policy's **Revision History**, find the revision you want.
+2. Select **Fork into Draft**. The policy wizard opens with the draft.
+3. Review and edit the draft, then select **Save and Accept Draft**.
+
+### Revert to a Revision
+
+1. In the policy's **Revision History**, find the revision you want.
+2. Select **Revert to This**.
+3. Select **Yes, Revert**.
+
+The revert takes effect immediately for every agent that uses the policy. A new revision labeled **Reverted** and **Current** appears at the top of the history. To undo a revert, revert to the revision that was current before it. If a draft was open, the revert makes that draft stale.
+
+## Delete a Policy
+
+Deleting a policy also deletes its drafts, revisions, and test suite. Workflows that the policy decided keep their own record. Deleting a policy needs `policy` Manage.
+
+Before you begin, assign the policy's agents a different policy. Mezmo doesn't delete a policy that active agents still use. You also can't delete a policy while another editor holds an active draft of it.
+
+1. Open the policy's detail page.
+2. Select **Delete Policy**.
+3. Confirm the deletion.
+
+## Policy Fields
+
+| Field | Description |
+| ---- | ---- |
+| **Policy Name** | Required. 2 to 128 characters. Must be unique in your account. |
+| **Description** | Optional. 2 to 512 characters. |
+| Rule **Name** | Optional. Up to 128 characters. |
+| **Code** | Optional. A stable identifier that the agent can act on, such as `FORBIDDEN_TOOL`. Up to 35 characters. |
+| **Message Shown to the Caller** | Optional. Explains to the agent why the call was refused or held. Up to 256 characters. |
+
+A policy can hold up to 250 rules.
+
+If you leave **Code** and **Message Shown to the Caller** empty on a rule, Mezmo returns a default code and message:
+
+| Outcome | Default code | Default message |
+| ---- | ---- | ---- |
+| **Deny** | `ERR_DENIED_BY_POLICY` | This request is denied by policy. |
+| **Require Approval** | `ERR_APPROVAL_REQUIRED` | This request requires human review and approval. |
+
+## Related Topics
+
+- [Agent Governance](./agent-governance)
+- [Evaluate and Test Agent Governance Policies](./governance-policy-testing)
+- [Agent Governance Candidate Rules](./governance-candidate-rules)
+- [Agent Governance Workflows](./governance-workflows)
+- [Governed Agents](./governance-agents)
