@@ -1,17 +1,64 @@
 ---
 title: "AURA: open source agent harness for production SRE work"
 sidebarTitle: "AURA Overview"
+mode: "frame"
 description: "AURA is an open source SRE agent for investigating production incidents, with scoped tool access, human approval gates, and end-to-end OpenTelemetry tracing."
 ---
-Written in Rust and licensed Apache 2.0, AURA takes an LLM plus the tools you already run and turns them into an agent that can work a live incident: reading cluster state, querying logs and metrics, checking your runbooks, and reporting what it found.
-<div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '24px' }}>
-  <a href="/aura/quickstart" style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: '#503A82', color: '#ffffff', padding: '10px 18px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
-    Try the quickstart
-  </a>
-  <a href="https://github.com/mezmo/aura" style={{ display: 'inline-flex', alignItems: 'center', borderRadius: '8px', background: '#f3eefc', color: '#503A82', padding: '10px 18px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
-    View source on GitHub
-  </a>
-</div>
+{/* Hero: same treatment as the home and Mezmo Platform heroes */}
+
+<section className="not-prose relative overflow-hidden bg-[#F4F4F4] dark:bg-transparent">
+  <div className="pointer-events-none absolute -left-32 -top-40 h-[28rem] w-[28rem] rounded-full bg-[#D5CFE3] opacity-70 dark:bg-[#433465] dark:opacity-40" style={{filter:"blur(80px)"}}></div>
+  <div className="pointer-events-none absolute left-1/3 -top-48 h-96 w-96 rounded-full bg-[#F6E7B8] opacity-60 dark:bg-[#34294C] dark:opacity-40" style={{filter:"blur(80px)"}}></div>
+  <div className="pointer-events-none absolute right-0 top-10 h-80 w-80 rounded-full bg-[#DCEBF0] opacity-70 dark:bg-[#1B2A30] dark:opacity-50" style={{filter:"blur(80px)"}}></div>
+
+  <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 xl:grid-cols-2 lg:px-8">
+    <div>
+      <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[#0A090C] dark:text-white sm:text-5xl lg:text-6xl">
+        An open source agent harness for <span className="text-[#7651B1] dark:text-[#B1A5D3]">production SRE work</span>.
+      </h1>
+      <p className="mt-6 max-w-xl text-base font-light leading-7 text-[#0A090C] dark:text-[#E6E6E5] sm:text-lg">
+        Written in Rust and licensed Apache 2.0, AURA takes an LLM plus the tools you already run and turns them into an agent that can work a live incident: reading cluster state, querying logs and metrics, checking your runbooks, and reporting what it found.
+      </p>
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/aura/quickstart" className="inline-flex items-center justify-center rounded-lg bg-[#95C1CF] px-5 py-3 text-base font-medium text-[#031403] no-underline transition hover:bg-[#82B3C3]">
+          Try the quickstart
+        </a>
+        <a href="https://github.com/mezmo/aura" className="inline-flex items-center justify-center rounded-lg border-2 border-[#95C1CF] bg-transparent px-5 py-3 text-base font-medium text-[#3A344B] no-underline transition hover:bg-[#95C1CF]/20 dark:text-[#E6E6E5]">
+          View source on GitHub
+        </a>
+      </div>
+    </div>
+
+    {/* Config graphic: two workers with different tool lists, writes gated by approval */}
+    <div className="overflow-hidden rounded-lg border-4 border-[#D5CFE3] bg-[#0B0D10] shadow-[0_0_40px_rgba(118,81,177,0.25)] dark:border-[#433465]" aria-hidden="true">
+      <div className="flex items-center gap-2 bg-[#CECECE] px-3 py-2 dark:bg-[#2D2D2D]">
+        <span className="h-3 w-3 rounded-full bg-[#FF5F57]"></span>
+        <span className="h-3 w-3 rounded-full bg-[#FEBC2E]"></span>
+        <span className="h-3 w-3 rounded-full bg-[#28C840]"></span>
+        <span className="ml-2 font-mono text-xs text-[#444444] dark:text-[#CECECE]">config.toml (excerpt)</span>
+      </div>
+      <div className="overflow-x-auto whitespace-pre p-5 font-mono text-[13px] leading-6 text-[#E6EDF3]">
+        <div><span className="italic text-[#8B949E]"># Each worker gets its own tool list</span></div>
+        <div><span className="text-[#FFD43B]">[orchestration.worker.investigator]</span></div>
+        <div><span className="text-[#79C0FF]">description</span> = <span className="text-[#A5D6A3]">{'"Read cluster state, logs, and metrics"'}</span></div>
+        <div><span className="text-[#79C0FF]">mcp_filter</span> = <span className="text-[#A5D6A3]">{'["namespaces_list", "events_list",'}</span></div>
+        <div><span className="text-[#A5D6A3]">{'              "execute_query"]'}</span></div>
+        <div className="h-3"></div>
+        <div><span className="text-[#FFD43B]">[orchestration.worker.operations]</span></div>
+        <div><span className="text-[#79C0FF]">description</span> = <span className="text-[#A5D6A3]">{'"Operational changes to running services"'}</span></div>
+        <div><span className="text-[#79C0FF]">mcp_filter</span> = <span className="text-[#A5D6A3]">{'["pods_delete"]'}</span></div>
+        <div className="h-3"></div>
+        <div><span className="italic text-[#8B949E]"># Writes wait for a human decision</span></div>
+        <div><span className="text-[#FFD43B]">[hitl]</span></div>
+        <div><span className="text-[#79C0FF]">require_approval</span> = <span className="text-[#A5D6A3]">{'["pods_delete"]'}</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
+<div className="prose dark:prose-invert max-w-none">
+
 You declare the agent in TOML. Workers are separate roles, each with its own prompt and tool list, so the worker that inspects a cluster is not the worker that changes it. Tools connect over MCP, so anything with an MCP server is reachable without writing an adapter.
 
 ## What it does
@@ -183,3 +230,6 @@ Each of these is a recorded run against a live environment. Where a video has a 
     Tell us the tool, the failure you keep hitting, and what the agent should do. We build these into walkthroughs.
   </Card>
 </CardGroup>
+
+</div>
+</div>

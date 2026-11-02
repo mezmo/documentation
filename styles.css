@@ -130,3 +130,8 @@ h1 {
 }
 
 .chat-assistant-floating-input { display: none; }
+/* Navbar CTA: match mezmo.com teal button */
+a[href="https://www.mezmo.com/demo-request"] {
+    background-color: #95C1CF !important;
+    color: #031403 !important;
+}

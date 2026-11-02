@@ -7,14 +7,14 @@ description: "A platform-agnostic approach to cutting log volume by 50%+ via arc
 
 ## Introduction: Improving the ROI of Your Observability Data
 
-Modern observability platforms are incredibly powerful—but they are also expensive if you send everything, all the time. The goal of data optimization is **not** to lose visibility, but to ensure that the *right data* reaches your observability tools at the *right time*, while everything else is handled more cost‑effectively.
+Modern observability platforms are incredibly powerful but they are also expensive if you send everything, all the time. The goal of data optimization is **not** to lose visibility, but to ensure that the *right data* reaches your observability tools at the *right time*, while everything else is handled more cost‑effectively.
 
-This guide walks through a practical, platform‑agnostic approach to optimizing log data volume using the Mezmo pipeline. These principles apply no matter what Observability platforms you use.
+This guide walks through a practical, platform-agnostic approach to optimizing log data volume using the Mezmo pipeline. These principles apply no matter what Observability platforms you use.
 
 ## The Six Steps of Observability Data Optimization
 
 1. **Archive** a full fidelity copy of your telemetry data to cheaper, long-term retention solutions for future auditing or analysis, instead of keeping everything in your more expensive Observability platform. 
-2. **Filter** early and intentionally the duplicate and extraneous events that don’t contribute value to your observability results.
+2. **Filter** early and intentionally the duplicate and extraneous events that don't contribute value to your observability results.
 3. **Parse and Structure** events by removing empty values, dropping unnecessary labels, and transforming inefficient data formats into a format specific to your observability destinations.
 4. **Merge** events together  by grouping messages and combining their fields to retain unique data while removing repetitive data.
 5. **Condense events into metrics** to reduce the number of hours and resources dedicated to supporting back-end tools, and convert unstructured data to structured before indexing to make searches more manageable, faster, and efficient.
@@ -24,7 +24,7 @@ This guide walks through a practical, platform‑agnostic approach to optimizing
 
 Some of these steps may seem obvious, but they are not easy to put into practice.
 
-An observability agent alone is insufficient. Agents are neutral forwarders—they collect telemetry and send it downstream, but they do not meaningfully process or optimize data in transit.
+An observability agent alone is insufficient. Agents are neutral forwarders they collect telemetry and send it downstream, but they do not meaningfully process or optimize data in transit.
 
 You *could* implement portions of this approach using open-source tools and custom development, but this typically introduces significant operational cost and complexity. Teams must build and maintain expertise that is not core to their business.
 
@@ -33,13 +33,13 @@ The fundamental challenge is that most tools fall into one of two categories:
 - **Agents**, which only send data
 - **Observability platforms**, which only receive and analyze data
 
-What’s missing is the ability to **process telemetry data in-stream**—to transform, optimize, and route it *as it flows* from source to destination.
+What's missing is the ability to **process telemetry data in-stream** to transform, optimize, and route it *as it flows* from source to destination.
 
 Mezmo Telemetry Pipelines were designed specifically to address this gap. They give you precise control over the flow of telemetry between data sources and observability tools, allowing you to optimize and shape data *before* it arrives downstream.
 
 ## Understanding Pipeline Order Before You Optimize
 
-Before applying any optimization techniques, it’s critical to understand that **processor order directly impacts cost, flexibility, and safety**. A poorly ordered pipeline can undo the benefits of even the best filtering strategy.
+Before applying any optimization techniques, it's critical to understand that **processor order directly impacts cost, flexibility, and safety**. A poorly ordered pipeline can undo the benefits of even the best filtering strategy.
 
 ### Recommended High-Level Pipeline Order
 
@@ -85,14 +85,14 @@ Always archive **raw, unparsed, and unfiltered logs**. This preserves maximum fu
 
 <Warning>
 **Common Pitfall**
-Archiving parsed or enriched logs increases storage cost and permanently locks in today’s schema decisions.
+Archiving parsed or enriched logs increases storage cost and permanently locks in today's schema decisions.
 </Warning>
 
 To implement archiving in your telemetry pipeline, review the tutorial on [Creating a Basic Data Archiving and Restoration Pipeline](/telemetry-pipelines/archive-restore-data-tutorial), which demonstrates how to add an archive destination and rehydrate data when needed.
 
 ### 2:  Filter
 
-Once logs are safely archived, filtering becomes the most impactful way to reduce data volume and observability spend. Filtering removes logs that are **high frequency but low diagnostic value**—data that rarely contributes to troubleshooting, alerting, or root cause analysis.
+Once logs are safely archived, filtering becomes the most impactful way to reduce data volume and observability spend. Filtering removes logs that are **high frequency but low diagnostic value** data that rarely contributes to troubleshooting, alerting, or root cause analysis.
 
 #### What Makes a Log a Good Filtering Candidate?
 
@@ -106,7 +106,7 @@ Common examples include health checks, load balancer probes, Kubernetes liveness
 
 <Tip>
 **Rule of Thumb**
-If a log has never helped you resolve an incident, it probably shouldn’t be sent to your observability platform.
+If a log has never helped you resolve an incident, it probably shouldn't be sent to your observability platform.
 </Tip>
 
 #### How to Identify What to Filter
@@ -124,13 +124,13 @@ Start by filtering the most obvious noise, then iterate gradually.
 Apply filters as early as possible in the pipeline, before parsing or enrichment.
 </Tip>
 
-Filtering is easily accomplished using a [Filter](/telemetry-pipelines/filter-processor) processor, which allows you to include or drop events based on conditions or Log Analysis queries. Multiple conditions can be defined in a single processor—there is no need to create separate processors for each rule, which would add unnecessary overhead.
+Filtering is easily accomplished using a [Filter](/telemetry-pipelines/filter-processor) processor, which allows you to include or drop events based on conditions or Log Analysis queries. Multiple conditions can be defined in a single processor there is no need to create separate processors for each rule, which would add unnecessary overhead.
 
 ### 3:  Parse and Structure
 
-Many applications pack excessive information into single log lines—often including stack traces or serialized data objects intended only for debugging. These large, semi-structured messages increase storage cost and make searching inefficient.
+Many applications pack excessive information into single log lines often including stack traces or serialized data objects intended only for debugging. These large, semi-structured messages increase storage cost and make searching inefficient.
 
-Parsing converts raw log lines into structured fields that enable powerful querying and alerting. With Mezmo’s [Parse Processor](/telemetry-pipelines/parse-processor), you can extract the fields that matter using regex or grok, then remove unnecessary data. For example, stack traces can often be reduced to just the originating source location while preserving diagnostic value.
+Parsing converts raw log lines into structured fields that enable powerful querying and alerting. With Mezmo's [Parse Processor](/telemetry-pipelines/parse-processor), you can extract the fields that matter using regex or grok, then remove unnecessary data. For example, stack traces can often be reduced to just the originating source location while preserving diagnostic value.
 
 #### Why Selective Parsing Matters
 
@@ -155,7 +155,7 @@ Many applications emit multiple log lines to describe what is logically a *singl
 
 Left un-optimized, these patterns dramatically increase log volume while making troubleshooting harder, not easier.
 
-With Mezmo’s [Reduce Processor](/telemetry-pipelines/reduce-processor) you can merge multiple log input events into a single log event based on specified criteria. For example, Threat and Traffic logs from the firewall share 70% of the same fields, and are tied to the same events by a common `sessionid` field. 
+With Mezmo's [Reduce Processor](/telemetry-pipelines/reduce-processor) you can merge multiple log input events into a single log event based on specified criteria. For example, Threat and Traffic logs from the firewall share 70% of the same fields, and are tied to the same events by a common `sessionid` field. 
 
 #### Why Log Reduction Matters
 
@@ -167,7 +167,7 @@ When related log lines are merged:
 
 <Note>
 **Why This Is Helpful**
-Five uncorrelated log lines are harder to reason about—and more expensive—than one well-structured event.
+Five uncorrelated log lines are harder to reason about and more expensive than one well-structured event.
 </Note>
 
 #### Common Use Cases for Reduce
@@ -238,7 +238,7 @@ Static pipelines force teams into a permanent trade-off: optimize for cost *or* 
 
 ### What Switching Modes Really Means
 
-When a pipeline switches modes, it does not simply send *more* data—it **changes execution paths** inside the pipeline:
+When a pipeline switches modes, it does not simply send *more* data. It **changes execution paths** inside the pipeline:
 
 - Filters are bypassed so no log events are dropped
 - Reduce, parse, enrich, and transform processors are skipped or minimized

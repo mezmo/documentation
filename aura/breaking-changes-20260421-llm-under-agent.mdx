@@ -1,5 +1,5 @@
 ---
-title: "Breaking Changes — 21 April 2026"
+title: "Breaking Changes: 21 April 2026"
 description: "[llm] moved from top-level to [agent.llm], enabling per-worker LLM overrides in orchestration mode."
 ---
 
@@ -21,7 +21,7 @@ The `[llm]` TOML section has been moved from the top level to `[agent.llm]`. LLM
 | `[llm.additional_params]` | top-level         | `[agent.llm.additional_params]`   |
 | `context_window`          | `[llm]`           | `[agent.llm]` (follows the table) |
 
-No fields were renamed — every provider-specific field inside `[llm]` keeps its name under `[agent.llm]`.
+No fields were renamed. Every provider-specific field inside `[llm]` keeps its name under `[agent.llm]`.
 
 ---
 

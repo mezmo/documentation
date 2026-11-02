@@ -1,6 +1,6 @@
 ---
 title: "Configuration Reference"
-description: "Complete TOML field reference for AURA — agent identity, LLM providers, MCP, vector stores, scratchpad, skills, orchestration, HITL, and session storage."
+description: "Complete TOML field reference for AURA. Agent identity, LLM providers, MCP, vector stores, scratchpad, skills, orchestration, HITL, and session storage."
 ---
 
 AURA is configured with a single TOML file. The file path defaults to `config.toml` in the working directory; override it with the `CONFIG_PATH` environment variable.
@@ -9,7 +9,7 @@ AURA is configured with a single TOML file. The file path defaults to `config.to
 CONFIG_PATH=configs/my-agent.toml cargo run --bin aura -- webserver
 ```
 
-To validate a config file, start the web server or CLI against it — both validate immediately and exit with a clear error if parsing fails, before binding to any port or entering the REPL:
+To validate a config file, start the web server or CLI against it. Both validate immediately and exit with a clear error if parsing fails, before binding to any port or entering the REPL:
 
 ```bash
 cargo run --bin aura -- webserver --config your-config.toml   # exits on parse error before binding
@@ -31,7 +31,7 @@ Authorization = "Bearer {{ env.GITHUB_PERSONAL_ACCESS_TOKEN | default: '' }}"
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `memory_dir` | string | — | Base directory for scratchpad storage and orchestration artifact persistence. Required when scratchpad is enabled. |
+| `memory_dir` | string | - | Base directory for scratchpad storage and orchestration artifact persistence. Required when scratchpad is enabled. |
 
 ```toml
 memory_dir = "/tmp/aura-sessions"
@@ -46,15 +46,16 @@ Defines the agent identity, system prompt, and behavioral settings.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `name` | string | *required* | Display name. Doubles as the model identifier clients send in requests. |
-| `alias` | string | — | Stable identifier for model selection. Clients send this as the `model` field. Useful when the name contains spaces. |
-| `description` | string | — | Optional one-line, human-readable summary of the agent. Use it to distinguish multiple loaded configs that would otherwise differ only by `name` or `alias`. Display-only. It appears in `/v1/models`, `/aura/info`, and the CLI `/model` picker, but is never part of runtime settings and never sent to the model. Omitted from `/v1/models` and `/aura/info` responses when unset. Not to be confused with the required per-worker `description` under `[orchestration]`, which guides planning and is not shown to people. It is free-form text with no enforced length limit; the CLI `/model` picker collapses whitespace and truncates it to fit the terminal. |
+| `alias` | string | - | Stable identifier for model selection. Clients send this as the `model` field. Useful when the name contains spaces. |
+| `description` | string | - | Optional one-line, human-readable summary of the agent. Use it to distinguish multiple loaded configs that would otherwise differ only by `name` or `alias`. Display-only. It appears in `/v1/models`, `/aura/info`, and the CLI `/model` picker, but is never part of runtime settings and never sent to the model. Omitted from `/v1/models` and `/aura/info` responses when unset. Not to be confused with the required per-worker `description` under `[orchestration]`, which guides planning and is not shown to people. It is free-form text with no enforced length limit; the CLI `/model` picker collapses whitespace and truncates it to fit the terminal. |
 | `system_prompt` | string | *required* | The agent's system prompt. Multi-line strings use TOML `"""..."""` syntax. |
-| `turn_depth` | integer | `5` | Max tool-call rounds per user turn. Acts as a failsafe to prevent models from spinning out in unbounded tool-call loops. |
+| `turn_depth` | integer | `5` | Max tool-call rounds per user turn. Acts as a failsafe to prevent models from spinning out in unbounded tool-call loops. In orchestration mode, it sets the coordinator's depth and is the default for workers that don't set their own `turn_depth`. |
 | `nudge_last_turn` | bool | `false` | Append a wrap-up warning to tool output on the final turn before `turn_depth` terminates the run (orchestration workers are told to call `submit_result`), rather than silently losing all gathered work. |
-| `nudge_turns_remaining` | integer | — | Start wrap-up warnings when N or fewer tool-calling turns remain. Independent of `nudge_last_turn`; both default to off and can be enabled separately. |
-| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools to expose. When omitted, all tools are included. |
+| `nudge_turns_remaining` | integer | - | Start wrap-up warnings when N or fewer tool-calling turns remain. Independent of `nudge_last_turn`; both default to off and can be enabled separately. |
+| `mcp_filter` | list of strings | - | [Tool-name patterns](#tool-name-patterns) selecting which MCP tools to expose. When omitted, all tools are included. Accepts `<namespace>:<name>` to select tools from one MCP server. |
 | `enable_client_tools` | bool | `false` | Allow the agent to invoke client-side tools advertised in the request. See [Client-Side Tools](/aura/client-side-tools) for security implications. |
-| `client_tool_filter` | list of strings | — | Glob patterns narrowing which client tools are allowed (requires `enable_client_tools = true`). |
+| `client_tool_filter` | list of strings | - | [Tool-name patterns](#tool-name-patterns) narrowing which client tools are allowed (requires `enable_client_tools = true`). |
+| `enable_slack_tools` | bool | `false` | Give the agent a `slack_post_message` tool on HTTP and A2A runs when the server runs with `--enable-slack`. See [Slack Integration](/aura/slack-integration#post-to-slack-from-any-ingress). |
 | `model_owner` | string | _(LLM provider name)_ | Overrides the `owned_by` field in `/v1/models` responses. |
 | `created_at` | integer | _(current time)_ | Creation timestamp in milliseconds since epoch. Shown in `/v1/models` responses. |
 | `hidden` | bool | `false` | Hides this agent from the `/v1/models` list. Useful for agents meant only for internal callers. |
@@ -91,7 +92,7 @@ configs/
 CONFIG_PATH=configs/ cargo run --bin aura -- webserver
 ```
 
-Each agent is identified by its `alias` (if set) or `name`. Clients discover available agents via `GET /v1/models` and select one by passing its identifier as the `model` field in chat completion requests — the same field tools like LibreChat, OpenWebUI, and CLI clients use to present a model picker.
+Each agent is identified by its `alias` (if set) or `name`. Clients discover available agents via `GET /v1/models` and select one by passing its identifier as the `model` field in chat completion requests. The same field tools like LibreChat, OpenWebUI, and CLI clients use to present a model picker.
 
 Agent selection follows this order:
 1. If only one config is loaded, it is always used (the `model` field is ignored).
@@ -131,12 +132,12 @@ These fields are available on all providers except where noted.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `provider` | string | — | **Required.** One of: `openai`, `anthropic`, `bedrock`, `gemini`, `ollama`, `openrouter`. |
-| `model` | string | — | **Required.** Model identifier (e.g. `gpt-4o`, `claude-sonnet-4-20250514`). |
-| `max_tokens` | integer | — | Maximum tokens in the response. |
-| `context_window` | integer | — | Context window size in tokens. Required when scratchpad is enabled. Used for usage reporting in `aura.session_info` events. |
-| `temperature` | float | — | Sampling temperature (0.0–2.0). Higher values increase randomness. |
-| `additional_params` | table | — | Provider-specific parameters merged into the API request body. Useful for features like extended thinking. |
+| `provider` | string | - | **Required.** One of: `openai`, `anthropic`, `bedrock`, `gemini`, `ollama`, `openrouter`. |
+| `model` | string | - | **Required.** Model identifier (e.g. `gpt-4o`, `claude-sonnet-4-20250514`). |
+| `max_tokens` | integer | - | Maximum tokens in the response. |
+| `context_window` | integer | - | Context window size in tokens. Required when scratchpad is enabled. Used for usage reporting in `aura.session_info` events. |
+| `temperature` | float | - | Sampling temperature (0.0–2.0). Higher values increase randomness. |
+| `additional_params` | table | - | Provider-specific parameters merged into the API request body. Useful for features like extended thinking. |
 
 ### `provider = "openai"`
 
@@ -156,9 +157,9 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** OpenAI API key. |
-| `base_url` | string | — | Override the API base URL (useful for compatible proxies). |
-| `reasoning_effort` | string | — | `none`, `minimal`, `low`, `medium`, `high`, or `xhigh`. Controls reasoning depth. Support varies by model and version. Aura passes the value straight to the OpenAI API, which returns a 400 error for combinations of `model` and `reasoning_effort` that it does not support. |
+| `api_key` | string | - | **Required.** OpenAI API key. |
+| `base_url` | string | - | Override the API base URL (useful for compatible proxies). |
+| `reasoning_effort` | string | - | `none`, `minimal`, `low`, `medium`, `high`, or `xhigh`. Controls reasoning depth. Support varies by model and version. Aura passes the value straight to the OpenAI API, which returns a 400 error for combinations of `model` and `reasoning_effort` that it does not support. |
 
 ### `provider = "anthropic"`
 
@@ -178,8 +179,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** Anthropic API key. |
-| `base_url` | string | — | Override the API base URL. |
+| `api_key` | string | - | **Required.** Anthropic API key. |
+| `base_url` | string | - | Override the API base URL. |
 
 ### `provider = "bedrock"`
 
@@ -198,8 +199,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
-| `profile` | string | — | AWS profile name. Uses the default credential chain if omitted. |
+| `region` | string | - | **Required.** AWS region (e.g. `us-east-1`). |
+| `profile` | string | - | AWS profile name. Uses the default credential chain if omitted. |
 
 ### `provider = "gemini"`
 
@@ -215,8 +216,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** Google API key. |
-| `base_url` | string | — | Override the API base URL. |
+| `api_key` | string | - | **Required.** Google API key. |
+| `base_url` | string | - | Override the API base URL. |
 
 ### `provider = "ollama"`
 
@@ -259,8 +260,8 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `api_key` | string | — | **Required.** OpenRouter API key. |
-| `base_url` | string | — | Override the base URL. |
+| `api_key` | string | - | **Required.** OpenRouter API key. |
+| `base_url` | string | - | Override the base URL. |
 
 ---
 
@@ -271,17 +272,23 @@ Configures Model Context Protocol (MCP) tool servers.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `sanitize_schemas` | bool | `true` | Sanitize tool schemas for OpenAI function-calling compatibility. Fixes `anyOf` unions, missing types, and optional parameters that strict mode rejects. |
+| `user_agent` | string | `"aura/<version>"` | The identity AURA presents to every MCP server, as a `product/version` token. AURA sends it verbatim as the HTTP `User-Agent` header on `http_streamable` and `sse` connections, and splits it into `clientInfo.name` and `clientInfo.version` for the MCP `initialize` handshake on every transport, including `stdio`. When the token has no version part, AURA reports the running AURA version instead. The value must be printable ASCII with a non-empty product part, or the configuration fails to load. Set it when your MCP servers track clients and you want to tell one AURA deployment from another. A server entry can set its own `user_agent` to replace this value for that server alone. |
+| `connect_timeout_secs` | integer | `30` | Seconds to wait for a single MCP server's connect, initialize, and tool-discovery sequence to finish. If the server does not respond within this window, it is marked failed like any other connection error, rather than blocking the agent. Other servers are unaffected. |
 
 ```toml
 [mcp]
 sanitize_schemas = true
+user_agent = "aura-prod-us/1"  # default is "aura/<version>" (the running AURA version)
+connect_timeout_secs = 30
 ```
+
+A per-server `headers = { "User-Agent" = "..." }` entry replaces the header for that server only. The handshake still announces the name and version from `user_agent`.
 
 ### `[mcp.servers.<name>]`
 
 Each server is a named entry under `[mcp.servers]`. The `transport` field selects the connection type.
 
-Tool names are not namespaced by server. If two servers register a tool with the same name, registration overwrites the earlier entry — since registration order is not the same as config declaration order, which tool ends up callable is effectively arbitrary, not deterministically "first" or "last" in TOML order ([#186](https://github.com/mezmo/aura/issues/186)).
+The server's key (`<name>`) is also the namespace of its tools. Use it in a [tool-name pattern](#scope-a-pattern-to-one-mcp-server) to select tools from this server only. When more than one server advertises the same tool name, see [Tool Names Shared by Multiple Servers](#tool-names-shared-by-multiple-servers).
 
 #### `transport = "http_streamable"` (recommended)
 
@@ -327,6 +334,17 @@ MY_VAR = "value"
 # args = ["--verbose"]
 ```
 
+#### Per-Server `user_agent`
+
+Every transport accepts an optional `user_agent` that replaces `[mcp].user_agent` for that server. On `http_streamable` and `sse` it also replaces the HTTP `User-Agent` header; on every transport, including `stdio`, it replaces the handshake's `clientInfo.name` and `clientInfo.version`. Use it when one server expects a particular product token, or when you want one server to see a deployment tag that the others should not.
+
+```toml
+[mcp.servers.my_tools]
+transport = "http_streamable"
+url = "http://localhost:8081/mcp"
+user_agent = "aura-prod-us/1"
+```
+
 #### Static Headers
 
 Add static headers to every request to an HTTP or SSE server:
@@ -352,7 +370,7 @@ When `headers_from_request` is set, the forwarded header takes precedence over a
 
 #### Per-Tool Scratchpad Thresholds
 
-Override when a tool's output gets intercepted by the scratchpad system. Keys are glob patterns matched against tool names; the most specific (longest) pattern wins.
+Override when a tool's output gets intercepted by the scratchpad system. Keys are [tool-name patterns](#tool-name-patterns) matched against this server's tool names; the most specific (longest) pattern wins.
 
 ```toml
 [mcp.servers.my_tools.scratchpad]
@@ -360,6 +378,79 @@ Override when a tool's output gets intercepted by the scratchpad system. Keys ar
 "get_small_*" = { min_tokens = 99999 } # effectively disable interception
 "get_report"  = { min_tokens = 200 }  # custom threshold for one tool
 ```
+
+#### Tool Names Shared by Multiple Servers
+
+AURA presents MCP tools to the model by their bare names, so only one server's tool can hold a given name. When more than one server advertises the same tool name, the agent gets the tool from the server whose `[mcp.servers.<name>]` key sorts first, counting only servers whose tool passes the agent's or worker's `mcp_filter`. For example, `[mcp.servers.alpha]` wins over `[mcp.servers.beta]`, whatever transport each server uses. The other servers' tools with that name are unreachable, including through text-fallback tool calls (`fallback_tool_parsing`).
+
+To use the tool from a different server, scope `mcp_filter` to that server, for example `mcp_filter = ["beta:*"]`, or rename the tool on all but one server.
+
+The web server logs a warning for each shared name at startup, and [`aura governance sync`](./cli-reference#sync-the-mcp-tool-catalog-aura-governance-sync) prints the same warning. The warning names every server that advertises the tool and the server that sorts first. It doesn't account for `mcp_filter`, so an agent's filter can select a different server than the warning names.
+
+To find shared names, the web server connects to each agent's MCP servers once before it starts accepting requests. The servers are checked one at a time, and each connection can take up to [`[mcp].connect_timeout_secs`](#mcp), so leave room for the check in startup and readiness probe timeouts. The check starts each `stdio` server's command and sends only static `headers`. A server that needs headers from `headers_from_request` logs a connection warning at startup, and the web server still starts.
+
+---
+
+## Tool-Name Patterns
+
+Several fields select tools by name, and they all use the same pattern syntax:
+
+- `[agent].mcp_filter` and `[orchestration.worker.<name>].mcp_filter`
+- `[hitl].require_approval`
+- `[agent].client_tool_filter`
+- The keys of `[mcp.servers.<name>.scratchpad]`
+
+AURA checks every pattern when it loads the config. A pattern outside this syntax stops the web server or CLI from starting, and the error names the column of the problem. If you're upgrading a config written for an earlier AURA release, see [Breaking Changes: 5 October 2026](/aura/breaking-changes-20261005-tool-name-patterns).
+
+A pattern is built from these parts:
+
+| Part | Matches | Example |
+|---|---|---|
+| Letters, digits, `_`, `-`, `/`, and `.` | The same characters | `list_pods` matches only `list_pods`. |
+| `*` | Any sequence of characters, including none | `mezmo_*` matches `mezmo_logs` and `mezmo_`. |
+| `?` | Exactly one character | `tool_?` matches `tool_a` but not `tool_ab`. |
+| `[abc]` | One character from the set | `pod[sx]` matches `pods` and `podx`. |
+| `[!abc]` | One character not in the set | `v[!23]` matches `v1` but not `v2`. |
+| `{a,b}` | Any one of the comma-separated alternatives | `get_{pods,events}` matches `get_pods` and `get_events`. |
+| `<namespace>:<name>` | A tool named `<name>` from an MCP server whose key matches `<namespace>` | `github:*` matches every tool from `[mcp.servers.github]`. |
+
+Patterns follow these rules:
+
+- A pattern matches the whole tool name, not part of it. `list_*` matches `list_pods` but not `k8s_list_pods`.
+- Matching is case-sensitive. `List*` doesn't match `list_pods`.
+- No other characters are allowed, including spaces and `\`. There is no escape character, and a pattern can't be empty.
+- A class holds only letters, digits, `_`, `-`, `/`, and `.`, so `[*]` is invalid.
+- An alternative can contain wildcards and classes, but not another `{...}`.
+- A run of letters, digits, `_`, `-`, `/`, and `.` can be at most 64 characters long. A wildcard, a class, a `{`, `,`, or `}`, or the `:` ends the run, and a class's contents don't count toward it.
+
+### Scope a Pattern to One MCP Server
+
+Prefix a pattern with a namespace and `:` to match tools from one MCP server. The namespace is the server's key in `[mcp.servers.<name>]`, so `github:create_issue` matches `create_issue` from `[mcp.servers.github]` and no other server. A pattern without `:` matches tools from any server.
+
+Both segments accept the full pattern syntax, so `*:list_pods` and `git{hub,lab}:list_*` are valid. A pattern can contain only one `:`, and neither segment can be empty.
+
+A namespaced pattern never matches a tool that doesn't come from an MCP server, such as a filesystem tool from `[tools].filesystem` or a client-side tool. The namespace form is most useful in these fields:
+
+- **`mcp_filter`:** Select tools from one server, or pick which server provides a [shared tool name](#tool-names-shared-by-multiple-servers).
+- **`[hitl].require_approval`:** Gate a tool from one server without gating a tool with the same name from another.
+
+In `client_tool_filter`, a namespaced pattern is accepted but never matches, because client-side tools have no MCP server. In a `[mcp.servers.<name>.scratchpad]` key, the namespace is compared with that table's own server key. Under `[mcp.servers.github.scratchpad]`, the key `github:get_report` matches the same tool as `get_report`, and `gitlab:get_report` matches nothing.
+
+This example assumes the config defines `[mcp.servers.github]` and `[mcp.servers.gitlab]`:
+
+```toml
+[agent]
+name = "Code Review Assistant"
+system_prompt = "You review code changes."
+# Every GitHub tool, plus only the list_* tools from GitLab
+mcp_filter = ["github:*", "gitlab:list_*"]
+```
+
+The model never sees the namespace. It always receives the bare tool name, such as `create_issue`. The namespace appears in these places:
+
+- `tool_namespace` on HITL approval webhook items and on `aura.approval_requested` and `aura.approval_pending` events. See [Human-in-the-Loop Approval Gates](/aura/hitl).
+- The `tool.namespace` attribute on `mcp.tool_call` spans. See [Tracing & Span Layout](/aura/tracing-spans#mcp-tool-call-spans).
+- `namespace` on each tool entry in the governance catalog.
 
 ---
 
@@ -375,6 +466,7 @@ Requires `memory_dir` to be set at the root level and `context_window` to be set
 | `context_safety_margin` | float | `0.20` | Fraction of the context window (0.0–1.0) reserved for reasoning and output. Scratchpad intercepts output before this budget is exhausted. |
 | `max_extraction_tokens` | integer | `10000` | Maximum tokens a single exploration tool call may return, preventing a single read from flooding the context. |
 | `turn_depth_bonus` | integer | `6` | Extra tool-call turns added when scratchpad is active, to leave room for exploration calls after interception. |
+| `coordinator` | bool | `true` | In orchestration, give the coordinator a scratchpad of its own so large artifacts it reads come back as pointers. Set to `false` to use scratchpad on workers only. Available only in the AURA nightly release. See [Coordinator Scratchpad](/aura/scratchpad#coordinator-scratchpad). |
 
 ```toml
 memory_dir = "/tmp/aura-sessions"
@@ -409,7 +501,7 @@ source = "skills/"        # relative to process CWD, or absolute
 source = "/opt/shared-skills"
 ```
 
-A `load_skill` tool is exposed to the agent that loads and executes skills on demand, along with a `read_skill_file` tool for fetching individual resource files from a skill's directory.
+A `load_skill` tool is exposed to the agent that loads and executes skills on demand, along with a `read_skill_file` tool for fetching individual resource files from a skill's directory. Skills the agent loads stay in context on later turns of the same chat session. See [Skill Persistence Across Turns](/aura/skills#skill-persistence-across-turns).
 
 ---
 
@@ -471,12 +563,12 @@ Extra fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `knowledge_base_id` | string | — | **Required.** Bedrock Knowledge Base ID. |
-| `region` | string | — | **Required.** AWS region (e.g. `us-east-1`). |
-| `profile` | string | — | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
+| `knowledge_base_id` | string | - | **Required.** Bedrock Knowledge Base ID. |
+| `region` | string | - | **Required.** AWS region (e.g. `us-east-1`). |
+| `profile` | string | - | AWS profile name. Pins the Knowledge Base client to this profile; uses the default credential chain if omitted. |
 | `managed` | bool | `false` | Set to `true` when the store points at a Bedrock managed knowledge base; Aura then sends `managedSearchConfiguration` instead of `vectorSearchConfiguration` on retrieve requests. Leave it `false` or omit it for a classic vector-store-backed knowledge base. |
 
-When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment — for example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
+When you set `profile`, the Knowledge Base client uses only that AWS profile's credentials, even if static AWS environment credentials (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) are also present. When you omit `profile`, it falls back to the default AWS credential chain. This makes profile-based cross-account access reliable alongside static environment credentials used elsewhere in the deployment. For example, an IRSA (IAM Roles for Service Accounts) profile that assumes a role via web identity.
 
 Both managed and classic Bedrock knowledge bases handle embeddings for you. The `managed` flag only selects which kind of knowledge base the store points at. If you leave `managed` unset or `false` for a managed knowledge base, retrieve requests fail with a `ValidationException`. The full error reads: `Incompatible configuration: vectorSearchConfiguration is not supported for managed knowledge bases. Use managedSearchConfiguration instead.` Set `managed = true` to resolve it.
 
@@ -523,8 +615,8 @@ Human-in-the-loop (HITL) approval gates let an agent ask for permission before r
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `require_approval` | list of glob patterns | `[]` | Tool-name globs that gate a matching call behind approval. |
-| `route` | table | *required* | The decision route — see `[hitl.route]` below. |
+| `require_approval` | list of strings | `[]` | [Tool-name patterns](#tool-name-patterns) that gate a matching MCP tool call behind approval. Accepts `<namespace>:<name>` to gate tools from one MCP server. |
+| `route` | table | *required* | The decision route: see `[hitl.route]` below. |
 
 ### `[hitl.route]`
 
@@ -532,9 +624,9 @@ Tagged by `mode`: `"conversational"` or `"webhook"`.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `mode` | string | — | **Required.** `"conversational"` (attended, over an open SSE stream) or `"webhook"` (unattended, posts to a URL). |
+| `mode` | string | - | **Required.** `"conversational"` (attended, over an open SSE stream) or `"webhook"` (unattended, posts to a URL). |
 | `timeout_secs` | integer | `60` (conversational) / `300` (webhook) | Seconds to wait for a decision before failing closed. |
-| `url` | string | — | **Required for `webhook` mode only.** Must start with `http://` or `https://`. |
+| `url` | string | - | **Required for `webhook` mode only.** Must start with `http://` or `https://`. |
 
 ```toml
 [hitl]
@@ -550,9 +642,9 @@ timeout_secs = 300
 
 ## Session Store (Durable and Multi-Pod Deployments)
 
-Unlike every other section on this page, the session store is **not configured in TOML** — it's deployment infrastructure (one instance per server, not per-agent), so it's configured only via environment variables.
+Unlike every other section on this page, the session store is **not configured in TOML**. It's deployment infrastructure (one instance per server, not per-agent), so it's configured only via environment variables.
 
-By default, cross-request session state (A2A tasks, parked HITL approvals) lives in process memory — correct for a single pod, the CLI, and local dev. Behind a load balancer with multiple replicas, configure a shared Redis/Valkey backend and every cross-request flow works no matter which pod serves each request: A2A `message:send` → poll → `list` → history-by-context, A2A `subscribe`/`cancel` against a task executing on another pod, and conversational HITL approvals resolved by a `POST /v1/approvals/{id}` that lands away from the pod that parked them.
+By default, cross-request session state (A2A tasks, parked HITL approvals, and skill-invocation logs) lives in process memory. Correct for a single pod, the CLI, and local dev. Behind a load balancer with multiple replicas, configure a shared Redis/Valkey backend and every cross-request flow works no matter which pod serves each request: A2A `message:send` → poll → `list` → history-by-context, A2A `subscribe`/`cancel` against a task executing on another pod, and conversational HITL approvals resolved by a `POST /v1/approvals/{id}` that lands away from the pod that parked them.
 
 ```bash
 export AURA_SESSION_STORE=redis                          # memory (default) | redis
@@ -560,7 +652,10 @@ export AURA_SESSION_STORE_URL=redis://valkey:6379        # redis:// or rediss://
 export AURA_SESSION_STORE_PREFIX=aura:prod               # optional namespace (default "aura")
 export AURA_SESSION_STORE_CONNECT_TIMEOUT_SECS=5         # optional
 export AURA_SESSION_STORE_TASK_TTL_SECS=86400            # optional; 0 = no expiry
+export AURA_SESSION_STORE_SKILLS_TTL_SECS=86400          # optional; 0 = no expiry
 ```
+
+`AURA_SESSION_STORE_SKILLS_TTL_SECS` sets how long a chat session's skill-invocation log lives after the agent last calls `load_skill` or `read_skill_file`. It defaults to `86400` (24 hours), and `0` disables expiry. The Redis and file backends apply it. The memory backend has no expiry and clears its logs on restart. See [Skill Persistence Across Turns](/aura/skills#skill-persistence-across-turns).
 
 The server pings the backend at startup and fails fast if it is unreachable; `/health` reports the backend and its ping latency.
 
@@ -592,7 +687,7 @@ Workers run with isolated task context windows and filtered MCP/vector-store acc
 | `tools_in_planning` | string | `"summary"` | How much tool info is shown during planning: `"none"`, `"summary"` (tool names per worker), or `"full"` (names + descriptions). |
 | `max_tools_per_worker` | integer | `10` | Truncates the tool list per worker in the planning prompt with a `(+N more)` suffix. |
 | `coordinator_vector_stores` | list of strings | `[]` | Names of vector stores the coordinator can access. |
-| `worker_system_prompt` | string | — | Custom system prompt injected into generic (non-specialized) workers. |
+| `worker_system_prompt` | string | - | Custom system prompt injected into generic (non-specialized) workers. |
 | `duplicate_call_nudge_threshold` | integer | `3` | Consecutive identical tool calls before appending a guidance annotation. |
 | `duplicate_call_block_threshold` | integer | `5` | Consecutive identical tool calls before appending an abort annotation. |
 
@@ -627,7 +722,7 @@ Controls persistence and artifact promotion.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `memory_dir` | string | — | Base directory for run artifacts. Alias: `memory_path`. (Prefer top-level `memory_dir`.) |
+| `memory_dir` | string | - | Base directory for run artifacts. Alias: `memory_path`. (Prefer top-level `memory_dir`.) |
 | `result_artifact_threshold` | integer | `4000` | Character threshold for writing worker results to artifact files instead of inlining them. |
 | `result_summary_length` | integer | `2000` | Max inline summary length when a result is promoted to an artifact. |
 | `session_history_turns` | integer | `3` | Max prior run manifests injected as session context in the coordinator preamble. Set to `0` to disable. |
@@ -652,9 +747,9 @@ Defines a specialized worker. Worker names must be unique case-insensitively (to
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `description` | string | — | **Required.** One-line description shown to the coordinator during planning. |
-| `preamble` | string | — | **Required.** Complete system prompt for this worker (replaces the generic worker template). |
-| `mcp_filter` | list of strings | — | Glob patterns selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. |
+| `description` | string | - | **Required.** One-line description shown to the coordinator during planning. |
+| `preamble` | string | - | **Required.** Complete system prompt for this worker (replaces the generic worker template). |
+| `mcp_filter` | list of strings | - | [Tool-name patterns](#tool-name-patterns) selecting which MCP tools this worker can access. When omitted, all tools are included; an empty list `[]` grants no tools. Accepts `<namespace>:<name>` to select tools from one MCP server. |
 | `vector_stores` | list of strings | `[]` (none) | Names of vector stores this worker can access. Workers have no RAG access by default. |
 | `turn_depth` | integer | _(inherits `[agent].turn_depth`)_ | Max tool-call rounds for this worker. |
 

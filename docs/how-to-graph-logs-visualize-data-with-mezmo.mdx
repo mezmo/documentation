@@ -19,7 +19,7 @@ This graph shows log lines that contain the word `error` over time.
 
 You can see a few errors followed by periods of stability. A significant spike occurs shortly after 12pm, which is roughly when the application restarted. We can view the individual log events by clicking on the spike and selecting **Show Logs**. You'll be taken to the Log Viewer. There you'll see all log lines from that date and time. 
 
-To investigate further, select and individual log line and click **View in Context,** to see the log lines surrounding the error. In this example, someone or something repeatedly tried to log into the PostgreSQL database as an administrator with the wrong credentials.  PostgreSQL to logged an error each time the user was denied.
+To investigate further, select and individual log line and click **View in Context,** to see the log lines surrounding the error. In this example, someone or something repeatedly tried to log into the PostgreSQL database as an administrator with the wrong credentials. PostgreSQL to logged an error each time the user was denied.
 
 <Frame caption="View log lines in context to see lines surrounding the log line">
   ![Image](/images/docs/ztba201ekerbcf765owiws2hxkgvfx8jodoms1zl55sjuxmpmkul0cmq6wrhszmg.png)
@@ -43,7 +43,7 @@ To get a better idea of the impact that popularity-contest had on log volume, we
 
 ## Investigate With Histograms
 
-You may want to count log volume by a specific field, such as the log-level, host, application, or a custom tag.  For example, plot out log volume based on the service that generated each event (stored in the app field). In the example, you can see, the popularity-contest service generates the greatest number of messages, followed by the virtual machines syslog service and daemon log.
+You may want to count log volume by a specific field, such as the log-level, host, application, or a custom tag. For example, plot out log volume based on the service that generated each event (stored in the app field). In the example, you can see, the popularity-contest service generates the greatest number of messages, followed by the virtual machines syslog service and daemon log.
 
 <Frame caption="Histogram showing log volume compared across apps.">
   ![Image](/images/docs/dd98kb5cijrb03euq9te8p9dyobw7dss1t95xw50w1g1f872xfqf5oyuvod6ifl7.png)

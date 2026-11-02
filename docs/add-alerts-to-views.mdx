@@ -5,7 +5,23 @@ description: "Attach presence or absence alerts to a single view, or build reusa
 
 You can add an alert to a single view, or create an alert template that you can apply to multiple views.
 
+## Permissions
+
+The Alerts feature has three cumulative permission levels. **Manage** includes everything in **Write**, and **Write** includes everything in **Read**.
+
+- **Read**: open the alerts management page at **Settings** &gt; **Alerts** and view the list of alerts.
+- **Write**: everything Read allows, plus add a preset, edit an alert, attach an alert or preset to a view, and unmute an alert.
+- **Manage**: everything Write allows, plus delete a preset and detach an alert from a view.
+
+If your permission level does not allow an action, its control appears disabled.
+
+You assign these levels to roles at **Settings** &gt; **Organization** &gt; **Roles**. Click a role, then click the **Permissions** tab and set the level for **Alerts**. See [Role-Based Access Control](/docs/rbac) for details. If a control you need is disabled, contact an organization administrator to adjust your role's **Alerts** permission level.
+
 ## Add an Alert to a Single View
+
+<Note>
+Attaching an alert to a view requires the **Write** permission level. See [Permissions](#permissions).
+</Note>
 
 We'll create an email alert for the 404 view created in [Create and Edit Views](/docs/create-and-edit-views). Views can have multiple alerts and multiple alert types.
 
@@ -34,6 +50,10 @@ Preset alerts are templates that can be used on multiple Views. In this example,
 
 ### Create the Preset
 
+<Note>
+Adding a preset requires the **Write** permission level. See [Permissions](#permissions).
+</Note>
+
 1. Go to [Settings &gt; Alerts](https://app.mezmo.com/manage/alerts). 
 2. Click **Add a Preset**. 
 3. Select **Email**.
@@ -53,6 +73,10 @@ As you update the days and time, you'll notice the graph updating. Areas shaded 
 </Frame>
 
 ### Assign Preset to a View
+
+<Note>
+Attaching a preset to a view requires the **Write** permission level. See [Permissions](#permissions).
+</Note>
 
 1. Go to Views. 
 2. Select the View you want to add the alert to. 

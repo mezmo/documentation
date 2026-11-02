@@ -9,8 +9,8 @@ The Mezmo Agent Pipeline Source enables streaming of log data from the Mezmo Age
 ## Mezmo Agent Configuration
 | Environment Variable Name | YAML Variable Name | Description | 
 | ---- | ---- | ---- | 
-| `MZ_ENDPOINT` | `http.endpoint` | Path of your Pipeline.  For all Pipelines this should be set to `/v1/<YOUR ROUTE ID>` | 
-| `MZ_HOST` | `http.host` | The ingest endpoint for your Pipeline.  Should be a value similar to `pipeline.mezmo.com` | 
+| `MZ_ENDPOINT` | `http.endpoint` | Path of your Pipeline. For all Pipelines this should be set to `/v1/<YOUR ROUTE ID>` | 
+| `MZ_HOST` | `http.host` | The ingest endpoint for your Pipeline. Should be a value similar to `pipeline.mezmo.com` | 
 | `MZ_INGESTION_KEY` | `http.ingestion_key` | This is the access key to your Pipeline. | 
 | `MZ_INGEST_BUFFER_SIZE` | `http.body_size` | Limit the body size per request in bytes (please configure to `1000000` or less) | 
 
@@ -24,7 +24,7 @@ For complete information on setting up and configuring the OpenTelemetry Export 
 
 ## Installing via Helm
 
-If your cluster is managed with Helm, you can also install the Mezmo Agent for Pipeline using Helm.  Utilizing the same information above, you can set these environment variables using the `extraEnv`  attribute.
+If your cluster is managed with Helm, you can also install the Mezmo Agent for Pipeline using Helm. Utilizing the same information above, you can set these environment variables using the `extraEnv`  attribute.
 
 <Note>
 In the YAML file example shown here, replace `<YOUR_PIPELINE_INGEST_KEY>` with the key you obtained when setting up the Agent source in your Pipeline. When using the environment variables shown in the Configuration section, this is also the same value you would set for `MZ_INGESTION_KEY`.

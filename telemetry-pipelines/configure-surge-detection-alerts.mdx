@@ -33,6 +33,10 @@ To configure a new Surge Detection alert:
 - **Slack**: Enter a Slack URI to send notifications to a specific channel.
 - **Webhook**: Enter a Webhook URL to send alert information, including the dimension and value that triggered the surge.
 
+<Note>
+The Slack URI or Webhook URL must point to a publicly reachable address. You can't save the alert if the URL uses a private or internal IP address, such as `127.0.0.1`, `10.0.0.1`, or `192.168.1.1`, or a hostname that resolves to one of these addresses.
+</Note>
+
 7. Set the **Alert Interval**. This determines how often you will be alerted if the data volume remains above the set average. For example, if set to one hour, you will only receive an alert every hour even if the surge persists.
 
 ## **Surge Detection Alert Information**

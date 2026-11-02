@@ -32,6 +32,60 @@
         "pages": ["index"]
       },
       {
+        "tab": "AURA",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "aura/index",
+              "aura/quickstart",
+              "aura/installation",
+              "aura/quickstart-docker",
+              "aura/example-configs",
+              "aura/quickstart-k8s-sre"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "aura/configuration-reference",
+              "aura/breaking-changes-20260410-agent-llm-toml-configuration",
+              "aura/breaking-changes-20260421-llm-under-agent",
+              "aura/breaking-changes-20260723-empty-mcp-filter",
+              "aura/breaking-changes-20261005-tool-name-patterns"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "aura/streaming-api-guide",
+              "aura/a2a-implementation",
+              "aura/slack-integration",
+              "aura/hitl",
+              "aura/scratchpad",
+              "aura/skills",
+              "aura/client-side-tools",
+              "aura/ollama-guide",
+              "aura/telemetry",
+              "aura/request-lifecycle",
+              "aura/tracing-spans"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": ["aura/cli-reference"]
+          },
+          {
+            "group": "Web Server Reference",
+            "pages": ["aura/web-server-reference"]
+          }
+        ]
+      },
+      {
+        "tab": "Platform",
+        "pages": ["mezmo-platform"]
+      },
+      {
         "tab": "Log Management",
         "groups": [
           {
@@ -335,6 +389,7 @@
               "telemetry-pipelines/how-to-use-shared-source-in-pipeline",
               "telemetry-pipelines/sudden-increase-in-source-volume",
               "telemetry-pipelines/otel-collector",
+              "telemetry-pipelines/opentelemetry-event-shapes",
               "telemetry-pipelines/create-processor-groups",
               "telemetry-pipelines/percentage-volume-increase"
             ]
@@ -373,54 +428,6 @@
           "mezmo-edge/syslog-source-for-mezmo-edge",
           "mezmo-edge/set-up-mezmo-edge-in-a-docker-container",
           "mezmo-edge/tap-and-view-mezmo-edge-pipeline-data-on-premises"
-        ]
-      },
-      {
-        "tab": "AURA",
-        "groups": [
-          {
-            "group": "Getting Started",
-            "pages": [
-              "aura/index",
-              "aura/quickstart",
-              "aura/installation",
-              "aura/quickstart-docker",
-              "aura/example-configs",
-              "aura/quickstart-k8s-sre"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "aura/configuration-reference",
-              "aura/breaking-changes-20260410-agent-llm-toml-configuration",
-              "aura/breaking-changes-20260421-llm-under-agent",
-              "aura/breaking-changes-20260723-empty-mcp-filter"
-            ]
-          },
-          {
-            "group": "Features",
-            "pages": [
-              "aura/streaming-api-guide",
-              "aura/a2a-implementation",
-              "aura/hitl",
-              "aura/scratchpad",
-              "aura/skills",
-              "aura/client-side-tools",
-              "aura/ollama-guide",
-              "aura/telemetry",
-              "aura/request-lifecycle",
-              "aura/tracing-spans"
-            ]
-          },
-          {
-            "group": "CLI Reference",
-            "pages": ["aura/cli-reference"]
-          },
-          {
-            "group": "Web Server Reference",
-            "pages": ["aura/web-server-reference"]
-          }
         ]
       },
       {
@@ -503,12 +510,12 @@
     "global": {
       "anchors": [
         {
-          "anchor": "About",
-          "href": "https://www.mezmo.com/about"
+          "anchor": "AURA",
+          "href": "/aura"
         },
         {
-          "anchor": "Blog",
-          "href": "https://www.mezmo.com/blog"
+          "anchor": "Platform",
+          "href": "/mezmo-platform"
         }
       ]
     }
@@ -540,11 +547,6 @@
       "x": "https://twitter.com/mezmodata",
       "github": "https://github.com/mezmo",
       "linkedin": "https://www.linkedin.com/company/mezmo/"
-    }
-  },
-  "seo": {
-    "metatags": {
-      "robots": "noindex"
     }
   },
   "description": "Explore guides, APIs, tutorials, and reference materials for collecting telemetry and using Mezmo’s SRE agent to manage production environments.",

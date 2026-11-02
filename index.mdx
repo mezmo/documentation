@@ -1,169 +1,209 @@
 ---
 mode: "custom"
 title: "Welcome"
-description: "Build, optimize, and act on telemetry data with Mezmo."
+description: "Your infrastructure. Your rules. Your SRE agent. Start with AURA, the open source SRE agent, or the Mezmo Platform for telemetry."
 ---
 
-{/* Hero */}
+{/* Hero: matches mezmo.com (light canvas, left-aligned type, purple accent line, teal CTAs, terminal panel) */}
 
-<section className="relative overflow-hidden bg-[#15111f] dark:bg-[#0c0c0e]">
-  <div className="absolute inset-0 bg-[#9383c2] dark:bg-[#9383c2] opacity-20 dark:opacity-20"></div>
-  <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#f4b811] dark:bg-[#f4b811] opacity-20 dark:opacity-20 blur-3xl"></div>
-  <div className="absolute -bottom-28 left-10 h-80 w-80 rounded-full bg-[#9383c2] dark:bg-[#9383c2] opacity-30 dark:opacity-30 blur-3xl"></div>
+<section className="relative overflow-hidden bg-[#F4F4F4] dark:bg-transparent">
+  <div className="pointer-events-none absolute -left-32 -top-40 h-[28rem] w-[28rem] rounded-full bg-[#D5CFE3] opacity-70 dark:bg-[#433465] dark:opacity-40" style={{filter:"blur(80px)"}}></div>
+  <div className="pointer-events-none absolute left-1/3 -top-48 h-96 w-96 rounded-full bg-[#F6E7B8] opacity-60 dark:bg-[#34294C] dark:opacity-40" style={{filter:"blur(80px)"}}></div>
+  <div className="pointer-events-none absolute right-0 top-10 h-80 w-80 rounded-full bg-[#DCEBF0] opacity-70 dark:bg-[#1B2A30] dark:opacity-50" style={{filter:"blur(80px)"}}></div>
 
-  <div className="relative mx-auto flex max-w-7xl justify-center px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-4xl font-bold tracking-tight text-white dark:text-white sm:text-5xl lg:text-6xl">
-        Build, optimize, and act on telemetry data with Mezmo.
+  <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-2 lg:px-8">
+    <div>
+      <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[#0A090C] dark:text-white sm:text-5xl lg:text-6xl">
+        Your infrastructure.<br />Your rules.<br /><span className="text-[#7651B1] dark:text-[#B1A5D3]">Your SRE agent</span>.
       </h1>
-      <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#f3eefc] dark:text-[#f3eefc] sm:text-xl">
-        Start with log management, design Telemetry Pipelines, deploy Mezmo Edge, or jump into the API references for automation.
+      <p className="mt-6 max-w-xl text-base font-light leading-7 text-[#0A090C] dark:text-[#E6E6E5] sm:text-lg">
+        Accelerate SRE work with AURA, an open source agent that runs in your environment with your tools, telemetry, and operational context. Install it in one command and point it at a live incident.
       </p>
-      <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
-        <a href="/docs/mezmo-quick-start-guide" className="inline-flex items-center justify-center rounded-lg bg-[#9383c2] dark:bg-[#9383c2] px-5 py-3 text-sm font-semibold text-white dark:text-white no-underline transition hover:bg-[#7f6bb3] dark:hover:bg-[#7f6bb3]">
-          Start with Log Management
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/aura/quickstart" className="inline-flex items-center justify-center rounded-lg bg-[#95C1CF] px-5 py-3 text-base font-medium text-[#031403] no-underline transition hover:bg-[#82B3C3]">
+          Get started with AURA
         </a>
-        <a href="/telemetry-pipelines/getting-started-with-mezmo-telemetry-pipeline" className="inline-flex items-center justify-center rounded-lg border border-[#ffffff] dark:border-[#ffffff] bg-[#ffffff] dark:bg-[#ffffff] px-5 py-3 text-sm font-semibold text-[#15111f] dark:text-[#15111f] no-underline transition hover:bg-[#f3eefc] dark:hover:bg-[#f3eefc]">
-          Explore Telemetry Pipelines
+        <a href="https://github.com/mezmo/aura" className="inline-flex items-center justify-center rounded-lg border-2 border-[#95C1CF] bg-transparent px-5 py-3 text-base font-medium text-[#3A344B] no-underline transition hover:bg-[#95C1CF]/20 dark:text-[#E6E6E5]">
+          View source on GitHub
         </a>
+      </div>
+    </div>
+
+    <div className="overflow-hidden rounded-lg border-4 border-[#D5CFE3] bg-[#0B0D10] shadow-[0_0_40px_rgba(118,81,177,0.25)] dark:border-[#433465]">
+      <div className="flex items-center gap-2 bg-[#CECECE] px-3 py-2 dark:bg-[#2D2D2D]">
+        <span className="h-3 w-3 rounded-full bg-[#FF5F57]"></span>
+        <span className="h-3 w-3 rounded-full bg-[#FEBC2E]"></span>
+        <span className="h-3 w-3 rounded-full bg-[#28C840]"></span>
+      </div>
+      <div className="overflow-x-auto p-5 font-mono text-[13px] leading-6 text-[#E6EDF3]">
+        <div><span className="text-[#6E7681]"># 1. Install the CLI</span></div>
+        <div><span className="text-[#95C1CF]">$</span> curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash</div>
+        <div className="h-3"></div>
+        <div><span className="text-[#6E7681]"># 2. Generate config.toml (provider, key, model)</span></div>
+        <div><span className="text-[#95C1CF]">$</span> aura init</div>
+        <div className="h-3"></div>
+        <div><span className="text-[#6E7681]"># 3. Start the agent and connect a tool over MCP</span></div>
+        <div><span className="text-[#95C1CF]">$</span> aura</div>
+        <div><span className="text-[#F4B811]">❯</span> /mcp add</div>
+        <div className="h-3"></div>
+        <div><span className="text-[#6E7681]"># 4. Put it to work</span></div>
+        <div><span className="text-[#F4B811]">❯</span> <span className="text-[#E3A6F0]">investigate the recent payment failures</span></div>
       </div>
     </div>
   </div>
 </section>
 
-{/* Quick Start */}
+{/* Two entry paths */}
 
 <section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
   <div className="max-w-3xl">
-    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">Quick Start</h2>
-    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
-      Follow the shortest path from account setup to your first logs or pipeline API request.
+    <h2 className="text-3xl font-semibold tracking-tight text-[#0A090C] dark:text-white">Choose your path</h2>
+    <p className="mt-3 text-base font-light leading-7 text-[#3A344B] dark:text-[#CECECE]">
+      Two products, documented separately. Switch between them at any time from the product menu at the top of the page.
+    </p>
+  </div>
+
+  <div className="mt-8">
+    <CardGroup cols={2}>
+      <Card title="AURA" icon="robot" href="/aura" cta="Open AURA docs">
+        **Open source, Apache 2.0, written in Rust.** An SRE agent harness you declare in TOML and run on your laptop, in Docker, or in Kubernetes. Scoped tool access per worker, approval gates on writes, and OpenTelemetry spans for every model and tool call.
+      </Card>
+      <Card title="Mezmo Platform" icon="layer-group" href="/mezmo-platform" cta="Open platform docs">
+        **Commercial telemetry platform.** Log Management, Telemetry Pipelines, Mezmo Edge, and the Mezmo API for collecting, optimizing, and routing logs, metrics, and traces at production volume.
+      </Card>
+    </CardGroup>
+  </div>
+</section>
+
+{/* AURA getting started */}
+
+<section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="max-w-3xl">
+    <h2 className="text-3xl font-semibold tracking-tight text-[#0A090C] dark:text-white">Get started with AURA</h2>
+    <p className="mt-3 text-base font-light leading-7 text-[#3A344B] dark:text-[#CECECE]">
+      From install to your first investigation in four steps. You need macOS or Linux and an API key for OpenAI, Anthropic, Gemini, Bedrock, or OpenRouter, or a local Ollama instance.
     </p>
   </div>
 
   <div className="mt-8">
     <Steps>
-      <Step title="Create your account">
-        Sign up for Mezmo, create an organization, and review the basics in the <a href="/docs/mezmo-quick-start-guide">Log Management quick start</a>.
-      </Step>
-      <Step title="Choose an ingestion path">
-        Use the <a href="/docs/ingestion">ingestion guide</a> to pick an agent, integration, API, or pipeline source for your data.
-      </Step>
-      <Step title="Authenticate API requests">
-        Create an access key and send it with the `Authorization` header.
+      <Step title="Install the CLI">
+        The script picks a native package, Homebrew, or a direct binary for your platform. See [Installation](/aura/installation) for every method.
 
         ```bash
-        export MZM_ACCESS_KEY="sta_1a2b3c4d5e6f7890abcdef1234567890abcdef12"
-
-        curl -H "Authorization: Token $MZM_ACCESS_KEY" \
-          -H "Accept: application/json" \
-          https://api.mezmo.com/v3/pipeline
+        curl -fsSL https://raw.githubusercontent.com/mezmo/aura/main/scripts/install.sh | bash
         ```
-
       </Step>
-      <Step title="Build from a guide">
-        Explore the <a href="/guide-to-pipeline-architecture/basic-data-optimization-pipeline">pipeline architecture guide</a> or the <a href="/OptTutorial/1-intro">optimization tutorial</a> when you are ready to optimize volume, route data, or deploy repeatable patterns.
+      <Step title="Generate a config">
+        The wizard detects your provider key, offers a model shortlist, and writes a `config.toml` for an SRE orchestrator with three specialist workers. Your key stays in the environment, never in the file.
+
+        ```bash
+        aura init
+        ```
+      </Step>
+      <Step title="Connect your tools">
+        Start AURA, then add an MCP server from the built-in catalog (Mezmo, PagerDuty, Datadog, Kubernetes) or any server over HTTP, SSE, or stdio. You choose which workers see which tools.
+
+        ```bash
+        aura
+        /mcp add
+        ```
+      </Step>
+      <Step title="Put it to work">
+        Restart `aura` to load the new server, then ask it something real: *Who is on call right now, and are there any open incidents?* The full walkthrough is in the [Quickstart](/aura/quickstart).
       </Step>
     </Steps>
-
-  </div>
-</section>
-
-{/* Documentation */}
-
-<section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
-  <div className="max-w-3xl">
-    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">Documentation</h2>
-    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
-      Browse product guides by the work you are doing: collect, process, deploy locally, or optimize your telemetry data.
-    </p>
   </div>
 
   <div className="mt-8">
-    <CardGroup cols={2}>
-      <Card title="Log Management" icon="magnifying-glass-chart" href="/docs/about-mezmo-log-analysis" cta="Open guide">
-        Collect logs, parse fields, search events, create views, and alert your team when something changes.
+    <CardGroup cols={3}>
+      <Card title="Local quickstart" icon="terminal" href="/aura/quickstart">
+        Install the binary, run `aura init`, connect an MCP server, and start asking questions.
       </Card>
-      <Card title="Telemetry Pipelines" icon="diagram-project" href="/telemetry-pipelines/about-mezmo-telemetry-pipelines" cta="Open guide">
-        Build pipelines that receive, process, route, and deliver telemetry data to the destinations you choose.
+      <Card title="Docker quickstart" icon="docker" href="/aura/quickstart-docker">
+        The full stack with `docker compose`: orchestrator mode, a chat UI, and a trace viewer.
       </Card>
-      <Card title="Mezmo Edge" icon="server" href="/mezmo-edge/mezmo-edge-pipelines-for-local-data" cta="Deploy locally">
-        Run local data pipelines close to your sources for on-premises and edge collection patterns.
-      </Card>
-      <Card title="Optimization Tutorial" icon="sliders" href="/OptTutorial/1-intro" cta="Start tutorial">
-        Walk through source setup, profiling, and optimization for logs, metrics, and traces.
+      <Card title="Kubernetes quickstart" icon="cubes" href="/aura/quickstart-k8s-sre">
+        A long-lived in-cluster SRE agent with Kubernetes and Prometheus MCP servers.
       </Card>
     </CardGroup>
   </div>
 </section>
 
-{/* API Reference */}
+{/* Messaging pillars */}
 
 <section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
   <div className="max-w-3xl">
-    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">API Reference</h2>
-    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
-      Authenticate once, then use the API references and quickstarts to script common Mezmo workflows.
+    <h2 className="text-3xl font-semibold tracking-tight text-[#0A090C] dark:text-white">How AURA stays yours</h2>
+    <p className="mt-3 text-base font-light leading-7 text-[#3A344B] dark:text-[#CECECE]">
+      You own the config, the deployment, and the telemetry. Nothing has to route through a vendor for the agent to work.
     </p>
   </div>
 
   <div className="mt-8">
     <CardGroup cols={3}>
-      <Card title="Authentication" icon="key" href="/docs/api#authenticating-with-the-api" cta="Set up keys">
-        Learn token formats, delegated account context, and request headers.
+      <Card title="Your infrastructure" icon="server" href="/aura/ollama-guide" cta="Choose a provider">
+        Run on a laptop, in Docker, or in-cluster. Swap between OpenAI, Anthropic, Gemini, Bedrock, OpenRouter, or local Ollama with one provider block.
       </Card>
-      <Card title="Log Analysis API" icon="code" href="/docs/api-referencesk9h" cta="View API">
-        Query and manage Log Analysis resources through the API reference.
+      <Card title="Your rules" icon="shield-check" href="/aura/hitl" cta="Set approval gates">
+        Each worker gets an explicit tool list. Approval gates name the mutating tools that wait for a human. Reads run straight through.
       </Card>
-      <Card title="Pipeline API" icon="route" href="/telemetry-pipelines/api-references" cta="View API">
-        Create pipelines, add components, publish revisions, and automate pipeline operations.
+      <Card title="Your SRE agent" icon="gears" href="/aura/configuration-reference" cta="Read the config reference">
+        Declare workers, prompts, runbooks, and skills in TOML. Every model and tool call emits an OpenTelemetry span you can read in any backend.
       </Card>
     </CardGroup>
   </div>
 </section>
 
-{/* Resources */}
+{/* Mezmo Platform */}
 
 <section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
   <div className="max-w-3xl">
-    <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">Resources</h2>
-    <p className="mt-3 text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
-      Use these references when you are planning architectures or tuning pipelines.
+    <h2 className="text-3xl font-semibold tracking-tight text-[#0A090C] dark:text-white">Mezmo Platform</h2>
+    <p className="mt-3 text-base font-light leading-7 text-[#3A344B] dark:text-[#CECECE]">
+      Already running Mezmo for telemetry? Jump straight to the product you use.
     </p>
   </div>
 
   <div className="mt-8">
     <CardGroup cols={2}>
-      <Card title="Architecture Guide" icon="map" href="/guide-to-pipeline-architecture/types-of-telemetry-data-pipelines" cta="Explore patterns">
-        Compare common telemetry pipeline patterns for ingestion, optimization, routing, and rehydration.
+      <Card title="Log Management" icon="magnifying-glass-chart" href="/docs/about-mezmo-log-analysis">
+        Collect logs, parse fields, search events, create views, and alert on change.
       </Card>
-      <Card title="Practitioner's Guide" icon="chart-line" href="/practioner-guide-data-optimization/data-optimization-introduction" cta="Optimize data">
-        Learn practical techniques for reducing telemetry volume while preserving useful signal.
+      <Card title="Telemetry Pipelines" icon="diagram-project" href="/telemetry-pipelines/about-mezmo-telemetry-pipelines">
+        Receive, process, route, and deliver telemetry to the destinations you choose.
+      </Card>
+      <Card title="Mezmo Edge" icon="network-wired" href="/mezmo-edge/mezmo-edge-pipelines-for-local-data">
+        Run pipelines inside your own network, close to your sources.
+      </Card>
+      <Card title="API Reference" icon="code" href="/docs/api">
+        Authenticate once, then script Log Analysis and Pipeline workflows.
       </Card>
     </CardGroup>
   </div>
 </section>
 
-{/* Closing CTA */}
+{/* Community CTA */}
 
 <section className="mx-auto my-16 max-w-7xl px-4 sm:px-6 lg:px-8">
-  <div className="rounded-3xl border border-[#9383c2] dark:border-[#9383c2] bg-[#f3eefc] dark:bg-[#15111f] p-8 sm:p-10">
+  <div className="rounded-2xl border border-[#D5CFE3] bg-white p-8 dark:border-[#433465] dark:bg-[#15111F] sm:p-10">
     <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-[1fr_auto]">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-[#15111f] dark:text-white">
-          Ready to send data to Mezmo?
+        <h2 className="text-3xl font-semibold tracking-tight text-[#0A090C] dark:text-white">
+          Build AURA in the open
         </h2>
-        <p className="mt-3 max-w-2xl text-base leading-7 text-[#5f5a68] dark:text-[#c9c1d9]">
-          Start with log ingestion, then add pipelines and APIs as your
-          telemetry workflows grow.
+        <p className="mt-3 max-w-2xl text-base font-light leading-7 text-[#3A344B] dark:text-[#CECECE]">
+          Ask questions, share the config you are running, and talk through an approach before you open a PR.
         </p>
       </div>
-      <a
-        href="/docs/ingestion"
-        className="inline-flex items-center justify-center rounded-lg bg-[#9383c2] dark:bg-[#9383c2] px-5 py-3 text-sm font-semibold text-white dark:text-white no-underline transition hover:bg-[#7f6bb3] dark:hover:bg-[#7f6bb3]"
-      >
-        View Ingestion Options
-      </a>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <a href="https://auracommunitygroup.slack.com/ssb/redirect" className="inline-flex items-center justify-center rounded-lg bg-[#95C1CF] px-5 py-3 text-base font-medium text-[#031403] no-underline transition hover:bg-[#82B3C3]">
+          Join us on Slack
+        </a>
+        <a href="https://github.com/mezmo/aura" className="inline-flex items-center justify-center rounded-lg border-2 border-[#95C1CF] px-5 py-3 text-base font-medium text-[#3A344B] no-underline transition hover:bg-[#95C1CF]/20 dark:text-[#E6E6E5]">
+          Get started on GitHub
+        </a>
+      </div>
     </div>
   </div>
 </section>

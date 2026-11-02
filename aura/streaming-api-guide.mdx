@@ -109,7 +109,7 @@ when it overrides the coordinator model.
 
 `mcp_servers` is a credential-free view of the agent's configured MCP servers,
 keyed by name and tagged by `transport` (`stdio`, `http_streamable`, or `sse`).
-URLs are reduced to their origin (`scheme://host:port`) — path, query,
+URLs are reduced to their origin (`scheme://host:port`): path, query,
 fragment, and userinfo are all dropped, since any of them can carry a token. A
 stdio server shows only the executable basename as `command`; its arguments
 and environment are never included, and neither are `headers` or
@@ -139,9 +139,10 @@ AURA_CUSTOM_EVENTS=true cargo run --bin aura -- webserver
 | `aura.reasoning` | LLM reasoning content (requires `AURA_EMIT_REASONING=true`) | ✅ Implemented |
 | `aura.progress` | MCP progress notifications during long-running tools | ✅ Implemented |
 | `aura.session_info` | Session metadata (model, context window) emitted at stream start | ✅ Implemented |
+| `aura.skills_rehydrated` | Skill invocations from earlier turns replayed into this turn's context, emitted at stream start | ✅ Implemented |
 | `aura.mcp_status` | Per-server MCP connection status emitted at stream start (connected/failed/not_attempted, with failure reason) | ✅ Implemented |
 | `aura.worker_phase` | Worker phase transitions in multi-agent mode (planning/executing/analyzing) | ✅ Implemented |
-| `aura.tool_usage` | Usage snapshot after tool execution (associates tool IDs with token counts) | ✅ Implemented |
+| `aura.tool_usage` | Usage snapshot after tool execution (associates tool IDs with token counts). Single-agent mode only | ✅ Implemented |
 | `aura.usage` | Final token usage emitted at stream end (prompt/completion/total) | ✅ Implemented |
 | `aura.scratchpad_usage` | Per-agent scratchpad usage summary (single-agent or worker), emitted when an agent finishes with scratchpad activity | ✅ Implemented |
 | `aura.approval_requested` | HITL approval request raised for a gated tool or `request_approval` call | ✅ Implemented for webhook and conversational routes |
@@ -276,6 +277,17 @@ Note: Progress events are only emitted when:
 1. `AURA_CUSTOM_EVENTS=true` is set
 2. The MCP server sends `notifications/progress` messages during tool execution
 
+When a notification has no `message`, AURA builds one from the progress counts:
+
+- `Progress: <progress>/<total>`, such as `Progress: 50/100`, when the server sends a `total`
+- `Progress: <progress>`, such as `Progress: 3`, when the server sends no `total`
+
+`percent` is `progress` divided by `total`, as a whole number capped at 100. A `total` of `0` reports `100`. AURA omits `percent` when the server sends no `total`.
+
+In orchestration mode, `aura.progress` events from a worker's tool calls carry `agent_id: "coordinator"` instead of the worker's name. This is a known issue, tracked in [mezmo/aura#734](https://github.com/mezmo/aura/issues/734) on GitHub.
+
+Worker tool calls don't emit `aura.tool_start`, so a worker's `progress_token` has no matching `aura.tool_start` event. To follow worker tool calls, use the `aura.orchestrator.tool_call_started` and `aura.orchestrator.tool_call_completed` events. For their formats, see [Orchestration Events](#orchestration-events).
+
 **Session info** (emitted once at stream start):
 ```
 event: aura.session_info
@@ -289,9 +301,23 @@ data:
 }
 ```
 
-Note: `aura.session_info` includes only `CorrelationContext` fields (`session_id`, `trace_id`) — no `agent_id`. `model_context_limit` comes from the `context_window` field in the `[agent.llm]` TOML config section (or `[orchestration.worker.<name>.llm]` for per-worker overrides). If `context_window` is not set, `model_context_limit` is omitted from the event.
+Note: `aura.session_info` includes only `CorrelationContext` fields (`session_id`, `trace_id`). No `agent_id`. `model_context_limit` comes from the `context_window` field in the `[agent.llm]` TOML config section (or `[orchestration.worker.<name>.llm]` for per-worker overrides). If `context_window` is not set, `model_context_limit` is omitted from the event.
 
-**MCP status** (emitted once when at least one MCP server is configured — at stream start in single-agent mode, or just after the shared manager connects in orchestration mode):
+**Skill replay** (emitted once at stream start, after `aura.session_info`, when the turn replays skills recorded on earlier turns of the chat session):
+```
+event: aura.skills_rehydrated
+data:
+```
+```json
+{
+  "skills": ["code-review", "code-review/references/checklist.md"],
+  "session_id": "sess_xyz"
+}
+```
+
+Note: each `skills` entry names one replayed invocation. A `load_skill` call appears as the skill name, and a `read_skill_file` call appears as `<skill>/<path>`. The list includes only invocations that replayed on this turn, and the event is omitted when nothing replays. `aura.skills_rehydrated` includes only `CorrelationContext` fields (`session_id`, `trace_id`). No `agent_id`. For how AURA records and replays skills, see [Skill Persistence Across Turns](/aura/skills#skill-persistence-across-turns).
+
+**MCP status** (emitted once when at least one MCP server is configured. At stream start in single-agent mode, or just after the shared manager connects in orchestration mode):
 ```
 event: aura.mcp_status
 data:
@@ -317,9 +343,23 @@ data:
 }
 ```
 
-Note: `status` is one of `connected`, `failed`, or `not_attempted`. This lets a client distinguish a server that is configured but unavailable (`failed`, with a `reason`) from one that connected and legitimately exposes no tools (`connected`, `tools_count: 0`). `reason` is present only for failed servers. The event is omitted entirely when no servers are configured. `aura.mcp_status` includes only `CorrelationContext` fields (`session_id`, `trace_id`) — no `agent_id`.
+Note: `status` is one of `connected`, `failed`, or `not_attempted`. This lets a client distinguish a server that is configured but unavailable (`failed`, with a `reason`) from one that connected and legitimately exposes no tools (`connected`, `tools_count: 0`). `reason` is present only for failed servers. The event is omitted entirely when no servers are configured. `aura.mcp_status` includes only `CorrelationContext` fields (`session_id`, `trace_id`). No `agent_id`.
 
 In orchestration mode all workers share a single `McpManager`, so one `aura.mcp_status` reports the whole run's server status. The wire shape is identical to single-agent mode; it just arrives slightly later (after the manager connects, before planning) rather than at stream start. Requires `AURA_CUSTOM_EVENTS=true` in both modes.
+
+If a server doesn't finish connecting, initializing, and listing its tools within [`[mcp].connect_timeout_secs`](/aura/configuration-reference#mcp), AURA reports it as `failed`. The default timeout is 30 seconds, and the `reason` shows the configured value:
+
+```json
+{
+  "server_name": "slow_tools",
+  "transport": "http_streamable",
+  "status": "failed",
+  "tools_count": 0,
+  "reason": "Connection failed: MCP initialization error: Connection timed out after 30s"
+}
+```
+
+The other servers still connect, and the run continues without the failed server's tools.
 
 **Worker phase** (phase transitions in multi-agent mode):
 ```
@@ -338,7 +378,7 @@ data:
 
 Possible `phase` values: `"planning"`, `"executing"`, `"analyzing"`. `task_id` and `parent_agent_id` are omitted when not set.
 
-**Tool usage** (usage snapshot after tool execution rounds):
+**Tool usage** (usage snapshot after tool execution rounds, single-agent mode only):
 ```
 event: aura.tool_usage
 data:
@@ -349,11 +389,14 @@ data:
   "prompt_tokens": 18777,
   "completion_tokens": 500,
   "total_tokens": 19277,
+  "agent_id": "main",
   "session_id": "sess_xyz"
 }
 ```
 
-Emitted from the `on_stream_completion_response_finish` hook when usage data is available. Associates the completed tool IDs with a token usage snapshot. No `agent_id` field (only `CorrelationContext`).
+Emitted from the `on_stream_completion_response_finish` hook when usage data is available. Associates the completed tool IDs with a token usage snapshot. Carries `agent_id` and the `CorrelationContext` fields. Because AURA emits `aura.tool_usage` only in single-agent runs, `agent_id` is always `main`.
+
+Orchestrated runs don't emit `aura.tool_usage`. To follow tool activity in an orchestrated run, use the `aura.orchestrator.tool_call_started` and `aura.orchestrator.tool_call_completed` events.
 
 **Usage** (final token usage at stream end):
 ```
@@ -388,6 +431,7 @@ data:
 {
   "decision_id": "019edead-beef-7000-8000-000000000001",
   "tool_name": "restart_deployment",
+  "tool_namespace": "k8s",
   "origin": {
     "kind": "config_gate",
     "matched_pattern": "restart_*"
@@ -411,6 +455,7 @@ data:
 {
   "decision_id": "019edead-beef-7000-8000-000000000001",
   "tool_name": "restart_deployment",
+  "tool_namespace": "k8s",
   "arguments": {"namespace": "prod", "deployment": "api"},
   "origin": {
     "kind": "config_gate",
@@ -426,6 +471,8 @@ data:
   "expires_at": "2026-06-23T22:15:30Z"
 }
 ```
+
+`tool_namespace` is the `[mcp.servers.<key>]` config key of the MCP server that provides the tool. It is omitted for tools that don't come from an MCP server. See [Scope a Pattern to One MCP Server](/aura/configuration-reference#scope-a-pattern-to-one-mcp-server).
 
 **Approval completed** (HITL approval reached a terminal outcome):
 ```
@@ -544,7 +591,7 @@ flowchart TD
     B --> C["task_started<br/>Worker assigned (task_id, worker_id, orchestrator_id)"]
     C --> D["worker_reasoning<br/>Worker thinking (task_id, worker_id, content)"]
     D --> E["tool_call_started<br/>Worker calls a tool: MCP, skill, or operation (tool_call_id, tool_name, worker_id)"]
-    E --> F["tool_call_completed<br/>Tool result (duration_ms, success)"]
+    E --> F["tool_call_completed<br/>Tool result (tool_call_id, worker_id, duration_ms, success)"]
     F --> G["task_completed<br/>Worker finished (duration_ms, success, result)"]
     G --> H["synthesizing<br/>Coordinator merging results (iteration)"]
 
@@ -582,8 +629,8 @@ data:
 ```
 
 The `routing_mode` field indicates how the coordinator routed the query:
-- `"routed"` — classified to a single worker
-- `"orchestrated"` — multi-task DAG with continuation
+- `"routed"`: classified to a single worker
+- `"orchestrated"`: multi-task DAG with continuation
 
 The optional `planning_response` field contains the coordinator's raw planning text and is omitted when empty.
 
@@ -679,6 +726,7 @@ data:
 {
   "task_id": 0,
   "tool_call_id": "call_abc123",
+  "worker_id": "arithmetic",
   "success": true,
   "duration_ms": 42,
   "result": "10",
@@ -687,9 +735,9 @@ data:
 }
 ```
 
-Note: `task_id` is omitted if it could not be determined. `result` is truncated per `TOOL_RESULT_MAX_LENGTH` and omitted when empty.
+Note: `task_id` is omitted if it could not be determined. `result` is truncated per `TOOL_RESULT_MAX_LENGTH` and omitted when empty. `worker_id` names the worker that ran the tool, the same value as on the matching `tool_call_started` event. Older AURA servers omit `worker_id` from this event. To attribute a completion from one of them, match its `tool_call_id` to the `tool_call_started` event.
 
-**Tool coverage:** these events fire for the coordinator (`worker_id: "main"`) as well as workers. They cover MCP tools, the skill tools (`load_skill`, `read_skill_file`), and orchestration operations (`read_artifact`, `submit_result`, `list_prior_runs`). Scratchpad exploration tools are suppressed by default and emit only when `AURA_EMIT_SCRATCHPAD_TOOL_EVENTS` is set.
+**Tool coverage:** these events fire for the coordinator (`worker_id: "main"`) as well as workers. They cover MCP tools, the skill tools (`load_skill`, `read_skill_file`), and orchestration operations (`read_artifact`, `write_artifact`, `submit_result`, `list_prior_runs`). For `write_artifact`, the event's `arguments` replace the `content` value with its length, such as `"[1200 chars written to artifact]"`. The full content is in the saved artifact. Scratchpad exploration tools are suppressed by default and emit only when `AURA_EMIT_SCRATCHPAD_TOOL_EVENTS` is set.
 
 **Task completed** (worker finished with result):
 ```
@@ -735,7 +783,7 @@ The `reasoning` and `gaps` fields are included only when non-empty (i.e., when r
 | Field | Meaning |
 |-------|---------|
 | `planning_ms` | Prompt → plan created. Includes planning-correction retries. For replanned iterations this is the prior iteration's continuation-decision latency (that call produced this iteration's plan). |
-| `execution_ms` | Plan ready → continuation-prompt entrypoint — one iteration's execution span (worker waves + persistence drain + result consolidation), measured as wall-clock. |
+| `execution_ms` | Plan ready → continuation-prompt entrypoint. One iteration's execution span (worker waves + persistence drain + result consolidation), measured as wall-clock. |
 | `task_compute_ms` | Sum of per-task wall durations across the iteration (aggregate compute; exceeds `execution_ms` when tasks run in parallel). |
 | `tool_ms` | Sum of tool-call durations recorded for the iteration's tasks. |
 
@@ -780,7 +828,7 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 |-------------|--------|-------|
 | Task lifecycle | `task_started` → `worker_reasoning` → `tool_call_*` → `task_completed` | `task_id` |
 | Tool lifecycle | `tool_call_started` → `tool_call_completed` | `tool_call_id` |
-| Worker identity | `task_*`, `worker_reasoning`, `tool_call_started` | `worker_id` |
+| Worker identity | `task_started`, `task_completed`, `worker_reasoning`, `tool_call_started`, `tool_call_completed` | `worker_id` |
 | Agent hierarchy | All orchestration events | `agent_id` (`"coordinator"` or worker name) |
 | Replan cycle | `iteration_complete` → `replan_started` → `plan_created` | `iteration` |
 
@@ -911,6 +959,8 @@ Note: Workers that use scratchpad emit `aura.scratchpad_usage` when they finish 
 }
 ```
 
+The `usage` object totals every LLM turn in the request. For an orchestrated run, that includes the coordinator's turns and every worker's turns.
+
 **Stream end**:
 ```
 data: [DONE]
@@ -922,7 +972,7 @@ data: [DONE]
 |-------|---------|
 | `stop` | Normal completion |
 | `tool_calls` | Response included tool execution |
-| `length` | Response truncated due to `max_tokens` limit |
+| `length` | The response's total `completion_tokens` reached the request's `max_tokens`. In an orchestrated run, that total includes the coordinator and every worker, so a complete answer can report `length`. |
 
 ## Client Examples
 
@@ -1012,7 +1062,7 @@ The separator is automatically injected when text chunks resume after a `ToolRes
 
 ## Graceful Shutdown
 
-On SIGTERM or SIGINT, the server performs a two-phase shutdown to let in-flight requests finish:
+On SIGTERM or SIGINT, the server stops taking new requests, gives in-flight requests time to finish, and then ends any that remain so their OpenTelemetry spans are exported before it exits:
 
 ```mermaid
 flowchart TD
@@ -1022,25 +1072,45 @@ flowchart TD
     • New requests rejected with 503
     • In-flight streams continue running"]
 
-    B -->|"grace period _(SHUTDOWN_TIMEOUT_SECS, default 30s)_
-    in-flight streams may complete naturally"| C
+    B -->|"all requests finish within the grace period"| E
+    B -->|"grace period expires _(SHUTDOWN_TIMEOUT_SECS, default 30s)_"| C
 
-    C["**Phase 2: Drain** _(after grace period)_
+    C["**Phase 2: Drain** _(up to 5s)_
     • Remaining streams cancelled
     • Each stream sends \[DONE\] to client
     • MCP cleanup (cancel + close)"]
 
-    C -->|"10s buffer for \[DONE\] delivery + MCP cleanup"| D
+    C -->|"all requests finish"| E
+    C -->|"5s drain window expires"| D
 
-    D([Server exits])
+    D["**Phase 3: Abort**
+    • Request tasks still running are aborted"]
+
+    D --> E
+
+    E["**Shutdown complete**
+    • Completion logged
+    • OpenTelemetry spans flushed _(up to 5s)_"]
+
+    E --> F([Server exits])
 ```
 
 | Phase | Timing | What happens |
 |-------|--------|-------------|
 | **Gate** | Immediate | Middleware returns 503 for all new requests (including `/health`) |
-| **Grace period** | 0 – `SHUTDOWN_TIMEOUT_SECS` (default 30s) | In-flight streams continue running; streams that finish naturally are unaffected |
-| **Drain** | After grace period | `stream_shutdown_token` cancelled; remaining streams send `[DONE]`, then MCP cleanup runs |
-| **Exit** | Grace period + 10s buffer | Actix force-closes any remaining connections |
+| **Grace period** | 0 – `SHUTDOWN_TIMEOUT_SECS` (default 30s) | In-flight streams continue running. If they all finish, shutdown skips Drain and Abort. |
+| **Drain** | After the grace period, up to 5s | `stream_shutdown_token` cancelled; remaining streams send `[DONE]`, then MCP cleanup runs |
+| **Abort** | After the 5s drain window | The server logs `Stream shutdown grace period expired, aborting stragglers` and aborts request tasks that are still running |
+| **Exit** | After the last request ends | The server logs `shutdown complete`, flushes OpenTelemetry spans for up to 5s, and exits |
+
+The `shutdown complete` log line carries two fields:
+
+| Field | `true` when |
+|-------|-------------|
+| `clean_shutdown` | Every in-flight request finished during the grace period or the drain window, so the server aborted nothing |
+| `unaborted_tasks` | The abort step didn't finish within 400 ms, so some aborted request tasks hadn't stopped yet |
+
+For the per-stream drain steps and how shutdown differs from a client disconnect, see [Request Lifecycle](/aura/request-lifecycle#shutdown-sequence).
 
 Configure the grace period:
 
@@ -1052,7 +1122,7 @@ SHUTDOWN_TIMEOUT_SECS=60 cargo run --bin aura -- webserver
 cargo run --bin aura -- webserver --shutdown-timeout-secs 60
 ```
 
-**K8s tip**: Set `terminationGracePeriodSeconds` to at least `SHUTDOWN_TIMEOUT_SECS + 15` (default: 45s). The total shutdown budget is grace period + 10s Actix buffer. During Phase 1, `/health` returns 503 — readiness probes will fail immediately, removing the pod from service endpoints.
+**K8s tip**: Set `terminationGracePeriodSeconds` to at least `SHUTDOWN_TIMEOUT_SECS + 15` (default: 45s). After the grace period, shutdown can take about 10 more seconds: up to 5s to drain streams and up to 5s to flush OpenTelemetry spans. During Phase 1, `/health` returns 503. Readiness probes will fail immediately, removing the pod from service endpoints.
 
 <Note>The `/health` endpoint returns 503 during shutdown (same middleware gate as all routes). This is intentional — it signals load balancers and K8s readiness probes to stop routing traffic to this instance.</Note>
 
@@ -1062,4 +1132,7 @@ cargo run --bin aura -- webserver --shutdown-timeout-secs 60
 Content-Type: text/event-stream
 Cache-Control: no-cache
 X-Accel-Buffering: no
+X-Chat-Session-Id: sess_xyz
 ```
+
+`X-Chat-Session-Id` carries the request's chat session ID. Send it back on later turns to continue the same session. For how AURA picks the ID, see [How AURA Identifies a Conversation](/aura/skills#how-aura-identifies-a-conversation).

@@ -1,5 +1,5 @@
 ---
-title: "Breaking Changes — 23 July 2026"
+title: "Breaking Changes: 23 July 2026"
 description: "An empty `mcp_filter` (`mcp_filter = []`) now grants no MCP tools instead of every MCP tool."
 ---
 
@@ -27,7 +27,7 @@ which made two things impossible or dangerous:
   such as `["__none__"]`.
 - **Removing the last allowlist entry silently widened access.** Editing
   `mcp_filter = ["logs_*"]` down to `mcp_filter = []` expanded the worker
-  from one tool family to *every* tool — the opposite of the intent.
+  from one tool family to *every* tool: the opposite of the intent.
 
 See issue [#378](https://github.com/mezmo/aura/issues/378).
 
