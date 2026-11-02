@@ -459,14 +459,14 @@ Ranks apps, hosts, or nodes by how much their errors grew against a baseline: wh
 
 #### `list_exclusion_rules`
 
-Lists your account's log ingestion [exclusion rules](/docs/excluding-log-lines). Each rule has a query that selects log lines to exclude from ingestion. When a rule's `indexonly` is `true`, matching lines are indexed but hidden from live tail and other consumers. Each rule also reports whether it is active and the hosts and apps it applies to.
+Lists your account's log [exclusion rules](/docs/excluding-log-lines). Each rule has a query that selects log lines to exclude from indexing. When a rule's `indexonly` is `true`, matching lines are kept out of the index only; they still reach live tail and alerting. Each rule also reports whether it is active and the hosts and apps it applies to.
 
 Takes no parameters.
 
 **Use cases:**
 
 - Understanding why expected logs may be missing
-- Auditing current ingestion filters
+- Auditing current indexing filters
 
 **Example:**
 "Why am I not seeing logs from the batch-worker app? Check my exclusion rules"
