@@ -11,7 +11,7 @@ The events the new source emits are shaped differently from those of the depreca
 - **The OpenTelemetry source** passes each record through in its original OpenTelemetry JSON form. Everything, including the resource and scope, is inside `message`.
 
 <Warning>
-Processors and destinations built for the deprecated sources won't work with the OpenTelemetry source's outputs unless you update their field paths or remap the events first.
+Processors built for the deprecated sources won't work with the OpenTelemetry source's outputs unless you update their field paths or remap the events first. The same applies to destinations, except the [OpenTelemetry destination](./open-telemetry-destination), which accepts logs and traces in either shape.
 </Warning>
 
 ## At a glance
