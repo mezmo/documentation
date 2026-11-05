@@ -393,6 +393,8 @@ Gets per-window totals over a time range: log counts, severity counts, distinct 
 - `error_apps` (optional): 1 to 20 apps whose errors each window lists instead of the top apps. Can't be combined with `top_apps_limit`
 - `resolution` (optional): Window width, `5m` or `1h`. Use `1h` for spans of a day or more
 
+Mezmo keeps a capped number of templates per account each hour. If your account went over that cap in any hour of the last 60 days, new templates aren't counted. In that case, `novel_patterns` is null in every window, and `query_info.novel_patterns_null_reason` is `over_cap`.
+
 **Example:**
 "Give me an overview of my logs over the last 24 hours"
 "Which apps had the most errors in each hour since this morning?"
@@ -403,19 +405,25 @@ Finds ranked log templates in a time range, compared against a baseline. By defa
 
 **Parameters:**
 
-- `from_time`, `to_time` (required): The current range, as RFC3339 timestamps. At most 90 days in the past
-- `baseline_from_time`, `baseline_to_time` (optional): The baseline range. Send both or neither. Defaults to the same length immediately before `from_time`
+- `from_time`, `to_time` (required): The current range, as RFC3339 timestamps. At most 60 days in the past and at most 3 days long. To cover a longer window, split it into 3-day calls
+- `baseline_from_time`, `baseline_to_time` (optional): The baseline range. Send both or neither. Defaults to the same length immediately before `from_time`. At most 60 days in the past and at most 3 days long. To compare against an older period, move the baseline instead of lengthening it
 - `apps`, `namespaces`, `severities` (optional): Only these apps, namespaces, or severity levels
 - `q` (optional): A case-insensitive substring of the template text
-- `novel_only`, `changed_only` (optional): Return only novel or only changed templates. Defaults to `false`
+- `novel_only`, `changed_only` (optional): Return only novel or only changed templates. Defaults to `false`. With either one, `query_info.total_matched` is an upper bound
 - `min_count` (optional): Fewest events a novel template needs to count as changed. Defaults to `5`
 - `min_deviation` (optional): Smallest deviation (count divided by baseline count) to return
 - `min_sample_count` (optional): Smallest baseline count a deviation is computed from. Defaults to `10`
-- `sort` (optional): `change_score`, `deviation`, `count`, or `first_seen`
+- `sort` (optional): `change_score`, `deviation`, `count`, or `first_seen`. `first_seen` orders templates by their first event in the current range
 - `limit` (optional): Maximum templates to return, from 1 to 500. Defaults to `50`
 - `include_exemplars` (optional): Return one example raw line per template. Defaults to `false`. Exemplars make up a third to a half of the response, so request them only when you need a raw line
 
 To find a template that burst from nothing, use `changed_only` or `sort: change_score`. `min_deviation` leaves those templates out.
+
+Novelty and `first_seen` look back 60 days from the current hour, starting at `query_info.novelty_lookback_from`. For example, a range that starts 20 days ago is judged against 40 days of history. Novelty is judged only for the first 1,000 templates in the range that had no events in the day before it, taking the most severe templates first and then those with the most events. A novel template past those 1,000 can have `changed` set to `false`.
+
+Pattern lists at 5-minute resolution reach back 10 days, and hourly lists reach back 60 days.
+
+The `overflow` list holds events that aren't yet credited to a template. These include late-arriving events, templates beyond your account's hourly cap, and output where every line is unique. The first 20 apps are listed by name, and an `(other apps)` entry sums the rest. `query_info.overflow_app_total` counts every app with overflow. Overflow entries never include an exemplar.
 
 **Example:**
 "What new error patterns appeared in the checkout-service in the last hour?"
@@ -428,7 +436,7 @@ Gets one template's per-window counts over a time range, from a `template_id` re
 **Parameters:**
 
 - `template_id` (required): The `template_id` from a `find_log_patterns` result
-- `from_time`, `to_time` (required): The range, as RFC3339 timestamps. At most 90 days in the past
+- `from_time`, `to_time` (required): The range, as RFC3339 timestamps. At most 60 days in the past, and at most 10 days in the past for 5-minute points
 - `app` (optional): Only this app's events
 - `version` (optional): Only this app version's events. Requires `app`
 - `namespace` (optional): Only this namespace's events
