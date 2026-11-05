@@ -23,9 +23,9 @@ The [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) is listed
 <Note>
 A pipeline can include at most one source of a given account-wide shared-stream type. Today the account-wide shared-stream types are the **OpenTelemetry Source** and **Mezmo Log Analysis Ingestion**, so a pipeline can include one of each but not more than one of either. You can still add the same shared-stream source to other pipelines.
 
-Mezmo enforces this limit for account-wide shared-stream sources however you add the source: the Mezmo Web App, the Pipeline API, Terraform, cloning a pipeline, and importing a pipeline manifest. It is not merely a disabled button in the source picker.
+Mezmo enforces this limit for account-wide shared-stream sources however you add the source: the Mezmo Web App, the Mezmo API, Terraform, cloning a pipeline, and importing a pipeline manifest. It is not merely a disabled button in the source picker.
 
-In the source picker, if a shared-stream source is already in the pipeline, its card is disabled and shows this hint: "Only one of the these nodes is allowed per pipeline because it reads a shared account-wide stream." If you try to add a second source of the same shared-stream type to a pipeline through the Pipeline API or a manifest import, Mezmo rejects the request instead of silently succeeding.
+In the source picker, if a shared-stream source is already in the pipeline, its card is disabled and shows this hint: "Only one of the these nodes is allowed per pipeline because it reads a shared account-wide stream." If you try to add a second source of the same shared-stream type to a pipeline through the Mezmo API or a manifest import, Mezmo rejects the request instead of silently succeeding.
 </Note>
 
 ## Video Overview
