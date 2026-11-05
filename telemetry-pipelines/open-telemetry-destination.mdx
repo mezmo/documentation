@@ -15,9 +15,9 @@ The Destination accepts these events:
 | ---- | ---- |
 | Logs | Events from the **Logs** output of the [OpenTelemetry source](./open-telemetry-source), or from the deprecated **OpenTelemetry Logs** source |
 | Traces | Events from the **Traces** output of the OpenTelemetry source, or from the deprecated **OpenTelemetry Traces** source |
-| Metrics | Mezmo metric events |
+| Metrics | Events from the **Metrics** output of the OpenTelemetry source, or Mezmo metric events |
 
-Events from the **Metrics** output of the OpenTelemetry source aren't supported. Before you connect that output to the Destination, add a processor that remaps the events to the Mezmo metric format. For the field paths in each event shape, see [OpenTelemetry event shapes](./opentelemetry-event-shapes).
+The Destination doesn't send summary metrics.
 
 A span from the OpenTelemetry source must have a valid `traceId` and `spanId`. The Destination doesn't send a span whose ID is missing or invalid, and reports an error that names the field. The rest of the batch is still sent.
 
