@@ -98,11 +98,18 @@ curl -H "Authorization: Token sta_34b8f6897cd3396e6af781c3bfe34065b690f90b" \
 
 ### Token Expiration
 
-When an access key has an expiration date, Mezmo warns you before it expires and removes it afterward:
+When an access key has an expiration date, Mezmo warns you before it expires and removes it afterward. Plan to rotate or replace a key before its expiration date so the integrations that use it keep working.
 
-- **Expiry warnings**: Mezmo emails the owner of a personal access key 14 days, 7 days, and 1 day before the key expires. The email lists each expiring key by name and its last characters. If you have expiring keys in more than one account, you get a separate email for each account.
+- **Expiry warnings**: Mezmo sends a warning email 14 days, 7 days, and 1 day before a key expires. The email lists each expiring key by name and its last characters. Who gets the email depends on the key type:
+
+  | Key type | Recipients |
+  | ---- | ---- |
+  | Personal access key | The user who owns the key. If you have expiring keys in more than one account, you get a separate email for each account. |
+  | Service account | The account owner |
+  | Enterprise service account | Every superadmin of the enterprise |
+
 - **Removal**: Requests that use an expired key fail with `401`. Mezmo deletes expired keys of every type within a day of expiration.
-- **Service account keys**: Mezmo keeps the current key of a service account even after it expires, so you can still rotate it. When you rotate a service account key, a previous key with no expiration date expires 24 hours later. Mezmo then deletes it.
+- **Service account keys**: Mezmo keeps the current key of a service account even after it expires, so you can still rotate it. When you rotate a service account key, a previous key with no expiration date expires 24 hours later. Mezmo then deletes it. Expiry warnings cover only the key a service account currently uses, not a previous key replaced by rotation.
 
 ---
 
