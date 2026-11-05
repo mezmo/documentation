@@ -232,7 +232,7 @@ Our final step is to initiate and grab the state ID for the pipeline in Normal o
 
 Click the **State** menu in the upper-left corner of the active pipeline, change the state to `Incident`, then change it back to `Normal.`
 
-Now that has been initiated, you will need get the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a Pipeline API Key here. Then, modify the following script with both that `PIPELINE_ID` and Pipeline API Key
+Now that has been initiated, you will need get the `Log Handler` pipeline's ID (found in the URL at `app.mezmo.com/ACCOUNT_ID/pipelines/PIPELINE_ID`) along with a [Mezmo API access key](/docs/api#authenticating-with-the-api). Then, modify the following script with both that `PIPELINE_ID` and access key
 
 ```bash
 curl --request GET \
