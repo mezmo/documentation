@@ -5,7 +5,7 @@ description: "Sample OpenTelemetry traces at a given rate using the Trace ID, su
 
 ## Description
 
-Performs sampling of traces per a given rate using the Trace ID as the unique identifier. If a trace is rate selected, all spans of the trace are output.
+Performs sampling of traces per a given rate using the Trace ID as the unique identifier. If a trace is rate selected, its spans are output. In `tail` mode, a span that arrives after the decision expires can be held or sampled again; see [How tail sampling closes a trace](#how-tail-sampling-closes-a-trace).
 
 <Note>
 This is an experimental feature that is still in development. For access to this feature, reach out to your Customer Support Manager or support@mezmo.com.
@@ -35,7 +35,7 @@ By default, the Trace ID and Parent Span ID fields point to `.record.traceId` an
 
 ## How tail sampling closes a trace
 
-In `tail` mode, the Processor decides a trace when the head span of the trace arrives. The head span is the span that has no Parent Span ID. The Processor does not wait for a timer, a maximum trace duration, or a span count before it decides.
+In `tail` mode, the Processor decides a trace when the head span of the trace arrives. The head span is the span that has no Parent Span ID: the field is missing, null, an empty string, or not a string. The Processor does not wait for a timer, a maximum trace duration, or a span count before it decides.
 
 The Processor handles a trace in this order:
 
