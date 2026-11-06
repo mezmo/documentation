@@ -624,6 +624,25 @@ Queries must fall within your account's retention window. If you query logs outs
 Use relative time ranges like `last 15 minutes` or `last 1 hour` to ensure your queries stay within retention.
 </Tip>
 
+## Tool Titles and Behavior Hints
+
+Every Mezmo MCP tool reports a short display title and behavior hints. MCP clients can show the title, such as **Get Log Histogram**, in tool pickers and approval prompts instead of the raw tool name. Clients can also use the hints to decide which tool calls need your approval.
+
+All tools are read-only except the pipeline tools listed below. These tools create or change resources in your Mezmo account:
+
+| Tool | Destructive | What it changes |
+| --- | --- | --- |
+| `create_pipeline`, `create_pipeline_from_manifest` | No | Creates a new pipeline |
+| `add_pipeline_source`, `add_pipeline_transform`, `add_pipeline_destination` | No | Adds a node to an existing pipeline |
+| `create_pipeline_access_key` | No | Creates a source access key |
+| `update_pipeline_component` | Yes | Replaces a component's configuration |
+| `delete_pipeline_component` | Yes | Removes a component |
+| `pause_pipeline`, `unpause_pipeline` | Yes | Overwrites the pipeline's processing status |
+| `publish_pipeline` | Yes | Replaces the running pipeline with the current draft |
+| `tap_pipeline_component` | Yes | Reads live events. Marked destructive until it's confirmed to leave the pipeline unchanged. |
+
+If your client can auto-approve tools, consider auto-approving read-only tools and requiring approval for destructive ones. Hints are advisory. They don't restrict what a tool can do.
+
 ---
 
 ## Best Practices
