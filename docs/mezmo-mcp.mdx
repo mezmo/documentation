@@ -124,6 +124,8 @@ Lists available structured fields that can be used in log queries.
 
 "Show me fields that start with 'request' and end with 'time'"
 
+OpenTelemetry logs keep their resource attributes under `_meta`, such as `_meta.k8s_namespace_name`. See [How OTel logs land in Log Analysis](/telemetry-pipelines/otel-collector#how-otel-logs-land-in-log-analysis).
+
 ### 6. Pipeline Management
 
 #### `list_pipelines`

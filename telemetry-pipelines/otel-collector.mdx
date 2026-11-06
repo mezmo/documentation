@@ -48,6 +48,10 @@ receivers:
     protocols:
       grpc:
         endpoint: "0.0.0.0:4317"
+        # The gRPC default is 4 MiB. LLM and agent spans carry prompt text,
+        # so a 512-span batch can pass that and be dropped. 16 MiB fits
+        # 512 spans of up to 32 KiB each.
+        max_recv_msg_size_mib: 16
       http:
         endpoint: "0.0.0.0:4318"
 
@@ -99,6 +103,57 @@ export MEZMO_INGESTION_KEY="<your ingestion key>"
 <Note>
 For complete information on setting up and configuring the OpenTelemetry Collector, visit [https://opentelemetry.io/docs/collector/configuration](https://opentelemetry.io/docs/collector/configuration)
 </Note>
+
+## Large trace batches
+
+The Collector's OTLP gRPC receiver refuses any request over 4 MiB unless you set `max_recv_msg_size_mib`. LLM and agent spans often carry prompt and response text, so a full 512-span batch can pass that limit. The SDK retries a refused batch, then drops it, and the only sign is an export error in your app's own log.
+
+Either raise the limit on the receiver, as both configs on this page do:
+
+```yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        max_recv_msg_size_mib: 16  # 512 spans of up to 32 KiB each
+```
+
+Or send smaller batches from the SDK with `OTEL_BSP_MAX_EXPORT_BATCH_SIZE=256`.
+
+## How OTel logs land in Log Analysis
+
+OTel log records sent to `https://logs.mezmo.com/otel` become Log Analysis lines. Search for them with these fields.
+
+**Resource attributes** go under `_meta`. In search, each dot in the name becomes an underscore:
+
+| OTel resource attribute | Search field |
+|---|---|
+| `service.name` | `_meta.service_name` |
+| `k8s.namespace.name` | `_meta.k8s_namespace_name` |
+| `k8s.pod.name` | `_meta.k8s_pod_name` |
+| `k8s.node.name` | `_meta.k8s_node_name` |
+
+A search for the OTel name, or a guess such as `namespace:`, finds nothing. Use the `_meta` field.
+
+**Host, app and file** come from these attributes, first one set wins:
+
+| Field | Taken from |
+|---|---|
+| `_host` | `k8s.pod.name`, `k8s.node.name`, `host.name`, `container.name`, `service.instance.id`, `service.name`, else `UNKNOWN_HOST` |
+| `_app` | `service.name`, `k8s.container.name`, else `UNKNOWN_APP` |
+| `_file` | the record attribute `log.file.path`, else `UNKNOWN_APP` |
+
+**Record fields:** `level` is the record's severity text. `trace_id` and `span_id` come from the record.
+
+**Record attributes** land at the top level under their own names. A name that clashes with a system field, such as `level` or `_host`, moves under `_label`. Any other name that starts with `_` gets a second `_`.
+
+Example searches:
+
+```
+_meta.k8s_namespace_name:checkout
+_meta.service_name:payments level:error
+_meta.k8s_pod_name:api-7c9f trace_id:4bf92f3577b34da6a3ce929d0e0e4736
+```
 
 ## Installing the Collector via a Helm Chart
 
@@ -232,6 +287,7 @@ config:
       protocols:
         grpc:
           endpoint: ${env:MY_POD_IP}:4317
+          max_recv_msg_size_mib: 16  # see the note in the quick-start config
         http:
           endpoint: ${env:MY_POD_IP}:4318
     # kind's kubelet serves a cert with no IP SANs, so TLS verification of
