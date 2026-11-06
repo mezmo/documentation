@@ -147,6 +147,12 @@ All three outputs share the same envelope. `message.type` is `log`, `metric`, or
 In the deprecated Logs source, `metadata.resource` holds resource attributes directly. In the deprecated Metrics and Traces sources, they're nested under `metadata.resource.attributes`. In the OpenTelemetry source, they're always at `message.resource.attributes`.
 </Note>
 
+### Log Records With an Empty Body
+
+Some OpenTelemetry exporters, such as Codex, put all of a log record's data in its attributes and send no body. The OpenTelemetry source keeps these records and sets `message.record.body` to an empty string (`""`). If your processors match on the log body, also check `message.record.attributes` so these records aren't skipped.
+
+The source drops a log record only when it has both an empty body and no attributes.
+
 ## Metrics
 
 <CodeGroup>
