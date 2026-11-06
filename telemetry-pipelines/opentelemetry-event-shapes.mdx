@@ -260,6 +260,19 @@ In the deprecated Logs source, `metadata.resource` holds resource attributes dir
 Which fields appear in `dataPoint` depends on the metric type. The example above is a gauge. Sums, histograms, and summaries can carry other fields.
 </Note>
 
+### Sending OpenTelemetry Metrics to Metric Destinations
+
+You can connect the **Metrics** output directly to a metric destination such as [New Relic](/telemetry-pipelines/new-relic-destination) or [Datadog Metrics](/telemetry-pipelines/datadog-metrics-destination). The pipeline converts each OpenTelemetry metric to the Mezmo metric format before the destination sends it, so you don't need to remap the fields yourself.
+
+The conversion works like this:
+
+- Gauge, sum, histogram, exponential histogram, and summary data points are converted. Exponential histograms are approximated as regular histograms.
+- Resource attributes and data point attributes become metric tags.
+- Metric names and tag keys keep their original OpenTelemetry form. For example, `k8s.pod.memory.major_page_faults` keeps its dots and gets no `_total` suffix.
+- If a required field is missing or invalid, the event is dropped and the error names the field, for example `record.metric.name`.
+
+To learn what each destination does with counters, histograms, and summaries, see [New Relic](/telemetry-pipelines/new-relic-destination#opentelemetry-metrics) and [Datadog Metrics](/telemetry-pipelines/datadog-metrics-destination#opentelemetry-metrics).
+
 ## Traces
 
 <CodeGroup>
@@ -382,4 +395,4 @@ When you replace the deprecated sources with the **OpenTelemetry** source:
    - All signals: `metadata.resource…` becomes `message.resource.attributes…`
 3. Convert values before doing math or numeric comparisons: metric values, `*UnixNano` times, and many attribute values arrive as strings.
 4. Check for anything that relies on fields the new source doesn't set, such as `annotations.level` on logs or `metadata.level` on traces.
-5. If a destination expects Mezmo metric events, add a processor that remaps the OpenTelemetry metric fields to the Mezmo metric format first.
+5. Check dashboards and alerts that query metrics by name or tag. Metrics from the OpenTelemetry source keep their original names and attribute keys, while the deprecated source normalized them. See [Sending OpenTelemetry Metrics to Metric Destinations](#sending-opentelemetry-metrics-to-metric-destinations).
