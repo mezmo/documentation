@@ -97,6 +97,7 @@ Liquid
 liveness
 llm
 logfile(s?)
+Langfuse
 Logfmt
 logline(s?)
 Logspout
