@@ -1,0 +1,128 @@
+---
+title: "Govern Coding Agents with Governance Plugins"
+description: "Install the Mezmo Governance plugins so Claude Code, Codex, Cursor, and other coding agents check each tool call against your Mezmo policy before it runs."
+---
+
+The Mezmo Governance plugins bring Agent Governance policies to coding agents and agent SDKs that don't run on [AURA](../aura/index). Before the agent runs a tool, such as a shell command or an MCP tool call, the plugin asks Mezmo whether the call can proceed. Mezmo decides with the same policies, approvals, and workflows that govern AURA agents. This page explains how to set up a coding agent in Mezmo, install its plugin, and check that the agent is governed.
+
+The plugins are open source in the [mezmo/ai-governance-plugins repository on GitHub](https://github.com/mezmo/ai-governance-plugins). The repository is the source of truth for each plugin's install steps, settings, and limits.
+
+## Supported Agents and SDKs
+
+The plugins support these coding agents:
+
+- Claude Code
+- Codex CLI
+- Cursor
+- Gemini CLI
+- Antigravity CLI
+- GitHub Copilot
+- Goose
+- Droid
+- Windsurf
+- Pi
+- OpenCode
+
+For agents you build yourself, the repository also has integrations for the Claude Agent SDK, LangChain, the OpenAI Agents SDK, and Mastra. You add these to your application code.
+
+## How the Plugins Work
+
+Before each tool call the plugin governs, it sends the call to Mezmo's authorize endpoint and waits for a decision:
+
+- If Mezmo allows the call, the tool runs.
+- If Mezmo denies the call, the tool doesn't run, and the agent shows the reason from the policy rule.
+- If the policy requires approval, the plugin waits for an approver. If nobody decides within the plugin's timeout, 590 seconds by default, the plugin denies the call.
+- If Mezmo can't be reached or returns a response the plugin can't read, the plugin denies the call.
+
+Mezmo identifies the agent from the service account token the plugin sends, and records each request as a [workflow](./governance-workflows).
+
+Each plugin sends Mezmo the tool name and its full arguments, such as the shell command, the file path, and the file content for write tools. Tool results stay on your machine. Write policies on the assumption that Mezmo sees every argument, and keep secrets out of tool arguments.
+
+<Note>
+Coverage differs by agent. For example, the Claude Code plugin governs only Bash and MCP tool calls, and other built-in tools such as Read and Write run without a check. What each plugin governs, and whether it blocks the tool when the plugin itself fails, is listed in the repository's [Install by hand](https://github.com/mezmo/ai-governance-plugins#install-by-hand) table.
+</Note>
+
+## Set Up a Coding Agent in Mezmo
+
+Register each coding agent in Mezmo before you install its plugin, so Mezmo can recognize its tool calls.
+
+Before you begin, [create a policy](./governance-policies#create-a-policy) for the agent. In policy rules, the tool namespace is the plugin's namespace, such as `claude_code`, `codex`, or `cursor`, or the MCP server name for an MCP tool. Each plugin's README in the repository lists its tool names.
+
+1. [Register an agent](./governance-agents#register-an-agent) for each coding tool on each machine, so that each one has its own policy and workflow history. For **Instance ID**, enter a value that is unique per machine, such as `claude-code-my-laptop`.
+2. On the **Service Account** step, create a service account for this agent only.
+3. Copy the new access key and store it securely. This key is the plugin's service account token, and Mezmo shows it only once.
+4. On the **Policy** step, assign the agent's policy.
+5. On the **Finished** step, copy the `url` value in the `[hitl.route]` table of the `config.toml` section. This URL ends in `/governance/workflow/authorize`, and the plugin uses it as `MEZMO_GOVERNANCE_URL`. The rest of the `config.toml` section applies only to AURA.
+
+<Warning>
+A governed agent can read its own token. If the service account can change policies or agents, the agent could change its own rules. Give the service account Agent Governance permissions only, without `policy` Write or `agent` Write. A service account without Agent Governance permissions gets an authentication error on every call. See [Permissions](./agent-governance#permissions).
+</Warning>
+
+## Install a Plugin
+
+The repository's `mezmo-governance` command installs a plugin into an agent's user configuration, so it governs every session of that agent on the machine.
+
+Before you begin:
+
+- Use macOS or Linux. Windows isn't tested.
+- Install Python 3.9 or later. Pi and OpenCode also need Node 22.18 or later.
+- Install the coding agent you want to govern, so its command is on your `PATH`.
+
+To install a plugin:
+
+1. Clone the repository, and change to its folder:
+
+   ```bash
+   git clone https://github.com/mezmo/ai-governance-plugins
+   cd ai-governance-plugins
+   ```
+
+2. In the shell that starts the agent, export the URL and token from [Set Up a Coding Agent in Mezmo](#set-up-a-coding-agent-in-mezmo):
+
+   ```bash
+   export MEZMO_GOVERNANCE_URL="<url from the Finished step>"
+   export MEZMO_GOVERNANCE_TOKEN="<service account access key>"
+   ```
+
+3. Preview the changes the install makes. Replace `claude-code` with the name of your agent:
+
+   ```bash
+   ./mezmo-governance install claude-code --dry-run
+   ```
+
+4. Install the plugin:
+
+   ```bash
+   ./mezmo-governance install claude-code
+   ```
+
+Keep the cloned folder where it is. Some agents, such as Claude Code and Pi, load the plugin from that folder.
+
+To see the agent names that `install` accepts, run `./mezmo-governance agents`. To install every supported agent on your `PATH`, use `--all` in place of the agent name. Some agents need an extra step after the install. For example, Codex runs the hooks only after you trust them in `/hooks`, and Claude Code can store the token in your system credential store with `/mezmo:setup governance`. See the repository's README for each agent's steps, and for the SDK integrations.
+
+## Check the Setup
+
+1. In the shell with the exported URL and token, check the settings, the connection to Mezmo, and each installed plugin:
+
+   ```bash
+   ./mezmo-governance doctor --probe
+   ```
+
+   Each check prints `ok`, `warn`, `FAIL`, or `skip`, with a fix for a failed check. The `--probe` option sends Mezmo one test call for the tool `doctor:probe`. To let the probe pass, add a rule to the agent's policy that allows tool `probe` in namespace `doctor`.
+
+2. Send each installed plugin a test shell call and read call through a local mock server:
+
+   ```bash
+   ./mezmo-governance smoke
+   ```
+
+3. In the agent, run a tool call that your policy denies. The agent shows the reason from the policy rule, and the request appears on the [Workflows](./governance-workflows) page.
+
+To remove a plugin, run `./mezmo-governance uninstall <agent> --dry-run` to preview the change, then run the same command without `--dry-run`.
+
+## Related Topics
+
+- [Agent Governance](./agent-governance)
+- [Governed Agents](./governance-agents)
+- [Agent Governance Policies](./governance-policies)
+- [Mezmo Governance plugins on GitHub](https://github.com/mezmo/ai-governance-plugins)

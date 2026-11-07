@@ -1,0 +1,76 @@
+---
+title: "Agent Governance Candidate Rules"
+description: "Review the MCP tools your AURA agents have called and turn any namespace, tool, or set of arguments into a policy rule or a test case."
+---
+
+**Candidate Rules** lists the MCP tools your agents have called through [Mezmo AURA](../aura/index). Use it to write policy rules and test cases from what your agents actually do, instead of guessing which tools and arguments to cover. For how policies decide tool calls, see [Agent Governance Policies](./governance-policies).
+
+To open the page, select **AI Governance** in the left navigation, then select **Candidate Rules**. Viewing the page needs `policy` Read, and adding rules or test cases from it needs `policy` Write. See [Permissions](./agent-governance#permissions).
+
+<Note>
+Candidate Rules is available when it is enabled for your account, in addition to Agent Governance. If you don't see **Candidate Rules** in the **Governance** sidebar, contact Mezmo, or ask your account admin about your permissions.
+</Note>
+
+## How Tool Calls Are Grouped
+
+The page groups tool calls at three levels. Each level matches a way that a policy rule can match a call:
+
+| Level | Each row shows | A rule from this row matches |
+| ---- | ---- | ---- |
+| **Namespaces** | An MCP server your agents called, and how many of its tools they called. | Any tool in the namespace. |
+| **Tool Calls** | A tool in one namespace, and how many different sets of argument names agents passed to it. | Any call to the tool. |
+| **Arguments** | One set of argument names passed to a tool. **No arguments** marks calls made without any. | Calls to the tool that pass those arguments. |
+
+Every row also shows which agents made the calls, how many calls they made, and when the calls were first and last seen.
+
+## View Tool Calls
+
+1. On the **Candidate Rules** page, choose an agent from the agent list, or keep **All agents**.
+2. Choose a date range: **Last day**, **Last 3 days**, **Last 7 days**, or **All time**. The default is **All time**. You can also pick a custom range from the calendar.
+3. Select a namespace to see the tools your agents called in it.
+4. Select a tool to see the sets of argument names your agents passed to it.
+
+Use the breadcrumb above the table to go back to **Namespaces** or **Tool Calls**. The agent, date range, and level are saved in the page URL, so you can share a link to the same view.
+
+When your agents made more calls than the page can show, a warning says that only the most called records appear. Choose one agent or a shorter date range to see every call.
+
+Calls appear only after your agents call MCP tools through AURA. If the table is empty, try a wider date range or another agent.
+
+## Add a Rule to a Policy
+
+Before you begin, you need `policy` Write.
+
+1. On the row that the rule should match, select **Add to policy**.
+2. In **Policy**, choose the policy to add the rule to, or choose **A new policy**. The list shows your newest policies.
+3. Select **Open in editor**. The policy editor opens with a rule that matches the row's namespace, tool, or tool and argument names.
+4. In the rule, choose the **Outcome When This Rule Matches**, and enter values for any arguments the rule checks. See [Write Rules](./governance-policies#write-rules).
+5. Finish and save the policy as you normally would. See [Change a Policy](./governance-policies#change-a-policy).
+
+### Add a Rule From the Policy Editor
+
+You can also pick a candidate rule while you write a policy, without leaving the policy editor.
+
+1. On the policy editor's **Rules** step, select **From candidate rules**.
+2. Select a tool your agents have called. Use **Search tools** to filter the list.
+3. Under **Match**, choose what the rule matches: any call to the tool, any tool in its namespace, or calls passing the arguments you choose. If you choose arguments, select the argument names.
+4. Select **Add rule**.
+5. In the new rule card, choose the outcome and enter values for any arguments the rule checks.
+
+## Add a Test Case
+
+Add a test case from a tool call to check how a policy decides calls your agents really make. You can add a test case from a row at the **Tool Calls** or **Arguments** level.
+
+Before you begin, you need `policy` Write.
+
+1. On the row, open the menu next to **Add to policy**, then select **Add test case**.
+2. In **Test case**, choose a saved test case to add the call to, or choose **A new test case**.
+3. Select **Open in editor**. The case editor opens with the call added.
+4. Enter the argument values and the expected outcome. See [Test Cases and Expectations](./governance-policy-testing#test-cases-and-expectations).
+5. Save the case.
+
+## Related Topics
+
+- [Agent Governance Policies](./governance-policies)
+- [Evaluate and Test Agent Governance Policies](./governance-policy-testing)
+- [Agent Governance Overview Dashboard](./governance-overview-dashboard)
+- [Agent Governance](./agent-governance)

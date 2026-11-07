@@ -1,0 +1,122 @@
+---
+title: "Governed Agents"
+description: "Register AURA agents and coding agents in Mezmo, choose the service account each one signs in with, assign a governance policy, and connect the agent to Mezmo."
+---
+
+A governed agent is an [AURA](../aura/index) agent, or a coding agent with a [governance plugin](./governance-coding-agents), registered to your Mezmo account. Registering an agent tells Mezmo which service account the agent signs in with and which policy decides its tool calls. This page explains how to register, connect, edit, and delete agents. For how agents fit into Agent Governance, see [Agent Governance](./agent-governance).
+
+Agents are listed on the **AURA Agents** page. To open it, select **AI Governance** in the left navigation, then select **Agents**.
+
+## How Mezmo Identifies an Agent
+
+Each agent signs in to Mezmo with the access key of a service account. When a tool call arrives, Mezmo looks up the agent from those credentials and evaluates the call against the agent's policy. A service account can belong to only one active agent at a time.
+
+The access key decides which agent is calling. The agent's instance ID is a label that helps you tell agents apart.
+
+## The AURA Agents List
+
+Each row on the **AURA Agents** page shows:
+
+- **Name**, with the agent's description under it
+- **Policy**, the assigned policy, or **None**
+- **Instance ID**
+- **Status**
+- **Registered**, the date the agent was registered
+
+Select a policy name to open that policy. With `agent` Write, each row also has an **Edit** button. To see the `config.toml` section for an agent, open the row's menu and select **View config.toml**.
+
+## Register an Agent
+
+Register an agent before you connect it to Mezmo, so that Mezmo can recognize its tool calls.
+
+Before you begin:
+
+- You need `agent` Write. To choose an existing service account, you also need `service_account` Read. To create one, you need `service_account` Write. See [Permissions](./agent-governance#permissions).
+- [Create a policy](./governance-policies#create-a-policy) for the agent. You can register an agent without a policy, but Mezmo refuses every tool call from it until you assign one.
+- Get the agent's instance ID. For an AURA agent, run [`aura governance info`](../aura/cli-reference#show-instance-ids-aura-governance-info) where the agent runs to print it. For a coding agent, choose an ID that is unique per machine, such as `claude-code-my-laptop`.
+
+To register an agent:
+
+1. On the **AURA Agents** page, select **Register Agent**.
+2. On the **Details** step, enter the agent's details. See [Agent Fields](#agent-fields).
+3. Select **Continue**.
+4. On the **Service Account** step, choose the service account the agent signs in with. The list shows only service accounts that no other agent uses. To create a service account, select **Create Service Account**, enter a name, and select **Create**.
+5. If you created a service account, copy its access key from the **New Service Account Key** window and store it securely, then select **Done**.
+6. Select **Continue**.
+7. On the **Policy** step, choose the policy for this agent, or choose **No policy (assign later)**. The step shows the policy's description, fallthrough, and number of rules. Select **View policy** to open the policy in a new browser tab.
+8. Select **Register Agent**.
+
+The **Finished** step confirms the registration and shows the agent ID, the service account ID, and the configuration to add to AURA. You can open the same configuration later from the agent's row on the **AURA Agents** page. A coding agent uses only the `url` value in the `[hitl.route]` table. See [Govern Coding Agents with Governance Plugins](./governance-coding-agents#set-up-a-coding-agent-in-mezmo).
+
+<Warning title="Copy a new access key before you leave">
+When you create a service account in the wizard, its access key appears only once: in the **New Service Account Key** window and again on the **Finished** step. Mezmo can't show the key again. If you choose an existing service account, the wizard shows only the key's last characters.
+</Warning>
+
+## Connect the Agent to AURA
+
+The **Finished** step shows a `config.toml` section to add to your AURA agent's configuration. It turns on an approval gate for every tool call and sends each call to your Mezmo account for a decision. It also points the agent's tool catalog sync at your Mezmo account. Copy the section from the **Finished** step, or select **View config.toml** in the agent's row menu on the **AURA Agents** page, because Mezmo fills in your account's API host.
+
+To connect the agent:
+
+1. Copy the configuration from the **Finished** step into the agent's `config.toml`.
+2. In the environment where the agent runs, set `MEZMO_GOVERNANCE_TOKEN` to the access key of the agent's service account.
+3. In the same environment, set `MZM_ACCESS_KEY` to the same access key. AURA uses it to send the agent's tool catalog to Mezmo.
+4. Restart the agent.
+
+The configuration authenticates each request with that access key. If you rotate the service account's key, update both variables with the new key.
+
+For how AURA approval gates work, see [Human-in-the-Loop Approval Gates](../aura/hitl).
+
+### Share the Agent's Tool Catalog
+
+Mezmo keeps a catalog of the MCP servers, tools, and arguments that your agents use. The catalog suggests tool names, namespaces, and arguments as you write policy rules, evaluate policies, and build test cases. Mezmo adds a tool to the catalog the first time an agent calls it.
+
+To add tools that the agent has not called yet, with their descriptions and argument types, run [`aura governance sync`](../aura/cli-reference#sync-the-mcp-tool-catalog-aura-governance-sync). The sync sends the agent's MCP tool inventory to Mezmo. It uses the `[governance.catalog]` table in the configuration from the **Finished** step.
+
+## Connect a Coding Agent
+
+To connect a coding agent such as Claude Code, Codex, or Cursor, install its plugin from the [mezmo/ai-governance-plugins repository](https://github.com/mezmo/ai-governance-plugins). Give the plugin the `url` value in the `[hitl.route]` table of the agent's configuration and the access key of the agent's service account. See [Govern Coding Agents with Governance Plugins](./governance-coding-agents).
+
+## Agent Fields
+
+| Field | Description |
+| ---- | ---- |
+| **Agent Name** | Required. 2 to 128 characters. Use letters, numbers, spaces, and the characters `_`, `.`, and `-`, with single spaces between words. |
+| **Description** | Optional. Up to 512 characters. |
+| **Instance ID** | Required. Up to 256 characters. Must be unique among the active agents in your account. You can't change it after you register the agent. |
+
+## Edit an Agent
+
+Edit an agent to change its name, description, service account, or policy.
+
+1. On the **AURA Agents** page, select **Edit** on the agent's row.
+2. On the **Details** step, change the name or description, then select **Continue**.
+3. On the **Service Account** step, keep or change the service account, then select **Continue**.
+4. On the **Policy** step, keep or change the policy.
+5. Select **Save**.
+
+A new policy applies from the agent's next tool call. The **Finished** step shows the agent's AURA configuration again. It doesn't show the access key.
+
+## Delete an Agent
+
+Deleting an agent unregisters it. Mezmo then refuses tool calls signed with its service account's key. You can't undo a deletion.
+
+Before you begin, you need `agent` Manage.
+
+1. On the **AURA Agents** page, select **Edit** on the agent's row.
+2. On the **Details** step, select **Delete**.
+3. Optional. To delete the agent's service account and access key too, select **Also delete the service account (and its access key) associated with this agent**.
+4. Confirm the deletion.
+
+If you keep the service account, you can choose it for another agent. If the agent is deleted but its service account can't be, Mezmo shows a message that only the agent was deleted. You can then delete the service account from the **API Keys** page.
+
+## Service Accounts Used by Agents
+
+Service accounts are listed under **Settings** > **Organization** > **API Keys**. You can't delete a service account that an agent uses. Instead of a delete button, its row shows an icon that links to the agent. To delete the service account, first delete the agent or give the agent a different service account.
+
+## Related Topics
+
+- [Agent Governance Policies](./governance-policies)
+- [Govern Coding Agents with Governance Plugins](./governance-coding-agents)
+- [Agent Governance Workflows](./governance-workflows)
+- [AURA CLI governance commands](../aura/cli-reference#governance-commands-aura-governance)
