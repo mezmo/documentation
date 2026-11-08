@@ -226,7 +226,9 @@ Taps live events from a deployed pipeline component via `/pipeline/{pipeline_id}
 - `timeout` (optional): Seconds to wait for events. Defaults to `2`
 - `limit` (optional): Maximum events to return, capped at `100` to keep agent context bounded. Defaults to `100`
 
-Use `get_pipeline` first to identify a source or processor component ID, and treat returned event data as potentially sensitive.
+The tap is live. It returns only events that the component outputs after the tap starts, and it stops when `limit` events arrive or `timeout` seconds pass. Events from before the call aren't returned. An empty result means no events passed through the component during that window, and it says nothing about earlier traffic.
+
+You can tap sources and processors, but not sinks, because sinks have no output. Use `get_pipeline` first to find the component ID, and treat returned event data as potentially sensitive.
 
 **Example:**
 "Tap the http-source component on pipeline 123e4567-e89b-12d3-a456-426614174000 and show me a sample of live events"
