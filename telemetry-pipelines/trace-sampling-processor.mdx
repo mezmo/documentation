@@ -5,7 +5,7 @@ description: "Sample OpenTelemetry traces at a given rate using the Trace ID, su
 
 ## Description
 
-Performs sampling of traces per a given rate using the Trace ID as the unique identifier. If a trace is rate selected, all spans of the trace are output.
+Performs sampling of traces per a given rate using the Trace ID as the unique identifier. If a trace is rate selected, its spans are output. In `tail` mode, a span that arrives after the decision expires can be held or sampled again; see [How tail sampling closes a trace](#how-tail-sampling-closes-a-trace).
 
 <Note>
 This is an experimental feature that is still in development. For access to this feature, reach out to your Customer Support Manager or support@mezmo.com.
@@ -32,6 +32,34 @@ This Processor supports sampling of [OTel traces only](https://opentelemetry.io/
 <Note>
 By default, the Trace ID and Parent Span ID fields point to `.record.traceId` and `.record.parentSpanId`. These paths match the structure produced by the combined [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source), which nests `traceId` and `parentSpanId` under a `.record` property, so the Processor works with that Source without extra setup. If your traces store these values elsewhere, set each field to the path where the value lives.
 </Note>
+
+## How tail sampling closes a trace
+
+In `tail` mode, the Processor decides a trace when the head span of the trace arrives. The head span is the span that has no Parent Span ID: the field is missing, null, an empty string, or not a string. The Processor does not wait for a timer, a maximum trace duration, or a span count before it decides.
+
+The Processor handles a trace in this order:
+
+1. A span that has a Parent Span ID and arrives before the head span is held. The Processor does not output it yet.
+2. When the head span arrives, the Processor checks it against the conditionals. If there is more than one conditional, the first one that matches is used. Only the head span is checked, so the conditional must use fields that the head span carries.
+3. The Processor applies the Rate of the matching conditional. A Rate of `1` keeps every matching trace. A Rate of `10` keeps the first matching trace and then 1 of every 10 matching traces. A trace that matches no conditional is not kept.
+4. If the trace is kept, the Processor outputs the head span and all the held spans together. If the trace is not kept, the Processor discards the held spans.
+
+The Processor remembers the decision for the trace. A span of the same trace that arrives after the decision is not evaluated again. The Processor outputs it at once if the trace was kept, and drops it if the trace was not kept. This applies whether or not the span has a Parent Span ID.
+
+### Time limit on a decision
+
+The Processor keeps the decision, and any held spans, for at least 5 minutes. The time limit is not an option of this Processor. The storage layer removes expired records on a best-effort basis, so a record can outlast the limit.
+
+After the limit passes, the Processor no longer knows the trace:
+
+- A late span that has a Parent Span ID is held again. The Processor does not output it unless a head span for the same trace arrives.
+- A late span that has no Parent Span ID is treated as a new head span. The Processor makes a new decision for the trace, and applies the Rate again.
+
+Keep these cases in mind when you design a conditional:
+
+- A trace whose head span never arrives is never output. Its held spans expire.
+- A span without a trace ID is dropped, and the Processor records a warning.
+- An event whose message is not an object is dropped, and the Processor records a warning.
 
 ## Examples
 
