@@ -1,6 +1,6 @@
 ---
 title: "Access Management for Enterprise Organizations"
-description: "Configure sign-in policies, SAML SSO, organization discoverability, and login methods for child organizations in a Mezmo Enterprise account."
+description: "Configure sign-in policies, SAML SSO, organization discoverability, billing restrictions, and login methods for child organizations in a Mezmo Enterprise account."
 ---
 
 <Note>
@@ -32,6 +32,21 @@ After enabling SSO Discoverability, you can enable discoverability settings with
 - **Join** - Members on the same domain can join the organization without a request.
 
 Your domain is determined by the email address you used when creating your Mezmo account. If you would like to add domains, please contact Mezmo support.
+
+## Billing
+
+Restrict child organization billing to keep billing for your child organizations under central control. When the restriction is on, members of a child organization can't view or change its billing. Only [enterprise admins](/docs/add-enterprise-admins) can view and change billing for child organizations. The restriction is off by default.
+
+To restrict child organization billing, go to the Access Management page in the Enterprise dashboard. Under **Billing**, toggle **Restrict child organization billing modifications** to the On position.
+
+When the restriction is on, members of a child organization who aren't enterprise admins:
+
+- Don't see the child organization's billing pages, including pricing, payment method, the invoice portal, and billing settings
+- Can't change the child organization's billing
+- Don't see failed payment alerts
+- See a message to contact their enterprise admin when the child organization has an outstanding balance, instead of a payment form
+
+The restriction applies only to organizations that are part of your enterprise.
 
 ## SAML Configuration
 
