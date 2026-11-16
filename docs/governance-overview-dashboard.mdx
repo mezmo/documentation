@@ -1,0 +1,59 @@
+---
+title: "Agent Governance Overview Dashboard"
+description: "Monitor how your AI agents use tools, how policies decide their tool calls, and where approvals are waiting on a person."
+---
+
+The **Governance Overview** dashboard shows how your agents are using tools, where your policies step in, and where requests are waiting on a person. Use it to spot pending approvals, see which tools are blocked most often, and find agents or policies that need attention. For how Agent Governance works, see [Agent Governance](./agent-governance).
+
+To open the dashboard, select **AI Governance** in the left navigation, then select **Overview**. Viewing the dashboard needs `workflow` Read. Some cards need more permissions, as noted in [Health Cards](#health-cards). See [Permissions](./agent-governance#permissions).
+
+## Choose a Time Range
+
+Most of the dashboard covers the time range you choose. The time picker in the page header offers **Last hour**, **Last 3 hours**, **Last 24 hours**, **Last 7 days**, and **Last 30 days**. The default is **Last 24 hours**. You can also pick a custom range of up to 90 days from the calendar.
+
+The selected range is saved in the page URL, so you can share a link to the same view.
+
+The dashboard does not refresh on its own. Select **Refresh** to read the latest data. The pending approvals count is the exception: it updates when new requests are waiting.
+
+## Key Metrics
+
+Four tiles at the top of the page summarize the selected range.
+
+| Tile | What it shows |
+| ---- | ---- |
+| **Evaluated requests** | How many requests from agents Mezmo evaluated. A request can hold several tool calls. |
+| **Pending approvals** | How many workflows are waiting for a decision right now, and how long the oldest one has waited. Select **Review** to open the pending workflows. This tile does not depend on the time range. |
+| **Mean time to decide** | The average time from a request being escalated to a person's decision. |
+| **Automation rate** | The share of requests that policy rules decided without a person, as allowed or denied. A request that was escalated counts as escalated even if a person later approved it. |
+
+## Activity Cards
+
+| Card | What it shows |
+| ---- | ---- |
+| **Enforcement outcomes** | Tool calls over time, split into **Allowed**, **Requires approval**, and **Denied**. Select a series in the legend to hide it. A call that a person later approved still counts as **Requires approval**. |
+| **Tool activity** | The five most used tools, and the five tools or agents with the most denied calls. Switch between **Tools** and **Agents**. Select a blocked tool or agent to open its denied workflows. |
+| **Calls by server** | Calls to each MCP server, split by the agents that made them. Counts cover whole days in UTC, so the dates the card covers can differ slightly from the range you chose. Select a server to open [Candidate Rules](./governance-candidate-rules) for its namespace, or select **Candidate rules** to open the full page. Appears when Candidate Rules is enabled for your account and you have `policy` Read. |
+| **Most-triggered policies** | The five policies that evaluated the most tool calls, and the rules in each that decided the most calls. Select a policy to open it. |
+| **Human approvals** | Escalated requests over time, split into approved, denied, and still pending. **Waiting longest** lists the three oldest pending workflows. |
+| **Revision velocity** | Policy revisions over time, by how each one was made: **Create**, **Edit**, **Fork**, or **Revert**. See [Revision History](./governance-policies#revision-history). |
+
+## Health Cards
+
+These cards show the current state of your agents and policies, whatever time range you choose.
+
+| Card | What it shows | Needs |
+| ---- | ---- | ---- |
+| **Agent coverage** | The share of active agents that have a policy, with counts of governed, ungoverned, and deactivated agents. **Active with no policy** lists agents that need a policy, with an **Assign** link. Mezmo refuses every tool call from an agent with no policy. | `agent` Read |
+| **Orphaned policies** | Policies that no active agent uses. Select **Assign agents** to open the **AURA Agents** page. | `policy` Read |
+| **Draft edit locks** | Open policy drafts and who holds each one. A hold that has expired is listed first. With `policy` Write, select **Release** on an expired hold to discard that draft so other editors can work on the policy. | `policy` Read |
+
+<Warning title="Releasing a lock discards the draft">
+Selecting **Release** on a draft edit lock discards the draft, including the holder's unaccepted changes. Check with the holder before you release a lock.
+</Warning>
+
+## Related Topics
+
+- [Agent Governance Workflows](./governance-workflows)
+- [Agent Governance Policies](./governance-policies)
+- [Agent Governance Candidate Rules](./governance-candidate-rules)
+- [Governed Agents](./governance-agents)

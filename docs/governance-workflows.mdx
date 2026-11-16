@@ -1,0 +1,95 @@
+---
+title: "Agent Governance Workflows"
+description: "Review the tool-call requests your AI agents send, and approve or deny the ones an Agent Governance policy holds for approval."
+---
+
+An Agent Governance workflow is the record of one request from an agent: the tool calls the agent wanted to run, and how each one was decided. Use the **Workflows** page to see what your agents asked to do, and to approve or deny the requests that a policy holds for a person. This page explains how to find, review, and decide workflows. To decide from Slack instead, see [Approve Agent Governance Requests in Slack](./governance-slack-approvals).
+
+To open your workflows, select **AI Governance** in the left navigation, then select **Workflows**. The page is headed **Workflow Decisions**. Viewing workflows needs `workflow` Read, and deciding them needs `workflow` Write. See [Permissions](./agent-governance#permissions).
+
+## How a Workflow Is Created
+
+Mezmo records a workflow for every request an agent sends, whatever the outcome. When an agent sends tool calls, the agent's policy evaluates each one. The workflow's status follows from the outcome:
+
+| Status | What happened |
+| ---- | ---- |
+| **Approved** | The policy allowed every call, or a person approved the request. |
+| **Denied** | The policy denied a call, or a person denied the request. |
+| **Pending** | The policy held a call for approval, and the request is waiting for a person. |
+| **Expired** | Nobody approved or denied the request within the approval window. |
+
+For how policies reach an outcome, see [Agent Governance Policies](./governance-policies#how-a-policy-decides). For the agents that send requests, see [Governed Agents](./governance-agents).
+
+A workflow keeps a copy of the agent and policy as they were when it was created. It still reads correctly after the agent or policy is renamed, changed, or deleted.
+
+## Find Workflows
+
+The **Workflow Decisions** list shows each workflow's **Status**, a summary of the request under **Workflow**, the **Agent**, the **Policy**, the **Tool Calls**, and when it was **Requested**. The newest workflows are first.
+
+To narrow the list:
+
+- Select a status tab: **All**, **Pending**, **Approved**, **Denied**, or **Expired**.
+- Choose an agent from **All Agents** or a policy from **All Policies**. These filters apply to the page of results you're viewing.
+
+The filters are saved in the page URL, so you can share a filtered view. The first page of the list refreshes every 30 seconds. Select a row to open the workflow.
+
+When requests are waiting, the **AI Governance** item in the left navigation shows how many. Hover over it to see the newest pending workflows, and select one to open it.
+
+## Review a Workflow
+
+A workflow's detail page shows:
+
+- The status, when the request was made, and a headline that names the first call the policy held or denied
+- For a decided workflow, who decided it, when, and the reason they gave. A workflow that the policy decided shows **Approved by policy** or **Denied by policy**.
+- **Tool Calls**: each call's tool, namespace, intent, and arguments, the outcome the policy gave it, and any code and message from the deciding rule. A call that runs after other calls lists them.
+- **Agent & Policy**: the agent that sent the request and the policy that evaluated it, with links to each. If either has since been deleted, it's marked as no longer existing.
+- **Timeline**: when the workflow was recorded, how the policy evaluated it, and how it was resolved
+- **Request debug info**: identifiers for the request, such as the agent instance, scope, origin, request ID, and decision ID. Select it to expand it.
+
+## Approve or Deny a Workflow
+
+Decide a pending workflow so the agent can continue. Approving runs the held calls. Denying refuses them.
+
+Before you begin:
+
+- You need `workflow` Write.
+- If the workflow's policy names an approving role, you need to be a member of that role. See [Who Can Decide](#who-can-decide).
+
+1. Open the pending workflow.
+2. Optional. Enter a **Reason**. Mezmo records it with the decision and returns it to the agent. Up to 256 characters.
+3. Select **Approve Workflow** or **Deny**.
+
+The workflow's status changes to **Approved** or **Denied**, and the agent receives the decision.
+
+### Who Can Decide
+
+The approving role comes from the policy as it was when the workflow was created. Editing the policy or changing its approving role later doesn't change who can decide workflows that are already pending. To change who can decide them, change who belongs to the role. See [Role-Based Access Control](./rbac).
+
+If the policy names no approving role, anyone with `workflow` Write can decide. Mezmo checks the approving role when you select **Approve Workflow** or **Deny**. If you aren't a member, the decision isn't recorded and an error appears.
+
+If you can't decide a workflow, share its URL with someone who can. To notify approvers automatically, [add Slack channels to the policy](./governance-slack-approvals).
+
+## Expired Workflows
+
+A pending workflow can be approved or denied for 15 minutes. After that, Mezmo no longer accepts a decision, and within a few minutes the workflow's status changes to **Expired**. Its timeline ends with **Expired before a decision was made**.
+
+The agent treats an expired request like a denial, and the held calls don't run.
+
+## Save a Workflow as a Test Case
+
+Turn a real request into a test case, so you can check that later policy changes keep deciding it the same way. You need `policy` Write, and the workflow needs at least one tool call.
+
+1. Open the workflow.
+2. In the **Tool Calls** header, select **Save workflow as**.
+3. Choose where to save it:
+   - **Policy Test Case** adds the case to the test suite of the policy that evaluated the workflow. This option appears only if that policy still exists.
+   - **Test Case Library** saves the case to the **Test Cases** library, where any policy can use it.
+
+The outcomes from the workflow become the case's expectations. Check them before you save. See [Evaluate and Test Agent Governance Policies](./governance-policy-testing#test-a-policy).
+
+## Related Topics
+
+- [Approve Agent Governance Requests in Slack](./governance-slack-approvals)
+- [Agent Governance Policies](./governance-policies)
+- [Agent Governance Overview Dashboard](./governance-overview-dashboard)
+- [Human-in-the-Loop Approval Gates](../aura/hitl)

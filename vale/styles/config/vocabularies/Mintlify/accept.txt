@@ -9,6 +9,7 @@ Ansible
 antimalware
 apiKey
 APIs
+[Aa]pprover(s)?
 Aptible
 arcsin
 arccos
@@ -60,6 +61,7 @@ explorable
 extensionless
 failover
 failsafe
+fallthrough
 Fastly
 firehose
 Fluentd
@@ -104,6 +106,7 @@ Logspout
 Logstash
 loki
 loopback
+Mastra
 Mezmo
 middleware
 msg
@@ -148,6 +151,7 @@ repos
 RSyslog
 ruleset
 runbook(s?)
+SDKs
 serverless
 sidebarTitle
 signup
@@ -187,6 +191,7 @@ uninstallations
 [Uu]nmute(s|d)?
 [Uu]npause
 unparsed
+unregister(s|ed)?
 url
 userinfo
 uuid(s?)

@@ -86,6 +86,33 @@
         "pages": ["mezmo-platform"]
       },
       {
+        "tab": "Mezmo MCP and AI",
+        "groups": [
+          {
+            "group": "Mezmo MCP and AI",
+            "pages": [
+              "docs/mezmo-mcp",
+              "docs/use-ai-assistant",
+              "docs/ai-investigations"
+            ]
+          },
+          {
+            "group": "Agent Governance",
+            "pages": [
+              "docs/agent-governance",
+              "docs/governance-overview-dashboard",
+              "docs/governance-agents",
+              "docs/governance-coding-agents",
+              "docs/governance-policies",
+              "docs/governance-policy-testing",
+              "docs/governance-candidate-rules",
+              "docs/governance-workflows",
+              "docs/governance-slack-approvals"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Log Management",
         "groups": [
           {
@@ -195,17 +222,11 @@
             ]
           },
           {
-            "group": "Mezmo MCP and AI",
+            "group": "Integrations",
             "pages": [
-              "docs/mezmo-mcp",
-              "docs/use-ai-assistant",
-              "docs/ai-investigations",
+              "docs/ingestion-integrations/github-events",
               "docs/ingestion-integrations/akamai-cloud-monitor-logs"
             ]
-          },
-          {
-            "group": "Integrations",
-            "pages": ["docs/ingestion-integrations/github-events"]
           },
           {
             "group": "Other Topics",
