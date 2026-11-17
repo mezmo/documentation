@@ -17,9 +17,29 @@ The Destination accepts these events:
 | Traces | Events from the **Traces** output of the OpenTelemetry source, or from the deprecated **OpenTelemetry Traces** source |
 | Metrics | Events from the **Metrics** output of the OpenTelemetry source, or Mezmo metric events |
 
-The Destination doesn't send summary metrics.
-
 A span from the OpenTelemetry source must have a valid `traceId` and `spanId`. The Destination doesn't send a span whose ID is missing or invalid, and reports an error that names the field. The rest of the batch is still sent.
+
+### How Metrics Are Sent
+
+The Destination converts each [Mezmo metric](./metric-data-within-the-pipeline) to an OpenTelemetry metric type:
+
+| Mezmo metric `value` type | Sent as |
+| ---- | ---- |
+| `gauge` | Gauge |
+| `counter` | Monotonic sum |
+| `set` | Gauge that holds the number of values in the set |
+| `distribution` | Histogram, after the samples are grouped into buckets |
+| `histogram` | Histogram |
+| `summary` | A gauge named `<name>` with one data point per percentile, plus monotonic sums named `<name>_sum` and `<name>_count` |
+| `sketch` | Not sent |
+
+These details apply to the conversion:
+
+- Each percentile data point of a summary has a `quantile` attribute that holds the percentile as a string, for example `"0.99"`. Summaries from the OpenTelemetry source are sent the same way.
+- When a metric doesn't say whether it's delta or cumulative, the Destination decides from the metric's `kind`. `incremental` metrics are sent as delta and `absolute` metrics as cumulative.
+- The `tags` of a Mezmo metric are sent as attributes on each of its data points. When a tag has the same key as an attribute in the event's metadata, the metadata value is sent.
+- A metric with no timestamp is sent with the current time.
+- When the Destination drops a `sketch` metric, it reports an error that names the type. The rest of the batch is still sent.
 
 ## Configuration
 
