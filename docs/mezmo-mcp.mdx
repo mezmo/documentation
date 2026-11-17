@@ -595,10 +595,7 @@ Mezmo MCP protects against queries that would process too much data. This keeps 
 
 ### How It Works
 
-When you run a tool that processes logs, Mezmo MCP checks how many entries match your query:
-
-- **Confirmation prompt**: If your query matches a large number of logs, the server asks you to confirm before proceeding. You can narrow your query or confirm to continue.
-- **Query rejection**: If your query matches an extremely large number of logs, the request is rejected. Try narrowing your time range or adding more specific filters.
+When you run a tool that processes logs, Mezmo MCP first counts how many entries match your query. If the count exceeds the maximum, the server rejects the request with a "Query Too Large" message that shows your log count and the maximum allowed. Queries under the maximum run without interruption.
 
 ### Affected Tools
 
@@ -612,11 +609,10 @@ These tools have query protection:
 
 ### Tips for Working with Large Datasets
 
-If you see a confirmation prompt or rejection:
+If your query is rejected:
 
 1. **Narrow your time range.** Try "last 1 hour" instead of "last 24 hours".
 2. **Add filters.** Use fielded search to target specific logs (for example, `app`, `host`, `level`, `namespace`, or `pod`). See [Query Syntax](#query-syntax) for the full list.
-3. **Confirm when appropriate.** If you've reviewed the log count and want to proceed, confirm the prompt.
 
 ### Retention Window Limits
 
