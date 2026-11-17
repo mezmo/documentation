@@ -19,3 +19,21 @@ The destination can be configured according to these options.
 | API Endpoint | Select **Logs**, **Metrics**, or **Traces**. The default is **Logs**. Select **Traces** to route data to the New Relic Trace API. | 
 | Region | The New Relic region to send data to. Select **US** or **EU**. The default is **US**. | 
 | New Relic License Key | Your New Relic Account License Key | 
+
+## OpenTelemetry Metrics
+
+When you select the **Metrics** endpoint, you can send metrics from the [OpenTelemetry Source](/telemetry-pipelines/open-telemetry-source) to New Relic. The destination maps them the same way New Relic's own OTLP endpoint does:
+
+| OpenTelemetry metric | Sent to New Relic as |
+| ---- | ---- |
+| Gauge | `gauge` |
+| Cumulative sum (counter) | `count`, holding the change since the previous data point |
+| Delta sum (counter) | `count` |
+| Histogram, exponential histogram, or summary | `summary`, with count, sum, min, and max |
+
+These details apply to the conversion:
+
+- The first data point of a cumulative series sets a starting value and isn't sent. Each later data point is sent as the change since the one before it. A new start time counts as a counter reset.
+- Histogram buckets, summary percentile values, and exemplars aren't sent.
+- The instrumentation scope name and version are sent as the `otel.library.name` and `otel.library.version` attributes. The metric unit and description are sent as the `unit` and `description` attributes.
+- Histograms and summaries from other sources are also sent as `summary`. Absolute counters from other sources are still sent as `gauge`.

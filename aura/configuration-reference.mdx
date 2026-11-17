@@ -466,7 +466,7 @@ Requires `memory_dir` to be set at the root level and `context_window` to be set
 | `context_safety_margin` | float | `0.20` | Fraction of the context window (0.0–1.0) reserved for reasoning and output. Scratchpad intercepts output before this budget is exhausted. |
 | `max_extraction_tokens` | integer | `10000` | Maximum tokens a single exploration tool call may return, preventing a single read from flooding the context. |
 | `turn_depth_bonus` | integer | `6` | Extra tool-call turns added when scratchpad is active, to leave room for exploration calls after interception. |
-| `coordinator` | bool | `true` | In orchestration, give the coordinator a scratchpad of its own so large artifacts it reads come back as pointers. Set to `false` to use scratchpad on workers only. Available only in the AURA nightly release. See [Coordinator Scratchpad](/aura/scratchpad#coordinator-scratchpad). |
+| `coordinator` | bool | `true` | In orchestration, give the coordinator a scratchpad of its own so large artifacts it reads come back as pointers. Set to `false` to use scratchpad on workers only. See [Coordinator Scratchpad](/aura/scratchpad#coordinator-scratchpad). |
 
 ```toml
 memory_dir = "/tmp/aura-sessions"

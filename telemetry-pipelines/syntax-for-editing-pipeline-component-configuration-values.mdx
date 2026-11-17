@@ -72,7 +72,7 @@ Data references, otherwise known as templates, are used to insert data fields wi
 Templates must reference a simple type. This is because templates are used in strings, and the values must allow string coercion. Using the example JSON above, `{{data}}` would be invalid, but `{{.data."extra-data"}}` is valid.
 </Note>
 
-For example, in the case of sending data to Log Analysis via a Pipeline, the `hostname` field is a required value from the Log Analysis API. You could include a static hostname field if desired, but more likely you would want to use a data reference to identify a hostname that would come in from an event object.
+For example, in the case of sending data to Log Analysis via a Pipeline, the `hostname` field is a required value for the [Mezmo API ingestion endpoint](/api-reference/ingestion/send-log-lines). You could include a static hostname field if desired, but more likely you would want to use a data reference to identify a hostname that would come in from an event object.
 
 #### Static Values
 

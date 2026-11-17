@@ -62,8 +62,16 @@ agent.stream (LLM, ROOT)
 
 ### Agent root (`agent.stream`)
 
-`user.id`, `session.id`, `metadata`, `input.value`, `output.value`,
+`run.id`, `user.id`, `session.id`, `metadata`, `input.value`, `output.value`,
 `llm.token_count.prompt`, `llm.token_count.completion`, `llm.token_count.total`
+
+`run.id` is the run's id, the same value as the HITL webhook's `request_id`. A
+run started from a Slack message also carries `slack.channel` and `slack.ts`.
+
+### A2A task root (`a2a.task`)
+
+An A2A task's run is rooted at `a2a.task`, which carries `run.id`,
+`a2a.task_id`, and `a2a.context_id`.
 
 ### Orchestration spans
 

@@ -61,6 +61,10 @@ events; that is the only effect of ordering.
 The `request_approval` tool is never matched by these globs. It is excluded from
 the gate so the agent can ask for approval without triggering the gate itself.
 
+The `request_approval` tool's description lists the agent's MCP tools that a
+`require_approval` pattern matches. The agent calls those tools directly, because
+each call already prompts for approval, instead of asking for approval first.
+
 `timeout_secs` defaults to `300` for webhooks. If the webhook does not return a
 decision before the timeout, the tool does not run.
 
@@ -119,7 +123,7 @@ wire shape with `kind` tags for `scope` and `origin`:
 {
   "version": 1,
   "decision_id": "019edc27-e4d2-7950-abbf-e37a9060887d",
-  "request_id": "req_d6df99fd5c8b4eb6af6e0de049e9c0d6",
+  "request_id": "019edc27-d9a0-7c51-b3a4-6f2e8a1c4d70",
   "scope": {
     "kind": "worker",
     "run_id": "019edc27-d7e1-73d2-ac33-1a1e21b3fffd",
@@ -169,6 +173,20 @@ Deny the tool call, optionally with a reason:
 { "approved": false, "reason": "maintenance window not open" }
 ```
 
+A receiver that decides each item separately can also return a `decisions`
+array, with one entry per item:
+
+```json
+{
+  "approved": true,
+  "reason": null,
+  "decisions": [{ "id": 0, "approved": true, "reason": null }]
+}
+```
+
+Aura accepts the array but acts on the top-level `approved` and `reason`. Each
+request carries one item.
+
 Response behavior:
 
 | Outcome | Tool execution | Worker-visible result |
@@ -177,7 +195,7 @@ Response behavior:
 | `approved: false` | Tool does not run. | The worker receives a blocked-action message with the denial reason. |
 | Timeout | Tool does not run. | The worker receives a tool error: approval timed out. |
 | Non-2xx response | Tool does not run. | The worker receives a tool error: approval channel error. |
-| Invalid JSON response | Tool does not run. | The worker receives a tool error: approval channel error. |
+| Invalid JSON response, or a key other than `approved`, `reason`, or `decisions` | Tool does not run. | The worker receives a tool error: approval channel error. |
 
 ## SSE lifecycle events
 
