@@ -11,7 +11,7 @@ Log data that matches an Exclusion Rule is not saved. Be careful when setting ex
 
 ## Feature Notes
 
-- You can filter log data by source, app, or specific queries
+- You can filter log data by host, app, or specific queries
 - Log data that is filtered out with Exclusion Rules will not count toward your usage
 - Any Admin or organization member can create exclusion rules, and can add as many as needed
 - Exclusion rules will begin filtering log data within a few minutes of being saved
@@ -20,21 +20,20 @@ Log data that matches an Exclusion Rule is not saved. Be careful when setting ex
 
 To validate that your Exclusion Rule is filtering log data as expected before saving it, [create a view](/docs/create-and-edit-views) the same criteria as the rule and save it. In the view you should see the same log data that will be excluded by the rule. 
 
-When you save the Exclusion Rule, if you **don't** select the option to **Preserve for Live-Tail and Alerts**, then you can check if the rule is applied correctly by seeing if any log data continues to appear in the view. If you do select this option, you may want to monitor the usage from the specified sources in your Usage Dashboard to make sure the rule is being applied. 
+When you save the Exclusion Rule, if you **don't** select **Preserve these lines for Live Tail and alerting**, then you can check if the rule is applied correctly by seeing if any log data continues to appear in the view. If you do select this option, you may want to monitor the usage from the specified sources in your Usage Dashboard to make sure the rule is being applied. 
 
 ## Create an Exclusion Rule
 
-1. Go to **Usage &gt; Exclusion Rules**.
-2. Click **Add Rule**. 
-3. Enter a functional title for the rule, like **Exclude daemon.log**.
-4. Select any **Sources** from which you want to exclude log data. 
-5. Select **Apps** from which you want to exclude log data. 
-6. Enter any **Query** you want to use to exclude log data. 
-7. Click **Save**.
+A log line is excluded only when it matches every criterion you set in the rule. Each rule needs at least one host, app, or query.
 
-<Note>
-If you select this option, your log data will first come through a live tail and be processed for alerts before the exclusion rule is applied.
-</Note>
+1. Go to **Usage &gt; Exclusion Rules**.
+2. Click **Add Rule**. The **Create Exclusion Rule** page opens.
+3. In **Name**, enter a functional title for the rule, like **Exclude daemon.log**.
+4. Optional. In **Hosts**, select the hosts from which you want to exclude log data.
+5. Optional. In **Apps**, select the apps from which you want to exclude log data.
+6. Optional. In **Query**, enter a [search query](/docs/search-and-filter) that matches the log lines you want to exclude.
+7. Optional. To also keep matching lines out of Live Tail and alerts, clear **Preserve these lines for Live Tail and alerting**. While this option is selected, matching lines still stream to Live Tail and can trigger alerts, but they aren't stored.
+8. Click **Save**.
 
 ### Exclusion Rule Limitations
 
@@ -42,3 +41,12 @@ Certain fields are restricted from use within your Exclusion Rule. Utilizing any
 
 - `_retention`
 - `_mezmo_line_size`
+
+## Manage Exclusion Rules
+
+The **Exclusion Rules** page lists each rule as a card that shows its hosts, apps, and query.
+
+- To find a rule, enter a rule name, host, app, or query in the search bar. To show only active rules, select **Hide inactive**.
+- To turn a rule off or back on, click the toggle on its card. An inactive rule stays in the list but doesn't exclude log data.
+- To edit a rule, open its actions menu (**...**) and select **Edit**. Change the rule and click **Save**.
+- To delete a rule, open its actions menu (**...**) and select **Delete**, then confirm. You can also click **Delete** on the rule's edit page.
