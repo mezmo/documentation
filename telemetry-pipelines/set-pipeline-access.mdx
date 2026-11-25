@@ -3,7 +3,7 @@ title: "Set Pipeline Access"
 description: "Control who can view, build, and deploy pipelines by setting the Pipelines, Processor Groups, and Shared Ingestion Source permission levels on a role."
 ---
 
-You control pipeline access through role permissions you set at **Settings > Organization > Roles**. Three separate pipeline resources each have their own permission level, so a role can grant one level of access to pipelines and a different level to processor groups or shared ingestion sources. Each level maps to a set of pipeline permissions, from **Read** for viewing, to **Write** for building, to **Manage** for publishing and deploying. Roles are the standard way to grant access, so see [Role-Based Access Control](/docs/rbac) for how roles work and [Manage Users](/docs/manage-members) for assigning a role to a user.
+You control pipeline access through role permissions you set at **Settings > Users & Access > Roles**. Three separate pipeline resources each have their own permission level, so a role can grant one level of access to pipelines and a different level to processor groups or shared ingestion sources. Each level maps to a set of pipeline permissions, from **Read** for viewing, to **Write** for building, to **Manage** for publishing and deploying. Roles are the standard way to grant access, so see [Role-Based Access Control](/docs/rbac) for how roles work and [Manage Users](/docs/manage-members) for assigning a role to a user.
 
 ## Pipeline Permission Resources
 
@@ -26,7 +26,7 @@ Each of the three resources can be set to one of four levels. The table below de
 
 Publishing or deploying a pipeline or processor group requires the **Manage** level. A role set to **Write** can build and save, but a user needs **Manage** before they can push that work live.
 
-When a user does not hold the level an action requires, the control for that action is disabled. If you do not have access to **Settings > Organization > Roles**, ask your organization admin to set the level your action requires.
+When a user does not hold the level an action requires, the control for that action is disabled. If you do not have access to **Settings > Users & Access > Roles**, ask your organization admin to set the level your action requires.
 
 ## Default Role Permissions
 
@@ -43,7 +43,7 @@ System roles are view-only, but you can clone one to use it as the starting poin
 
 ## Set Pipeline Permissions for a Role
 
-1. Go to **Settings > Organization > Roles**, open a role, and go to the **Permissions** tab. To create or clone a role, see [Role-Based Access Control](/docs/rbac).
+1. Go to **Settings > Users & Access > Roles**, open a role, and go to the **Permissions** tab. To create or clone a role, see [Role-Based Access Control](/docs/rbac).
 2. Under the **PIPELINE** header, select the level (**None**, **Read**, **Write**, or **Manage**) for each of the three resources.
 3. Click **Save**.
 

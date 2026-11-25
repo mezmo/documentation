@@ -22,8 +22,8 @@ You also have options to include Extended Repository Events, Issues Events, and 
 ## Set Up GitHub Event Logging
 
 1. Log in to the [Mezmo Web App](http://app.mezmo.com).
-2. Go to **Settings &gt; Integrations &gt; GitHub**.
-3. Click **Connect to GitHub**.
+2. Go to **Settings &gt; Organization &gt; Integrations**.
+3. On the **GitHub** card, click **Connect to GitHub**.
 If prompted, sign in to GitHub.
 4. Click **Authorize Application**.
 5. Select the GitHub repositories that you want to monitor.
@@ -32,3 +32,16 @@ If prompted, sign in to GitHub.
 <Note>
 If you select the GitHub source in the **All Sources** filter, you can see all GitHub events that were sent to Mezmo. You can also filter by specific repositories in **All Apps &gt; Repositories** .
 </Note>
+
+## Disconnect GitHub
+
+Disconnecting stops monitoring the repositories you added to this Mezmo account and deletes their webhooks. Repositories that other users added keep sending events.
+
+1. Go to **Settings &gt; Organization &gt; Integrations**.
+2. On the **GitHub** card, click **Manage**.
+3. Click **Disconnect**.
+4. In the **Disconnect GitHub?** dialog, click **Disconnect**.
+
+If GitHub doesn't delete a repository's webhook, Mezmo lists the affected repositories. Remove those webhooks in each repository's webhook settings on GitHub.
+
+To monitor repositories again, click **Connect to GitHub** and select the repositories.
