@@ -11,6 +11,14 @@ Mezmo supports [common log types](/docs/ingestion#supported-types) and parses th
 
 ## Feature Notes
 
+### Template Editors
+
+You can build parsing templates in the classic editor or in the new parsing template editor. In the new editor, you highlight a value in a sample log line to create a field, and you see the parsed result for every sample line as you work. Both editors open the same templates, so you can switch between them at any time.
+
+The first time you open the Manage Parsing page, select **Try the new editor** or **Not now**. Your browser remembers the choice. To switch later, select **Try the new editor** or **Use the classic editor** on the Manage Parsing page.
+
+To build a template in the new editor, see [Create a Template with the New Editor](/docs/create-a-parsing-template#create-a-template-with-the-new-editor).
+
 ### Multiple Templates
 
 You can have multiple custom parsing templates. Custom Parsing templates are applied to your logs based on the order of active templates. For example if you have two active templates that target the same log line, then the templates are applied in the order on the Manage Parsing page. 
@@ -27,6 +35,8 @@ You can change the order of active templates by dragging them on the Manage Pars
 - **On** - Valid parsing templates that will be applied to your logs.
 - **Off** - Valid parsing templates that won't be applied to your logs.
 - **Draft** -  Invalid parsing templates. These are either incomplete, contains errors or have not been validated.
+
+In the new editor, templates that are on show as **Live**. A draft of a live template shows as **Unpublished changes** on the live template's row.
 
 ## Tips and Troubleshooting
 

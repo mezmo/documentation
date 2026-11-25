@@ -111,3 +111,33 @@ Active parsing templates are only applied to the lines that come in after the te
 The log lines the template applies to will show in the Log Viewer.
 
 ![](/images/docs/3goy2g40133nqghnvjufeylw910ee0jk2x6uq4a8ic4zfozakjm69nyh105vhyiu.png)
+
+## Create a Template with the New Editor
+
+The sections above use the classic editor. In the new editor, you build each field by highlighting a value in a real log line, and you see the result on every test line before you publish.
+
+1. Go to [Parsing Templates](https://app.mezmo.com/manage/custom-parsing/templates) and select **Try the new editor**.
+2. Select **New template**.
+3. In the name box at the top of the page, enter a name for the template.
+4. Under **Test lines**, enter a search query for the log lines this template parses, such as `app:checkout-api`, and select **Pull samples**. The test lines are the most recent matching lines from the last 3 days. To use your own line instead, select **+ Paste a line**.
+5. In a test line, highlight the value you want to capture. The **Capture as a field** dialog opens.
+6. Enter a field name. Field names can't start with an underscore or contain spaces.
+7. Optional. To store the value as a number, under **Store as**, select **Number**.
+8. Under **Find it by**, select one of the suggested ways to find the value. To chain steps such as split, text between, JSON, CSV, join, and trim yourself, select **Build the steps myself**. The dialog shows the value found on each test line.
+9. Select **Add field**. Mezmo saves the template as a draft, and the **Found in** column shows how many test lines contain the field. To add more fields, repeat steps 5 through 9.
+10. Select **Publish**. You need a query and at least one field to publish.
+
+Changes to live templates can take up to 15 minutes to take effect.
+
+### Edit a Live Template in the New Editor
+
+The new editor doesn't change a live template in place. Instead, it creates a draft, and the live template keeps running until you publish the draft.
+
+1. On the Manage Parsing page, select the template.
+2. Select **Edit**. If the template already has a draft, select **Open draft** instead.
+3. Change the fields or query.
+4. Select **Publish changes**. To delete the draft and keep the live template as it is, select **Discard changes** instead.
+
+<Warning>
+If you edit a template from the classic editor that has branches that don't capture a field, the new editor removes those branches the next time you change a field.
+</Warning>
